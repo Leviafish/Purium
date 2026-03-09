@@ -36,8 +36,13 @@ Window:EditOpenButton({
     Icon = "monitor",
     CornerRadius = UDim.new(0,16),
     StrokeThickness = 2,
-    Color = Color3.fromRGB(255, 255, 255), -- Fix lỗi Hex Color
-    OnlyMobile = false, Enabled = true, Draggable = true,
+    Color = ColorSequence.new( -- ĐÃ ĐỔI SANG GRADIENT TRẮNG ĐEN
+        Color3.fromHex("FFFFFF"), 
+        Color3.fromHex("000000")
+    ),
+    OnlyMobile = false,
+    Enabled = true,
+    Draggable = true,
 })
 
 Window:Tag({ Title = "v1.6.6", Icon = "github", Color = Color3.fromRGB(48, 255, 106), Radius = 10 })
@@ -321,5 +326,6 @@ task.spawn(function()
 end)
 
 ThemeSection:Keybind({ Title = "Keybind", Desc = "Keybind to open ui", Value = "G", Callback = function(v) pcall(function() Window:SetToggleKey(Enum.KeyCode[v]) end) end })
+
 
 print("Successfully loaded all assets! Purium on Top!")

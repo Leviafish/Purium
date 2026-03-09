@@ -1,6 +1,7 @@
 ---------------------------------------------
 -- Part 1 : Auto Farm
 ---------------------------------------------
+print("Loading script maybe take a few seconds to complete")
 game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Purium On Top!", Text = "Loading Script...", Duration = 3 })
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 local Window = WindUI:CreateWindow({
@@ -84,7 +85,7 @@ InfoSection:Paragraph({
 })
 InfoSection:Paragraph({
     Title = "Owner | Developers",
-    Desc = "@hlck49[Owner]\nHieu&Thanh[Developers]",
+    Desc = "@hlck49 [Owner]\nHieu&Thanh [Developers]",
 })
 InfoTab:Space()
 local UpdateSection = InfoTab:Section({ 
@@ -258,8 +259,13 @@ AutoFarmSection:Toggle({
     Value = false,
     Callback = function(Value)
         if Value then
-            local _call150 = Instance.new('ScreenGui', game:GetService("CoreGui"))
+            local _call150 = Instance.new('ScreenGui')
             _call150.Name = 'StatsGUI'
+            
+            -- FIX LỖI COREGUI TRÊN CÁC EXECUTOR LỎ
+            local success = pcall(function() _call150.Parent = (gethui and gethui()) or game:GetService("CoreGui") end)
+            if not success then pcall(function() _call150.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui") end) end
+
             local _call152 = Instance.new('Frame', _call150)
             _call152.Name = 'Quorum'
             _call152.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
@@ -299,8 +305,11 @@ AutoFarmSection:Toggle({
             _call166.Size = UDim2.new(0.74, 0, 0.26, 0); _call166.Position = UDim2.new(0.11, 0, 0.59, 0)
             _call166.BackgroundTransparency = 1; _call166.TextColor3 = Color3.fromRGB(255, 255, 255)
             _call166.Font = Enum.Font.PermanentMarker; _call166.TextScaled = true; _call166.Text = '00:00:00'
-            local _points = _LocalPlayer22:WaitForChild('leaderstats'):WaitForChild('Points')
-            local _startPoints = _points.Value
+            
+            -- FIX LỖI INFINITE YIELD LEADERSTATS NẾU CHƯA LOAD KỊP
+            local _stats = _LocalPlayer22:WaitForChild('leaderstats', 5)
+            local _points = _stats and _stats:WaitForChild('Points', 5)
+            local _startPoints = _points and _points.Value or 0
             local _startTime = os.time()
             _G.StatsLoop = _call19.RenderStepped:Connect(function()
                 if _points then
@@ -380,4 +389,4 @@ ThemeSection:Keybind({
         Window:SetToggleKey(Enum.KeyCode[v])
     end
 })
-
+print("successfully loaded all asset!")

@@ -86,10 +86,15 @@ InfoSection:Paragraph({
     Title = "Owner | Developers",
     Desc = "@hlck49[Owner]\nHieu&Thanh[Developers]",
 })
-InfoTab:space()
-local Update = InfoTab:Section({ Title = "Script Information", Icon = "book-open", Opened = true, Box = true })
-InfoSection:Paragraph({
-    Title = "Update | Changlogs :",
+InfoTab:Space()
+local UpdateSection = InfoTab:Section({ 
+    Title = "Changelogs & Updates", 
+    Icon = "history", 
+    Opened = true, 
+    Box = true 
+})
+UpdateSection:Paragraph({
+    Title = "Update | Changelogs :",
     Desc = "[+] Improved Auto Farm\n[+] Added Auto Rejoin Game\n[+] Fixed Stats UI\n[+] Fixed Not Auto teleport choose map, mode\n[+] Change UI For More Stable To Use!",
 })
 local AutoFarmSection = MainTab:Section({ Title = "Auto Farm Mode", Icon = "swords", Opened = true, Box = true })
@@ -375,3 +380,4 @@ ThemeSection:Keybind({
         Window:SetToggleKey(Enum.KeyCode[v])
     end
 })
+

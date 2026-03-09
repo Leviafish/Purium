@@ -31,15 +31,15 @@ Window:EditOpenButton({
     Icon = "monitor",
     CornerRadius = UDim.new(0,16),
     StrokeThickness = 2,
-    Color = ColorSequence.new( -- ĐÃ ĐỔI SANG GRADIENT TRẮNG ĐEN
-        Color3.fromHex("FFFFFF"), 
-        Color3.fromHex("000000")
+    Color = ColorSequence.new( 
+        Color3.fromRGB(255, 255, 255), -- DÙNG TỌA ĐỘ SỐ (RGB) ĐỂ DIỆT LỖI HEX
+        Color3.fromRGB(0, 0, 0)
     ),
-    OnlyMobile = false,
-    Enabled = true,
-    Draggable = true,
+    OnlyMobile = false, Enabled = true, Draggable = true,
 })
-Window:Tag({ Title = "v1.6.6", Icon = "github", Color = Color3.fromHex("#30ff6a"), Radius = 10 })
+
+-- Dùng RGB thay cho fromHex để an toàn tuyệt đối
+Window:Tag({ Title = "v1.6.6", Icon = "github", Color = Color3.fromRGB(48, 255, 106), Radius = 10 })
 local autoLoadPath = "Purium_SBSD/AutoLoad.txt"
 local function getAutoLoad()
     local success, result = pcall(function() if isfile(autoLoadPath) then return readfile(autoLoadPath) end end)
@@ -389,4 +389,5 @@ ThemeSection:Keybind({
         Window:SetToggleKey(Enum.KeyCode[v])
     end
 })
+
 print("successfully loaded all asset!")

@@ -1,18 +1,44 @@
 -- ==========================================================
 -- PART 1: WIND UI SETUP, NOTIFICATIONS & MOVEMENT
 -- ==========================================================
-game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Purium Hub", Text = "Loading Scripr....", Duration = 3 })
-
+print("Loading script maybe take a few seconds to complete")
+game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Purium On Top!", Text = "Loading Script...", Duration = 3 })
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 local Window = WindUI:CreateWindow({
-    Title = "💢 Purium Hub | Chain | (Beta) 1.69", Icon = "swords", Author = "hlck49", Folder = "Purium_Chain",
-    Size = UDim2.fromOffset(580, 460), Transparent = true, Theme = "Dark", Resizable = true, HideSearchBar = true
+    Title = "Purium Hub [By @hlck49] | Chain |", Icon = "door-open", Author = "Version : 0.0.3", Folder = "Purium_SBSD",
+    Size = UDim2.fromOffset(580, 460), MinSize = Vector2.new(560, 350), MaxSize = Vector2.new(850, 560),
+    Transparent = true, Theme = "Dark", Resizable = true, SideBarWidth = 200, BackgroundImageTransparency = 0.42,
+    HideSearchBar = true, ScrollBarEnabled = false,
+    User = { Enabled = true, Anonymous = true, Callback = function() print("Purium") end }
+})
+task.spawn(function()
+    task.wait(1)
+    pcall(function()
+        Window:Dialog({
+            Title = "Welcome To Purium Script!!",
+            Content = "Thanks you guys for using my script!",
+            Buttons = {
+                { Title = "I Don't Care", Callback = function() end },
+                { Title = "Good Boy~", Callback = function() end, Variant = "Primary" }
+            }
+        })
+    end)
+end)
+Window:EditOpenButton({
+    Title = "Open Ui",
+    Icon = "monitor",
+    CornerRadius = UDim.new(0,16),
+    StrokeThickness = 2,
+    Color = ColorSequence.new( -- ĐÃ ĐỔI SANG GRADIENT TRẮNG ĐEN
+        Color3.fromHex("FFFFFF"), 
+        Color3.fromHex("000000")
+    ),
+    OnlyMobile = false,
+    Enabled = true,
+    Draggable = true,
 })
 
-Window:EditOpenButton({
-    Title = "Open Purium Hub", Icon = "monitor", CornerRadius = UDim.new(0,16), StrokeThickness = 2,
-    Color = Color3.fromRGB(255, 255, 255), OnlyMobile = false, Enabled = true, Draggable = true
-})
+Window:Tag({ Title = "v1.6.6", Icon = "github", Color = Color3.fromRGB(48, 255, 106), Radius = 10 })
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")

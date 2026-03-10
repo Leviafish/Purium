@@ -19,7 +19,7 @@ task.spawn(function()
             Content = "Thanks you guys for using my script!",
             Buttons = {
                 { Title = "I Don't Care", Callback = function() end },
-                { Title = "Good Boy~", Callback = function() end, Variant = "Primary" }
+                { Title = "Yayyyy!!", Callback = function() end, Variant = "Primary" }
             }
         })
     end)
@@ -381,4 +381,5 @@ ThemeSection:Keybind({
         Window:SetToggleKey(Enum.KeyCode[v])
     end
 })
+
 print("successfully loaded all asset!")

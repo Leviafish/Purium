@@ -30,7 +30,7 @@ Window:EditOpenButton({
     CornerRadius = UDim.new(0,16),
     StrokeThickness = 2,
     Color = ColorSequence.new( -- ĐÃ ĐỔI SANG GRADIENT TRẮNG ĐEN
-        Color3.fromHex("1E1E1E"), 
+        Color3.fromHex("1e1e1e"), 
         Color3.fromHex("000000")
     ),
     OnlyMobile = false,
@@ -383,5 +383,6 @@ ThemeSection:Keybind({
 })
 
 print("successfully loaded all asset!")
+
 
 

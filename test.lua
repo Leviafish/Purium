@@ -1,20 +1,18 @@
 -- ==========================================================
 -- PART 1: WIND UI SETUP, NOTIFICATIONS & MOVEMENT
 -- ==========================================================
-game:GetService("StarterGui"):SetCore("SendNotification", { Title = "vms Hub", Text = "Đang khởi tạo siêu phẩm...", Duration = 3 })
+game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Purium Hub", Text = "Loading Scripr....", Duration = 3 })
 
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 local Window = WindUI:CreateWindow({
-    Title = "💢 vms Hub | Chain | (Beta) 1.69", Icon = "swords", Author = "vms", 
-    Folder = "vmsHubConfig",
+    Title = "💢 Purium Hub | Chain | (Beta) 1.69", Icon = "swords", Author = "hlck49", Folder = "Purium_Chain",
     Size = UDim2.fromOffset(580, 460), Transparent = true, Theme = "Dark", Resizable = true, HideSearchBar = true
 })
 
 Window:EditOpenButton({
-    Title = "Open vms Hub", Icon = "monitor", CornerRadius = UDim.new(0,16), StrokeThickness = 2,
+    Title = "Open Purium Hub", Icon = "monitor", CornerRadius = UDim.new(0,16), StrokeThickness = 2,
     Color = Color3.fromRGB(255, 255, 255), OnlyMobile = false, Enabled = true, Draggable = true
 })
-Window:Tag({ Title = "v1.6.6", Icon = "github", Color = Color3.fromRGB(48, 255, 106), Radius = 10 })
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -31,8 +29,8 @@ local TpTab = Window:Tab({ Title = "Teleports", Icon = "map-pin" })
 local MiscTab = Window:Tab({ Title = "World & Items", Icon = "cog" })
 local FarmTab = Window:Tab({ Title = "AutoFarm", Icon = "feather" })
 local ServerTab = Window:Tab({ Title = "Servers", Icon = "server" })
+local SettingTab = Window:Tab({ Title = "Settings", Icon = "settings" })
 
--- NOTIFICATIONS
 local NotifSec = NotifyTab:Section({ Title = "Smart Notifications", Icon = "bell", Opened = true, Box = true })
 local notifSet = { power = true, roundTime = true, chain = true, artifact = true, airdrop = true }
 
@@ -67,13 +65,11 @@ task.spawn(function()
     end
 end)
 
--- MAIN & MOVEMENT
 local MainSec = MainTab:Section({ Title = "Bypasses & Tools", Icon = "shield", Opened = true, Box = true })
+MainSec:Button({ Title = "Remove Adonis Anticheat", Callback = function() pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/Pixeluted/adoniscries/refs/heads/main/Source.lua"))() WindUI:Notify({Title="Bypassed", Content="Adonis AC Removed!", Duration=3}) end) end })
 MainSec:Button({ Title = "Infinite Yield", Callback = function() loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))() end })
-MainSec:Button({ Title = "DEX", Callback = function() loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/main/dex.lua"))() end })
 MainSec:Button({ Title = "Third Person View", Callback = function() pcall(function() LocalPlayer.CameraMode = Enum.CameraMode.Classic; LocalPlayer.CameraMaxZoomDistance = 1280; LocalPlayer.CameraMinZoomDistance = 0.5 end) end })
 MainSec:Button({ Title = "Remove Mask on head", Callback = function() pcall(function() LocalPlayer.Character.Sack.SurfaceAppearance.Parent:Destroy() end) end })
-MainSec:Button({ Title = "Remove Adonis Anticheat", Callback = function() pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/Pixeluted/adoniscries/refs/heads/main/Source.lua"))() end) end })
 
 local moveSec = MainTab:Section({ Title = "Movement", Icon = "move", Opened = true, Box = true })
 
@@ -105,8 +101,8 @@ local function sFLY()
         while FLYING and LocalPlayer.Character do
             pcall(function() LocalPlayer.Character.Humanoid.PlatformStand = true end)
             if CONTROL.L + CONTROL.R ~= 0 or CONTROL.F + CONTROL.B ~= 0 or CONTROL.Q + CONTROL.E ~= 0 then SPEED = 50 elseif not (CONTROL.L + CONTROL.R ~= 0 or CONTROL.F + CONTROL.B ~= 0 or CONTROL.Q + CONTROL.E ~= 0) and SPEED ~= 0 then SPEED = 0 end
-            if (CONTROL.L + CONTROL.R) ~= 0 or (CONTROL.F + CONTROL.B) ~= 0 or (CONTROL.Q + CONTROL.E) ~= 0 then BV.velocity = ((Workspace.CurrentCamera.CoordinateFrame.lookVector * (CONTROL.F + CONTROL.B)) + ((Workspace.CurrentCamera.CoordinateFrame * CFrame.new(CONTROL.L + CONTROL.R, (CONTROL.F + CONTROL.B + CONTROL.Q + CONTROL.E) * 0.2, 0).p) - Workspace.CurrentCamera.CoordinateFrame.p)) * SPEED * iyflyspeed; lCONTROL = {F = CONTROL.F, B = CONTROL.B, L = CONTROL.L, R = CONTROL.R} elseif (CONTROL.L + CONTROL.R) == 0 and (CONTROL.F + CONTROL.B) == 0 and (CONTROL.Q + CONTROL.E) == 0 and SPEED ~= 0 then BV.velocity = ((Workspace.CurrentCamera.CoordinateFrame.lookVector * (lCONTROL.F + lCONTROL.B)) + ((Workspace.CurrentCamera.CoordinateFrame * CFrame.new(lCONTROL.L + lCONTROL.R, (lCONTROL.F + lCONTROL.B + CONTROL.Q + CONTROL.E) * 0.2, 0).p) - Workspace.CurrentCamera.CoordinateFrame.p)) * SPEED * iyflyspeed else BV.velocity = Vector3.new(0, 0, 0) end
-            BG.cframe = Workspace.CurrentCamera.CoordinateFrame; task.wait()
+            if (CONTROL.L + CONTROL.R) ~= 0 or (CONTROL.F + CONTROL.B) ~= 0 or (CONTROL.Q + CONTROL.E) ~= 0 then BV.velocity = ((Camera.CoordinateFrame.lookVector * (CONTROL.F + CONTROL.B)) + ((Camera.CoordinateFrame * CFrame.new(CONTROL.L + CONTROL.R, (CONTROL.F + CONTROL.B + CONTROL.Q + CONTROL.E) * 0.2, 0).p) - Camera.CoordinateFrame.p)) * SPEED * iyflyspeed; lCONTROL = {F = CONTROL.F, B = CONTROL.B, L = CONTROL.L, R = CONTROL.R} elseif (CONTROL.L + CONTROL.R) == 0 and (CONTROL.F + CONTROL.B) == 0 and (CONTROL.Q + CONTROL.E) == 0 and SPEED ~= 0 then BV.velocity = ((Camera.CoordinateFrame.lookVector * (lCONTROL.F + lCONTROL.B)) + ((Camera.CoordinateFrame * CFrame.new(lCONTROL.L + lCONTROL.R, (lCONTROL.F + lCONTROL.B + CONTROL.Q + CONTROL.E) * 0.2, 0).p) - Camera.CoordinateFrame.p)) * SPEED * iyflyspeed else BV.velocity = Vector3.new(0, 0, 0) end
+            BG.cframe = Camera.CoordinateFrame; task.wait()
         end
         CONTROL = {F = 0, B = 0, L = 0, R = 0, Q = 0, E = 0}; SPEED = 0; BG:Destroy(); BV:Destroy()
         pcall(function() LocalPlayer.Character.Humanoid.PlatformStand = false end)
@@ -116,38 +112,25 @@ local function sFLY()
     flyKeyUp = mouse.KeyUp:Connect(function(KEY) if KEY:lower() == 'w' then CONTROL.F = 0 elseif KEY:lower() == 's' then CONTROL.B = 0 elseif KEY:lower() == 'a' then CONTROL.L = 0 elseif KEY:lower() == 'd' then CONTROL.R = 0 elseif KEY:lower() == 'e' then CONTROL.Q = 0 elseif KEY:lower() == 'q' then CONTROL.E = 0 end end)
 end
 local function NOFLY() FLYING = false; if flyKeyDown then flyKeyDown:Disconnect() flyKeyUp:Disconnect() end; pcall(function() LocalPlayer.Character.Humanoid.PlatformStand = false end) end
-
 moveSec:Toggle({ Title = "Fly", Value = false, Callback = function(v) if v then sFLY() else NOFLY() end end })
 -- ==========================================================
--- PART 2: DYNAMIC HEALTH COLOR ESP (NO BOX)
+-- PART 2: DYNAMIC HEALTH ESP & TELEPORTS
 -- ==========================================================
 local VisSec = VisualsTab:Section({ Title = "Dynamic Health ESP", Icon = "users", Opened = true, Box = true })
 local espElements, espConn = {}, nil
 
--- Hàm phân tích máu để trả về màu tương ứng
 local function getHealthColor(health)
-    if health > 100 then
-        return Color3.fromRGB(173, 216, 230) -- Xanh dương nhạt (Shield/Overheal)
-    elseif health >= 98 then -- Sai số một chút cho 100
-        return Color3.fromRGB(144, 238, 144) -- Xanh lá nhạt (Full HP)
-    elseif health >= 60 then
-        return Color3.fromRGB(255, 255, 255) -- Trắng (60-99)
-    elseif health >= 30 then
-        return Color3.fromRGB(255, 255, 153) -- Vàng nhạt (30-59)
-    elseif health >= 20 then
-        return Color3.fromRGB(255, 69, 0)    -- Cam đỏ (20-29)
-    else
-        return Color3.fromRGB(139, 0, 0)     -- Đỏ thẫm (< 20)
-    end
+    if health > 100 then return Color3.fromRGB(173, 216, 230)
+    elseif health >= 98 then return Color3.fromRGB(144, 238, 144)
+    elseif health >= 60 then return Color3.fromRGB(255, 255, 255)
+    elseif health >= 30 then return Color3.fromRGB(255, 255, 153)
+    elseif health >= 20 then return Color3.fromRGB(255, 69, 0)
+    else return Color3.fromRGB(139, 0, 0) end
 end
 
 local function cleanEsp(player)
     if espElements[player] then 
-        pcall(function() 
-            espElements[player].Name:Remove()
-            espElements[player].Dist:Remove()
-            espElements[player].Highlight:Destroy() 
-        end)
+        pcall(function() espElements[player].Name:Remove(); espElements[player].Dist:Remove(); espElements[player].Highlight:Destroy() end)
         espElements[player] = nil 
     end
 end
@@ -164,61 +147,36 @@ local function updatePlayerEsp()
 
             if char and hrp and head and hum and hum.Health > 0 then
                 if not espElements[player] then
-                    local d = { 
-                        Name = Drawing.new("Text"), 
-                        Dist = Drawing.new("Text"), 
-                        Highlight = Instance.new("Highlight") 
-                    }
+                    local d = { Name = Drawing.new("Text"), Dist = Drawing.new("Text"), Highlight = Instance.new("Highlight") }
                     d.Name.Size = 16; d.Name.Center = true; d.Name.Outline = true; d.Name.Font = 2
                     d.Dist.Size = 14; d.Dist.Center = true; d.Dist.Outline = true; d.Dist.Font = 2
-                    
-                    d.Highlight.FillTransparency = 0.5
-                    d.Highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-                    d.Highlight.OutlineTransparency = 0
-                    d.Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-                    d.Highlight.Parent = char
+                    d.Highlight.FillTransparency = 0.5; d.Highlight.OutlineColor = Color3.fromRGB(255, 255, 255); d.Highlight.OutlineTransparency = 0; d.Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop; d.Highlight.Parent = char
                     espElements[player] = d
                 end
 
-                local d = espElements[player]
-                local rootPos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
+                local d = espElements[player]; local rootPos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
                 
                 if onScreen then
                     local headPos = Camera:WorldToViewportPoint(head.Position + Vector3.new(0, 0.5, 0))
                     local legPos = Camera:WorldToViewportPoint(hrp.Position - Vector3.new(0, 3, 0))
                     local height = math.abs(headPos.Y - legPos.Y)
                     local distNum = (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")) and (LocalPlayer.Character.HumanoidRootPart.Position - hrp.Position).Magnitude or 0
-
-                    -- Lấy màu tùy theo số máu
                     local currentColor = getHealthColor(hum.Health)
 
-                    d.Name.Color = currentColor
-                    d.Name.Text = player.Name
-                    d.Name.Position = Vector2.new(rootPos.X, headPos.Y - 20)
-                    d.Name.Visible = true
-                    
-                    d.Dist.Color = Color3.fromRGB(200, 200, 200)
-                    d.Dist.Text = "["..math.floor(distNum).."m]"
-                    d.Dist.Position = Vector2.new(rootPos.X, headPos.Y + height + 2)
-                    d.Dist.Visible = true
-                    
-                    d.Highlight.FillColor = currentColor
-                    d.Highlight.Parent = char
+                    d.Name.Color = currentColor; d.Name.Text = player.Name; d.Name.Position = Vector2.new(rootPos.X, headPos.Y - 20); d.Name.Visible = true
+                    d.Dist.Color = Color3.fromRGB(200, 200, 200); d.Dist.Text = "["..math.floor(distNum).."m]"; d.Dist.Position = Vector2.new(rootPos.X, headPos.Y + height + 2); d.Dist.Visible = true
+                    d.Highlight.FillColor = currentColor; d.Highlight.Parent = char
                 else
-                    d.Name.Visible = false
-                    d.Dist.Visible = false
+                    d.Name.Visible = false; d.Dist.Visible = false
                 end
-            else
-                cleanEsp(player)
-            end
+            else cleanEsp(player) end
         end
     end
     for player, _ in pairs(espElements) do if not activePlayers[player] then cleanEsp(player) end end
 end
 
 VisSec:Toggle({ Title = "Player ESP (Health Color Chams)", Value = false, Callback = function(v)
-    if v then if not espConn then espConn = RunService.RenderStepped:Connect(updatePlayerEsp) end
-    else if espConn then espConn:Disconnect(); espConn = nil end for p, _ in pairs(espElements) do cleanEsp(p) end end
+    if v then if not espConn then espConn = RunService.RenderStepped:Connect(updatePlayerEsp) end else if espConn then espConn:Disconnect(); espConn = nil end for p, _ in pairs(espElements) do cleanEsp(p) end end
 end})
 
 local ItemEspSec = VisualsTab:Section({ Title = "Items & World ESP", Icon = "box", Opened = true, Box = true })
@@ -226,13 +184,7 @@ local function simpleHighlight(folder, toggleVar, color)
     task.spawn(function()
         while task.wait(1) do
             if _G[toggleVar] then
-                for _, item in ipairs(folder:GetChildren()) do
-                    if item:IsA("Model") or item:IsA("BasePart") then
-                        if not item:FindFirstChild("WindUI_Chams") then
-                            local h = Instance.new("Highlight"); h.Name = "WindUI_Chams"; h.FillColor = color; h.FillTransparency = 0.5; h.OutlineTransparency = 0; h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop; h.Parent = item
-                        end
-                    end
-                end
+                for _, item in ipairs(folder:GetChildren()) do if item:IsA("Model") or item:IsA("BasePart") then if not item:FindFirstChild("WindUI_Chams") then local h = Instance.new("Highlight"); h.Name = "WindUI_Chams"; h.FillColor = color; h.FillTransparency = 0.5; h.OutlineTransparency = 0; h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop; h.Parent = item end end end
             else
                 for _, item in ipairs(folder:GetChildren()) do local h = item:FindFirstChild("WindUI_Chams"); if h then h:Destroy() end end
             end
@@ -247,30 +199,15 @@ ItemEspSec:Toggle({ Title = "BearTrap Chams", Value = false, Callback = function
 ItemEspSec:Toggle({ Title = "Scrap Chams", Value = false, Callback = function(v) _G.scrapEsp = v; simpleHighlight(Workspace:WaitForChild("Misc"):WaitForChild("Zones"):WaitForChild("LootingItems"):WaitForChild("Scrap"), "scrapEsp", Color3.fromRGB(0, 255, 0)) end})
 
 ItemEspSec:Toggle({ Title = "Chain ESP (Red)", Value = false, Callback = function(v)
-    _G.chainEsp = v
-    task.spawn(function()
-        while task.wait(1) do
-            local chain = Workspace:FindFirstChild("Misc") and Workspace.Misc:FindFirstChild("AI") and Workspace.Misc.AI:FindFirstChild("CHAIN")
-            if chain then
-                if _G.chainEsp and not chain:FindFirstChild("Chain_ESP") then
-                    local h = Instance.new("Highlight"); h.Name = "Chain_ESP"; h.FillColor = Color3.fromRGB(255, 0, 0); h.FillTransparency = 0.5; h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop; h.Parent = chain
-                elseif not _G.chainEsp and chain:FindFirstChild("Chain_ESP") then
-                    chain.Chain_ESP:Destroy()
-                end
-            end
-        end
-    end)
+    _G.chainEsp = v; task.spawn(function() while task.wait(1) do local chain = Workspace:FindFirstChild("Misc") and Workspace.Misc:FindFirstChild("AI") and Workspace.Misc.AI:FindFirstChild("CHAIN")
+    if chain then if _G.chainEsp and not chain:FindFirstChild("Chain_ESP") then local h = Instance.new("Highlight"); h.Name = "Chain_ESP"; h.FillColor = Color3.fromRGB(255, 0, 0); h.FillTransparency = 0.5; h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop; h.Parent = chain elseif not _G.chainEsp and chain:FindFirstChild("Chain_ESP") then chain.Chain_ESP:Destroy() end end end end)
 end})
 
--- TELEPORTS
 local TpSec = TpTab:Section({ Title = "Locations", Icon = "map", Opened = true, Box = true })
 
 local playerNames = {}
 for _, p in pairs(Players:GetPlayers()) do if p ~= LocalPlayer then table.insert(playerNames, p.Name) end end
-local playerTpDropdown = TpSec:Dropdown({ Title = "Teleport to player 👤", Values = playerNames, Callback = function(sel)
-    local p = Players:FindFirstChild(sel)
-    if p and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then LocalPlayer.Character.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame end
-end})
+local playerTpDropdown = TpSec:Dropdown({ Title = "Teleport to player 👤", Values = playerNames, Callback = function(sel) local p = Players:FindFirstChild(sel); if p and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then LocalPlayer.Character.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame end end})
 task.spawn(function() while task.wait(10) do local nn = {}; for _, p in pairs(Players:GetPlayers()) do if p ~= LocalPlayer then table.insert(nn, p.Name) end end pcall(function() playerTpDropdown:Refresh(nn) end) end end)
 
 local savedLocs, curLocName, curSelLoc = {}, "", ""
@@ -323,19 +260,7 @@ local FarmSec = FarmTab:Section({ Title = "Auto Farming", Icon = "feather", Open
 local function farmItem(folderPath, toggleVarName, delayTime)
     task.spawn(function()
         while _G[toggleVarName] do
-            pcall(function()
-                local folder = folderPath()
-                if folder then
-                    for _, item in ipairs(folder:GetChildren()) do
-                        if not _G[toggleVarName] then break end
-                        local prompt = item:FindFirstChildWhichIsA("ProximityPrompt", true)
-                        if prompt and prompt.Enabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                            LocalPlayer.Character:PivotTo(item:GetPivot() * CFrame.new(0, 3, 0)); task.wait(0.2); fireproximityprompt(prompt); task.wait(0.5)
-                        end
-                    end
-                end
-            end)
-            task.wait(delayTime)
+            pcall(function() local folder = folderPath(); if folder then for _, item in ipairs(folder:GetChildren()) do if not _G[toggleVarName] then break end local prompt = item:FindFirstChildWhichIsA("ProximityPrompt", true); if prompt and prompt.Enabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then LocalPlayer.Character:PivotTo(item:GetPivot() * CFrame.new(0, 3, 0)); task.wait(0.2); fireproximityprompt(prompt); task.wait(0.5) end end end end); task.wait(delayTime)
         end
     end)
 end
@@ -374,12 +299,9 @@ SrvSec:Button({ Title = "Random Server Hop", Callback = function() WindUI:Notify
 _G.HopSmall = false
 SrvSec:Toggle({ Title = "Auto Hop (< 5 Players)", Value = false, Callback = function(v)
     _G.HopSmall = v
-    if v then
-        if #Players:GetPlayers() < 5 then WindUI:Notify({Title="Found!", Content="Already in a small server."}); _G.HopSmall=false
-        else game:GetService("TeleportService"):Teleport(game.PlaceId, LocalPlayer) end
-    end
+    if v then if #Players:GetPlayers() < 5 then WindUI:Notify({Title="Found!", Content="Already in a small server."}); _G.HopSmall=false else game:GetService("TeleportService"):Teleport(game.PlaceId, LocalPlayer) end end
 end})
 
 SettingTab:Section({ Title = "Themes & UI", Icon = "palette", Opened = true, Box = true }):Keybind({ Title = "Keybind (Mở/Đóng UI)", Value = "G", Callback = function(v) pcall(function() Window:SetToggleKey(Enum.KeyCode[v]) end) end })
 
-print("vms Hub (Bản Hoàn Hảo Phục Hồi 100%) đã load thành công!")
+print("Purium Chain Script Successfully Loaded!")

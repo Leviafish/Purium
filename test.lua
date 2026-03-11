@@ -366,7 +366,7 @@ task.spawn(function()
 end)
 
 local MainSec = MainTab:Section({ Title = "Bypasses & Tools", Icon = "shield", Opened = true, Box = true })
-MainSec:Button({ Title = "Remove Adonis Anticheat(This may make your device lag)", Callback = function() pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/PuriumHuB/Purium/refs/heads/main/Source.lua.txt"))() WindUI:Notify({Title="Bypassed", Content="Adonis AC Removed!", Duration=3}) end) end })
+MainSec:Button({ Title = "Remove Adonis Anticheat(This may make your device lag)", Callback = function() pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/Pixeluted/adoniscries/refs/heads/main/Source.lua"))() WindUI:Notify({Title="Bypassed", Content="Adonis AC Removed!", Duration=3}) end) end })
 MainSec:Button({ Title = "Infinite Yield", Callback = function() loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))() end })
 MainSec:Button({ Title = "Third Person View", Callback = function() pcall(function() LocalPlayer.CameraMode = Enum.CameraMode.Classic; LocalPlayer.CameraMaxZoomDistance = 1280; LocalPlayer.CameraMinZoomDistance = 0.5 end) end })
 MainSec:Button({ Title = "Remove Mask on head", Callback = function() pcall(function() LocalPlayer.Character.Sack.SurfaceAppearance.Parent:Destroy() end) end })
@@ -617,8 +617,16 @@ local ConfigSection = SettingTab:Section({ Title = "Config Manager", Icon = "sav
 local ConfigManager = Window.ConfigManager
 local configName = "MainConfig"
 local configFile = ConfigManager:CreateConfig(configName)
-local savedConfigs = ConfigManager:AllConfigs()
-if #savedConfigs == 0 then table.insert(savedConfigs, "MainConfig") end
+
+-- Dùng pcall để "đỡ đạn", script sẽ không bị sập nữa!
+local savedConfigs = {"MainConfig"}
+pcall(function()
+    local fetchedConfigs = ConfigManager:AllConfigs()
+    if fetchedConfigs and #fetchedConfigs > 0 then
+        savedConfigs = fetchedConfigs
+    end
+end)
+
 local ConfigInput = ConfigSection:Input({ Title = "Config Name", Value = configName, Callback = function(value) configName = value or "MainConfig" end })
 local AutoLoadToggle
 local ConfigDropdown = ConfigSection:Dropdown({ Title = "Choose Saved Config", Values = savedConfigs, Value = configName, AllowNone = false, Callback = function(value) configName = value or "MainConfig" ConfigInput:Set(configName) if AutoLoadToggle then AutoLoadToggle:Set(getAutoLoad() == configName) end end })
@@ -658,7 +666,6 @@ ThemeSection:Keybind({
         Window:SetToggleKey(Enum.KeyCode[v])
     end
 })
-
 local ConsoleSec = SettingTab:Section({ Title = "Console Manager", Icon = "code", Opened = true, Box = true })
 
 local VIM = game:GetService("VirtualInputManager")
@@ -685,7 +692,7 @@ Instance.new("UICorner", topBar).CornerRadius = UDim.new(0, 10)
 local fixSquare = Instance.new("Frame", topBar); fixSquare.Size = UDim2.new(1, 0, 0, 10); fixSquare.Position = UDim2.new(0, 0, 1, -10); fixSquare.BackgroundColor3 = Color3.fromRGB(25, 25, 25); fixSquare.BorderSizePixel = 0
 
 -- TIÊU ĐỀ
-local title = Instance.new("TextLabel", topBar); title.Size = UDim2.new(1, -100, 1, 0); title.Position = UDim2.new(0, 15, 0, 0); title.BackgroundTransparency = 1; title.Text = "Purium Premium Console"; title.TextColor3 = Color3.fromRGB(200, 200, 200); title.Font = Enum.Font.GothamBold; title.TextSize = 13; title.TextXAlignment = Enum.TextXAlignment.Left
+local title = Instance.new("TextLabel", topBar); title.Size = UDim2.new(1, -100, 1, 0); title.Position = UDim2.new(0, 15, 0, 0); title.BackgroundTransparency = 1; title.Text = "Purium Custome Console"; title.TextColor3 = Color3.fromRGB(200, 200, 200); title.Font = Enum.Font.GothamBold; title.TextSize = 13; title.TextXAlignment = Enum.TextXAlignment.Left
 
 -- VÙNG 3 NÚT MACOS BÊN PHẢI
 local btnContainer = Instance.new("Frame", topBar); btnContainer.Size = UDim2.new(0, 60, 1, 0); btnContainer.AnchorPoint = Vector2.new(1, 0); btnContainer.Position = UDim2.new(1, -10, 0, 0); btnContainer.BackgroundTransparency = 1
@@ -736,7 +743,7 @@ game:GetService("ScriptContext").Error:Connect(function(message, trace, script)
 end)
 ConsoleSec:Button({ Title = "Open Custome Console", Icon = "terminal", Callback = function() openConsole() end })
 ConsoleSec:Button({ 
-    Title = "Test All Logs Colors", 
+    Title = "Check Console Logs(If it works)", 
     Icon = "flask-conical", 
     Callback = function() 
         print("This is a normal LOG message.")
@@ -752,8 +759,5 @@ ConsoleSec:Button({
     end 
 })
  ConsoleSec:Button({ 
-     Title = "Clear Console Data", 
-      Icon = "trash", 
-      Callback = function() for _, child in ipairs(scrollFrame:GetChildren()) do if child:IsA("TextLabel") then child:Destroy() end end logCount = 0; WindUI:Notify({Title = "Console", Content = "Clear All Custome Console!!"}) end })
-
+     Title = "Clear Console Data", Icon = "trash", Callback = function() for _, child in ipairs(scrollFrame:GetChildren()) do if child:IsA("TextLabel") then child:Destroy() end end logCount = 0; WindUI:Notify({Title = "Console", Content = "Clear All Custome Console!!"}) end })
 print("successfully loaded all asset!")

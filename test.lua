@@ -366,7 +366,7 @@ task.spawn(function()
 end)
 
 local MainSec = MainTab:Section({ Title = "Bypasses & Tools", Icon = "shield", Opened = true, Box = true })
-MainSec:Button({ Title = "Remove Adonis Anticheat(This may make your device lag)", Callback = function() pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/Pixeluted/adoniscries/refs/heads/main/Source.lua"))() WindUI:Notify({Title="Bypassed", Content="Adonis AC Removed!", Duration=3}) end) end })
+MainSec:Button({ Title = "Remove Adonis Anticheat(This may make your device lag)", Callback = function() pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/PuriumHuB/Purium/refs/heads/main/Source.lua.txt"))() WindUI:Notify({Title="Bypassed", Content="Adonis AC Removed!", Duration=3}) end) end })
 MainSec:Button({ Title = "Infinite Yield", Callback = function() loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))() end })
 MainSec:Button({ Title = "Third Person View", Callback = function() pcall(function() LocalPlayer.CameraMode = Enum.CameraMode.Classic; LocalPlayer.CameraMaxZoomDistance = 1280; LocalPlayer.CameraMinZoomDistance = 0.5 end) end })
 MainSec:Button({ Title = "Remove Mask on head", Callback = function() pcall(function() LocalPlayer.Character.Sack.SurfaceAppearance.Parent:Destroy() end) end })
@@ -755,4 +755,5 @@ ConsoleSec:Button({
      Title = "Clear Console Data", 
       Icon = "trash", 
       Callback = function() for _, child in ipairs(scrollFrame:GetChildren()) do if child:IsA("TextLabel") then child:Destroy() end end logCount = 0; WindUI:Notify({Title = "Console", Content = "Clear All Custome Console!!"}) end })
+
 print("successfully loaded all asset!")

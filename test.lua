@@ -102,7 +102,7 @@ WindUI:AddTheme({
 })
 
 WindUI:AddTheme({
-    Name = "Midnight",
+    Name = "Night",
     Accent = Color3.fromHex("3432B2"),
     Dialog = Color3.fromHex("252550"),
     Outline = Color3.fromHex("535382"),
@@ -290,7 +290,7 @@ WindUI:AddTheme({
     LabelBackgroundTransparency = 0,
 })
 
-Window:Tag({ Title = "V [0.0.1]", Icon = "github", Color = Color3.fromRGB(48, 255, 106), Radius = 10 })
+Window:Tag({ Title = "v1.6.6", Icon = "github", Color = Color3.fromRGB(48, 255, 106), Radius = 10 })
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")

@@ -90,7 +90,7 @@ WindUI:AddTheme({
 })
 
 WindUI:AddTheme({
-    Name = "Midnight",
+    Name = "Night",
     Accent = Color3.fromHex("3432B2"),
     Dialog = Color3.fromHex("252550"),
     Outline = Color3.fromHex("535382"),
@@ -289,7 +289,7 @@ local function setAutoLoad(name)
     pcall(function() if not isfolder("Purium_SBSD") then makefolder("Purium_SBSD") end writefile(autoLoadPath, name) end)
 end
 local InfoTab = Window:Tab({ Title = "Information", Icon = "info" })
-local MainTab = Window:Tab({ Title = "Main", Icon = "Swords" })
+local MainTab = Window:Tab({ Title = "Main", Icon = "leaf" })
 local SettingTab = Window:Tab({ Title = "Settings", Icon = "settings" })
 local _call19 = game:GetService('RunService')
 local _call21 = game:GetService('VirtualInputManager')

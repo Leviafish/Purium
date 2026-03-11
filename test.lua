@@ -38,7 +38,26 @@ Window:EditOpenButton({
     Draggable = true,
 })
 
-Window:Tag({ Title = "Version 0.0.1", Icon = "github", Color = Color3.fromRGB(48, 255, 106), Radius = 10 })
+WindUI:AddTheme({ Name = "Dark", Accent = Color3.fromRGB(96, 205, 255), Background = Color3.fromRGB(60, 60, 60), Outline = Color3.fromRGB(35, 35, 35), Text = Color3.fromRGB(240, 240, 240), PlaceholderText = Color3.fromRGB(170, 170, 170) })
+WindUI:AddTheme({ Name = "Darker", Accent = Color3.fromRGB(56, 109, 223), Background = Color3.fromRGB(30, 30, 30), Outline = Color3.fromRGB(25, 25, 25), Text = Color3.fromRGB(240, 240, 240), PlaceholderText = Color3.fromRGB(170, 170, 170) })
+WindUI:AddTheme({ Name = "AMOLED", Accent = Color3.fromRGB(255, 255, 255), Background = Color3.fromRGB(0, 0, 0), Outline = Color3.fromRGB(20, 20, 20), Text = Color3.fromRGB(255, 255, 255), PlaceholderText = Color3.fromRGB(170, 170, 170) })
+WindUI:AddTheme({ Name = "Light", Accent = Color3.fromRGB(0, 103, 192), Background = Color3.fromRGB(200, 200, 200), Outline = Color3.fromRGB(120, 120, 120), Text = Color3.fromRGB(0, 0, 0), PlaceholderText = Color3.fromRGB(40, 40, 40) })
+WindUI:AddTheme({ Name = "Balloon", Accent = Color3.fromRGB(100, 170, 255), Background = Color3.fromRGB(189, 224, 255), Outline = Color3.fromRGB(160, 227, 255), Text = Color3.fromRGB(30, 30, 30), PlaceholderText = Color3.fromRGB(90, 90, 90) })
+WindUI:AddTheme({ Name = "SoftCream", Accent = Color3.fromRGB(206, 163, 90), Background = Color3.fromRGB(255, 245, 220), Outline = Color3.fromRGB(255, 230, 200), Text = Color3.fromRGB(30, 30, 30), PlaceholderText = Color3.fromRGB(90, 90, 90) })
+WindUI:AddTheme({ Name = "Aqua", Accent = Color3.fromRGB(38, 166, 178), Background = Color3.fromRGB(18, 54, 61), Outline = Color3.fromRGB(80, 118, 130), Text = Color3.fromRGB(240, 240, 240), PlaceholderText = Color3.fromRGB(170, 170, 170) })
+WindUI:AddTheme({ Name = "Amethyst", Accent = Color3.fromRGB(126, 44, 182), Background = Color3.fromRGB(40, 12, 71), Outline = Color3.fromRGB(85, 45, 120), Text = Color3.fromRGB(240, 240, 240), PlaceholderText = Color3.fromRGB(170, 170, 170) })
+WindUI:AddTheme({ Name = "Rose", Accent = Color3.fromRGB(219, 48, 123), Background = Color3.fromRGB(35, 25, 30), Outline = Color3.fromRGB(145, 35, 75), Text = Color3.fromRGB(240, 240, 240), PlaceholderText = Color3.fromRGB(170, 170, 170) })
+WindUI:AddTheme({ Name = "Midnight", Accent = Color3.fromRGB(52, 50, 178), Background = Color3.fromRGB(20, 20, 20), Outline = Color3.fromRGB(83, 83, 130), Text = Color3.fromRGB(240, 240, 240), PlaceholderText = Color3.fromRGB(170, 170, 170) })
+WindUI:AddTheme({ Name = "Forest", Accent = Color3.fromRGB(46, 141, 70), Background = Color3.fromRGB(20, 35, 25), Outline = Color3.fromRGB(50, 90, 60), Text = Color3.fromRGB(240, 240, 240), PlaceholderText = Color3.fromRGB(170, 170, 170) })
+WindUI:AddTheme({ Name = "Sunset", Accent = Color3.fromRGB(255, 128, 0), Background = Color3.fromRGB(40, 25, 25), Outline = Color3.fromRGB(130, 80, 60), Text = Color3.fromRGB(240, 240, 240), PlaceholderText = Color3.fromRGB(170, 170, 170) })
+WindUI:AddTheme({ Name = "Ocean", Accent = Color3.fromRGB(0, 141, 255), Background = Color3.fromRGB(20, 25, 40), Outline = Color3.fromRGB(40, 60, 100), Text = Color3.fromRGB(240, 240, 240), PlaceholderText = Color3.fromRGB(170, 170, 170) })
+WindUI:AddTheme({ Name = "Grape", Accent = Color3.fromRGB(183, 176, 223), Background = Color3.fromRGB(6, 0, 16), Outline = Color3.fromRGB(20, 20, 20), Text = Color3.fromRGB(255, 255, 255), PlaceholderText = Color3.fromRGB(123, 144, 170) })
+WindUI:AddTheme({ Name = "Bloody", Accent = Color3.fromRGB(144, 0, 0), Background = Color3.fromRGB(61, 0, 0), Outline = Color3.fromRGB(86, 0, 0), Text = Color3.fromRGB(240, 240, 240), PlaceholderText = Color3.fromRGB(131, 131, 131) })
+WindUI:AddTheme({ Name = "Arctic", Accent = Color3.fromRGB(64, 224, 255), Background = Color3.fromRGB(10, 18, 25), Outline = Color3.fromRGB(35, 55, 70), Text = Color3.fromRGB(240, 250, 255), PlaceholderText = Color3.fromRGB(180, 200, 220) })
+WindUI:AddTheme({ Name = "Cloud", Accent = Color3.fromRGB(255, 255, 255), Background = Color3.fromRGB(230, 240, 250), Outline = Color3.fromRGB(180, 200, 220), Text = Color3.fromRGB(30, 30, 30), PlaceholderText = Color3.fromRGB(100, 100, 100) })
+WindUI:AddTheme({ Name = "Sapphire", Accent = Color3.fromRGB(15, 82, 186), Background = Color3.fromRGB(10, 15, 30), Outline = Color3.fromRGB(30, 45, 80), Text = Color3.fromRGB(240, 240, 240), PlaceholderText = Color3.fromRGB(150, 150, 150) })
+
+Window:Tag({ Title = "V [0.0.1]", Icon = "github", Color = Color3.fromRGB(48, 255, 106), Radius = 10 })
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -406,224 +425,118 @@ ThemeSection:Keybind({
         Window:SetToggleKey(Enum.KeyCode[v])
     end
 })
-print("successfully loaded all asset!")
 
 local ConsoleSec = SettingTab:Section({ Title = "Console Manager", Icon = "code", Opened = true, Box = true })
 
--- 1. Nút mở F9
 local VIM = game:GetService("VirtualInputManager")
-ConsoleSec:Button({ 
-    Title = "Open Roblox Console (F9)", 
-    Desc = "Roblox's console",
-    Icon = "square-terminal", 
-    Callback = function() 
-        pcall(function()
-            VIM:SendKeyEvent(true, Enum.KeyCode.F9, false, game)
-            task.wait(0.05)
-            VIM:SendKeyEvent(false, Enum.KeyCode.F9, false, game)
-        end)
-    end 
-})
-
--- 2. Hệ thống Custom Console (Đầy đủ 4 màu)
-local LogService = game:GetService("LogService")
-local TweenService = game:GetService("TweenService")
-local CoreGui = (gethui and gethui()) or game:GetService("CoreGui")
-
--- Các hằng số cho Animation
+ConsoleSec:Button({ Title = "Open Roblox Console (F9)", Icon = "square-terminal", Callback = function() pcall(function() VIM:SendKeyEvent(true, Enum.KeyCode.F9, false, game); task.wait(0.05); VIM:SendKeyEvent(false, Enum.KeyCode.F9, false, game) end) end })
+local LogService = game:GetService("LogService"); local TweenService = game:GetService("TweenService"); local CoreGui = (gethui and gethui()) or game:GetService("CoreGui")
 local TWEEN_INFO = TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-local NORMAL_SIZE = UDim2.new(0, 500, 0, 320)
-local MINIMIZED_SIZE = UDim2.new(0, 500, 0, 30)
-local MAXIMIZED_SIZE = UDim2.new(0.9, 0, 0.9, 0)
-
--- Trạng thái
-local isMaximized = false
-local isMinimized = false
+local NORMAL_SIZE = UDim2.new(0, 500, 0, 320); local MINIMIZED_SIZE = UDim2.new(0, 500, 0, 30); local MAXIMIZED_SIZE = UDim2.new(0.9, 0, 0.9, 0)
+local isMaximized, isMinimized = false, false
+local isConsoleOpen = false 
 local savedPos = UDim2.new(0.5, -250, 0.5, -160)
-
-local customConsoleGui = Instance.new("ScreenGui")
-customConsoleGui.Name = "Purium_PremiumConsole"
-customConsoleGui.ResetOnSpawn = false
-pcall(function() customConsoleGui.Parent = CoreGui end)
-
-local consoleFrame = Instance.new("Frame", customConsoleGui)
-consoleFrame.Size = UDim2.new(0, 0, 0, 0) -- Bắt đầu từ 0 để làm hiệu ứng Pop-in
-consoleFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-consoleFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-consoleFrame.BorderSizePixel = 0
-consoleFrame.Visible = false
-consoleFrame.ClipsDescendants = true
-consoleFrame.Active = true
-consoleFrame.Draggable = true
-
-local UICorner = Instance.new("UICorner", consoleFrame)
-UICorner.CornerRadius = UDim.new(0, 10)
-
--- Thanh kéo (Header)
-local topBar = Instance.new("Frame", consoleFrame)
-topBar.Size = UDim2.new(1, 0, 0, 30)
-topBar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-topBar.BorderSizePixel = 0
-local topCorner = Instance.new("UICorner", topBar)
-topCorner.CornerRadius = UDim.new(0, 10)
-local fixSquare = Instance.new("Frame", topBar)
-fixSquare.Size = UDim2.new(1, 0, 0, 10)
-fixSquare.Position = UDim2.new(0, 0, 1, -10)
-fixSquare.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-fixSquare.BorderSizePixel = 0
-
--- Tiêu đề
-local title = Instance.new("TextLabel", topBar)
-title.Size = UDim2.new(1, -100, 1, 0)
-title.Position = UDim2.new(0, 80, 0, 0)
-title.BackgroundTransparency = 1
-title.Text = "Purium Premium Console"
-title.TextColor3 = Color3.fromRGB(200, 200, 200)
-title.Font = Enum.Font.GothamBold
-title.TextSize = 13
-title.TextXAlignment = Enum.TextXAlignment.Left
-
--- Vùng chứa 3 Nút (MacOS Style)
-local btnContainer = Instance.new("Frame", topBar)
-btnContainer.Size = UDim2.new(0, 60, 1, 0)
-btnContainer.Position = UDim2.new(0, 10, 0, 0)
-btnContainer.BackgroundTransparency = 1
-
-local listLayoutBtns = Instance.new("UIListLayout", btnContainer)
-listLayoutBtns.FillDirection = Enum.FillDirection.Horizontal
-listLayoutBtns.VerticalAlignment = Enum.VerticalAlignment.Center
-listLayoutBtns.Padding = UDim.new(0, 8)
-
--- Nút Đóng (Đỏ)
-local btnClose = Instance.new("TextButton", btnContainer)
-btnClose.Size = UDim2.new(0, 12, 0, 12)
-btnClose.BackgroundColor3 = Color3.fromRGB(255, 95, 86)
-btnClose.Text = ""
-Instance.new("UICorner", btnClose).CornerRadius = UDim.new(1, 0)
-
--- Nút Thu nhỏ (Vàng)
-local btnMinimize = Instance.new("TextButton", btnContainer)
-btnMinimize.Size = UDim2.new(0, 12, 0, 12)
-btnMinimize.BackgroundColor3 = Color3.fromRGB(255, 189, 46)
-btnMinimize.Text = ""
-Instance.new("UICorner", btnMinimize).CornerRadius = UDim.new(1, 0)
-
--- Nút Phóng to (Xanh)
-local btnMaximize = Instance.new("TextButton", btnContainer)
-btnMaximize.Size = UDim2.new(0, 12, 0, 12)
-btnMaximize.BackgroundColor3 = Color3.fromRGB(39, 201, 63)
-btnMaximize.Text = ""
-Instance.new("UICorner", btnMaximize).CornerRadius = UDim.new(1, 0)
-
--- Vùng Logs
-local scrollFrame = Instance.new("ScrollingFrame", consoleFrame)
-scrollFrame.Size = UDim2.new(1, -10, 1, -40)
-scrollFrame.Position = UDim2.new(0, 5, 0, 35)
-scrollFrame.BackgroundTransparency = 1
-scrollFrame.ScrollBarThickness = 3
-scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 80)
-scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-scrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
-
-local listLayout = Instance.new("UIListLayout", scrollFrame)
-listLayout.SortOrder = Enum.SortOrder.LayoutOrder
-listLayout.Padding = UDim.new(0, 3)
-
--- HÀM ANIMATION MỞ / ĐÓNG GIAO DIỆN
-local function openConsole()
+local customConsoleGui = Instance.new("ScreenGui"); customConsoleGui.Name = "Purium_PremiumConsole"; customConsoleGui.ResetOnSpawn = false; pcall(function() customConsoleGui.Parent = CoreGui end)
+local consoleFrame = Instance.new("Frame", customConsoleGui); consoleFrame.Size = UDim2.new(0, 0, 0, 0); consoleFrame.Position = UDim2.new(0.5, 0, 0.5, 0); consoleFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25); consoleFrame.BorderSizePixel = 0; consoleFrame.Visible = false; consoleFrame.ClipsDescendants = true; consoleFrame.Active = true; consoleFrame.Draggable = true
+Instance.new("UICorner", consoleFrame).CornerRadius = UDim.new(0, 10)
+local topBar = Instance.new("Frame", consoleFrame); topBar.Size = UDim2.new(1, 0, 0, 30); topBar.BackgroundColor3 = Color3.fromRGB(35, 35, 35); topBar.BorderSizePixel = 0
+Instance.new("UICorner", topBar).CornerRadius = UDim.new(0, 10)
+local fixSquare = Instance.new("Frame", topBar); fixSquare.Size = UDim2.new(1, 0, 0, 10); fixSquare.Position = UDim2.new(0, 0, 1, -10); fixSquare.BackgroundColor3 = Color3.fromRGB(35, 35, 35); fixSquare.BorderSizePixel = 0
+local title = Instance.new("TextLabel", topBar); title.Size = UDim2.new(1, -100, 1, 0); title.Position = UDim2.new(0, 80, 0, 0); title.BackgroundTransparency = 1; title.Text = "Purium Custome Console"; title.TextColor3 = Color3.fromRGB(200, 200, 200); title.Font = Enum.Font.GothamBold; title.TextSize = 13; title.TextXAlignment = Enum.TextXAlignment.Left
+local btnContainer = Instance.new("Frame", topBar); btnContainer.Size = UDim2.new(0, 60, 1, 0); btnContainer.Position = UDim2.new(0, 10, 0, 0); btnContainer.BackgroundTransparency = 1
+local listLayoutBtns = Instance.new("UIListLayout", btnContainer); listLayoutBtns.FillDirection = Enum.FillDirection.Horizontal; listLayoutBtns.VerticalAlignment = Enum.VerticalAlignment.Center; listLayoutBtns.Padding = UDim.new(0, 8)
+local btnClose = Instance.new("TextButton", btnContainer); btnClose.Size = UDim2.new(0, 12, 0, 12); btnClose.BackgroundColor3 = Color3.fromRGB(255, 95, 86); btnClose.Text = ""; Instance.new("UICorner", btnClose).CornerRadius = UDim.new(1, 0)
+local btnMinimize = Instance.new("TextButton", btnContainer); btnMinimize.Size = UDim2.new(0, 12, 0, 12); btnMinimize.BackgroundColor3 = Color3.fromRGB(255, 189, 46); btnMinimize.Text = ""; Instance.new("UICorner", btnMinimize).CornerRadius = UDim.new(1, 0)
+local btnMaximize = Instance.new("TextButton", btnContainer); btnMaximize.Size = UDim2.new(0, 12, 0, 12); btnMaximize.BackgroundColor3 = Color3.fromRGB(39, 201, 63); btnMaximize.Text = ""; Instance.new("UICorner", btnMaximize).CornerRadius = UDim.new(1, 0)
+local scrollFrame = Instance.new("ScrollingFrame", consoleFrame); scrollFrame.Size = UDim2.new(1, -10, 1, -40); scrollFrame.Position = UDim2.new(0, 5, 0, 35); scrollFrame.BackgroundTransparency = 1; scrollFrame.ScrollBarThickness = 3; scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 80); scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0); scrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+local listLayout = Instance.new("UIListLayout", scrollFrame); listLayout.SortOrder = Enum.SortOrder.LayoutOrder; listLayout.Padding = UDim.new(0, 3)
+local function openConsole() 
+    if isConsoleOpen then return end
+    isConsoleOpen = true
     consoleFrame.Visible = true
-    if not isMaximized and not isMinimized then
-        TweenService:Create(consoleFrame, TWEEN_INFO, {Size = NORMAL_SIZE, Position = savedPos}):Play()
-    end
-end
-
-local function hideConsole()
-    savedPos = consoleFrame.Position -- Lưu lại vị trí trước khi đóng
-    local closeTween = TweenService:Create(consoleFrame, TWEEN_INFO, {
-        Size = UDim2.new(0, 0, 0, 0),
-        Position = UDim2.new(savedPos.X.Scale, savedPos.X.Offset + (consoleFrame.Size.X.Offset/2), savedPos.Y.Scale, savedPos.Y.Offset + (consoleFrame.Size.Y.Offset/2))
-    })
-    closeTween:Play()
-    closeTween.Completed:Connect(function()
-        if consoleFrame.Size.X.Offset == 0 then consoleFrame.Visible = false end
-    end)
-end
-
--- LOGIC CÁC NÚT ĐIỀU KHIỂN
-btnClose.MouseButton1Click:Connect(hideConsole)
-
-btnMinimize.MouseButton1Click:Connect(function()
-    isMinimized = not isMinimized
-    if isMinimized then
-        if not isMaximized then savedPos = consoleFrame.Position end
-        TweenService:Create(consoleFrame, TWEEN_INFO, {Size = MINIMIZED_SIZE}):Play()
-        scrollFrame.Visible = false
-    else
-        scrollFrame.Visible = true
-        local targetSize = isMaximized and MAXIMIZED_SIZE or NORMAL_SIZE
-        TweenService:Create(consoleFrame, TWEEN_INFO, {Size = targetSize}):Play()
-    end
-end)
-
-btnMaximize.MouseButton1Click:Connect(function()
-    if isMinimized then return end -- Không cho phóng to khi đang cuộn
-    isMaximized = not isMaximized
-    if isMaximized then
-        savedPos = consoleFrame.Position
-        TweenService:Create(consoleFrame, TWEEN_INFO, {
-            Size = MAXIMIZED_SIZE,
-            Position = UDim2.new(0.05, 0, 0.05, 0)
-        }):Play()
-    else
-        TweenService:Create(consoleFrame, TWEEN_INFO, {
-            Size = NORMAL_SIZE,
-            Position = savedPos
-        }):Play()
-    end
-end)
-
--- HÀM XỬ LÝ LOGS
-local logCount = 0
-local function addLog(message, msgType)
-    logCount = logCount + 1
-    if logCount > 150 then
-        local oldestLog = scrollFrame:FindFirstChildWhichIsA("TextLabel")
-        if oldestLog then oldestLog:Destroy() logCount = logCount - 1 end
-    end
-
-    local logLbl = Instance.new("TextLabel", scrollFrame)
-    logLbl.Size = UDim2.new(1, 0, 0, 18)
-    logLbl.BackgroundTransparency = 1
-    logLbl.Font = Enum.Font.Code
-    logLbl.TextSize = 13
-    logLbl.TextXAlignment = Enum.TextXAlignment.Left
-    logLbl.TextWrapped = true
-    logLbl.AutomaticSize = Enum.AutomaticSize.Y
-
-    if msgType == Enum.MessageType.MessageInfo then
-        logLbl.TextColor3 = Color3.fromRGB(0, 200, 255)
-        logLbl.Text = " [INFO] " .. tostring(message)
-    elseif msgType == Enum.MessageType.MessageWarning then
-        logLbl.TextColor3 = Color3.fromRGB(255, 200, 0)
-        logLbl.Text = " [WARN] " .. tostring(message)
-    elseif msgType == Enum.MessageType.MessageError then
-        logLbl.TextColor3 = Color3.fromRGB(255, 80, 80)
-        logLbl.Text = " [ERROR] " .. tostring(message)
-    else
-        logLbl.TextColor3 = Color3.fromRGB(220, 220, 220)
-        logLbl.Text = " [LOG] " .. tostring(message)
+    local targetSize = NORMAL_SIZE
+    local targetPos = savedPos
+    if isMaximized then 
+        targetSize = MAXIMIZED_SIZE
+        targetPos = UDim2.new(0.05, 0, 0.05, 0)
+    elseif isMinimized then 
+        targetSize = MINIMIZED_SIZE
     end
     
-    scrollFrame.CanvasPosition = Vector2.new(0, scrollFrame.AbsoluteWindowSize.Y + 9999)
+    TweenService:Create(consoleFrame, TWEEN_INFO, {Size = targetSize, Position = targetPos}):Play() 
 end
 
+local function hideConsole() 
+    if not isConsoleOpen then return end
+    isConsoleOpen = false
+    
+    if not isMaximized and not isMinimized then 
+        savedPos = consoleFrame.Position 
+    end
+    
+    local closeTween = TweenService:Create(consoleFrame, TWEEN_INFO, { 
+        Size = UDim2.new(0, 0, 0, 0), 
+        Position = UDim2.new(
+            consoleFrame.Position.X.Scale, 
+            consoleFrame.Position.X.Offset + (consoleFrame.AbsoluteSize.X/2), 
+            consoleFrame.Position.Y.Scale, 
+            consoleFrame.Position.Y.Offset + (consoleFrame.AbsoluteSize.Y/2)
+        ) 
+    })
+    closeTween:Play()
+    
+    task.delay(0.3, function() 
+        if not isConsoleOpen then consoleFrame.Visible = false end 
+    end) 
+end
+
+btnClose.MouseButton1Click:Connect(hideConsole)
+
+btnMinimize.MouseButton1Click:Connect(function() 
+    if not isConsoleOpen then return end
+    isMinimized = not isMinimized
+    if isMinimized then 
+        if not isMaximized then savedPos = consoleFrame.Position end 
+        TweenService:Create(consoleFrame, TWEEN_INFO, {Size = MINIMIZED_SIZE}):Play()
+        scrollFrame.Visible = false 
+    else 
+        scrollFrame.Visible = true
+        local targetSize = isMaximized and MAXIMIZED_SIZE or NORMAL_SIZE
+        TweenService:Create(consoleFrame, TWEEN_INFO, {Size = targetSize}):Play() 
+    end 
+end)
+
+btnMaximize.MouseButton1Click:Connect(function() 
+    if not isConsoleOpen or isMinimized then return end
+    isMaximized = not isMaximized
+    if isMaximized then 
+        savedPos = consoleFrame.Position
+        TweenService:Create(consoleFrame, TWEEN_INFO, { Size = MAXIMIZED_SIZE, Position = UDim2.new(0.05, 0, 0.05, 0) }):Play() 
+    else 
+        TweenService:Create(consoleFrame, TWEEN_INFO, { Size = NORMAL_SIZE, Position = savedPos }):Play() 
+    end 
+end)
+
+local logCount = 0
+local function addLog(message, msgType)
+    logCount = logCount + 1; if logCount > 150 then local oldestLog = scrollFrame:FindFirstChildWhichIsA("TextLabel"); if oldestLog then oldestLog:Destroy() logCount = logCount - 1 end end
+    local logLbl = Instance.new("TextLabel", scrollFrame); logLbl.Size = UDim2.new(1, 0, 0, 18); logLbl.BackgroundTransparency = 1; logLbl.Font = Enum.Font.Code; logLbl.TextSize = 13; logLbl.TextXAlignment = Enum.TextXAlignment.Left; logLbl.TextWrapped = true; logLbl.AutomaticSize = Enum.AutomaticSize.Y
+    if msgType == Enum.MessageType.MessageInfo then logLbl.TextColor3 = Color3.fromRGB(0, 200, 255); logLbl.Text = " [INFO] " .. tostring(message)
+    elseif msgType == Enum.MessageType.MessageWarning then logLbl.TextColor3 = Color3.fromRGB(255, 200, 0); logLbl.Text = " [WARN] " .. tostring(message)
+    elseif msgType == Enum.MessageType.MessageError then logLbl.TextColor3 = Color3.fromRGB(255, 80, 80); logLbl.Text = " [ERROR] " .. tostring(message)
+    else logLbl.TextColor3 = Color3.fromRGB(220, 220, 220); logLbl.Text = " [LOG] " .. tostring(message) end
+    scrollFrame.CanvasPosition = Vector2.new(0, scrollFrame.AbsoluteWindowSize.Y + 9999)
+end
 LogService.MessageOut:Connect(addLog)
 
-ConsoleSec:Button({ 
-    Title = "Open Console", 
-    Desc = "Purium custome console",
-    Icon = "terminal",
-    Callback = function() 
-        openConsole()
-    end 
-})
+ConsoleSec:Button({ Title = "Open Custome Console", Icon = "terminal", Callback = function() openConsole() end })
+ConsoleSec:Button({
+ Title = "Test Console",
+ Icon = "flask-conical", 
+ Callback = function() 
+ print("This is a LOG.");
+ warn("This is a WARNING."); 
+ error("This is an ERROR."); 
+ pcall(function() game:GetService("TestService"):Message("This is an INFO.") end) end })
+ ConsoleSec:Button({ Title = "Clear Console Data", Icon = "trash", Callback = function() for _, child in ipairs(scrollFrame:GetChildren()) do if child:IsA("TextLabel") then child:Destroy() end end logCount = 0; WindUI:Notify({Title = "Console", Content = "Clear All Custome Console!!"}) end })
+print("successfully loaded all asset!")

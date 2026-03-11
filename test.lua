@@ -734,6 +734,7 @@ game:GetService("ScriptContext").Error:Connect(function(message, trace, script)
     -- Hàm này đảm bảo bắt gọn mọi lỗi từ Executor và Roblox
     addLog(tostring(message) .. " | " .. tostring(script), Enum.MessageType.MessageError)
 end)
+ConsoleSec:Button({ Title = "Open Custome Console", Icon = "terminal", Callback = function() openConsole() end })
 ConsoleSec:Button({ 
     Title = "Test All Logs Colors", 
     Icon = "flask-conical", 

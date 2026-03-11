@@ -569,6 +569,7 @@ MainTab:Space()
 local SupportSection = MainTab:Section({ Title = "Others", Icon = "wrench", Opened = true, Box = true })
 SupportSection:Toggle({ Title = "Auto Rejoin (Anti-Disconnect)", Desc = "Automatically reconnect when disconnected or kicked", Flag = "AutoRejoinToggle", Value = false, Callback = function(Value) if Value then _G.RejoinConnection = GuiService.ErrorMessageChanged:Connect(function() task.wait(0.5) if #game:GetService("Players"):GetPlayers() <= 1 then TeleportService:Teleport(game.PlaceId, _LocalPlayer22) else TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, _LocalPlayer22) end end) else if _G.RejoinConnection then _G.RejoinConnection:Disconnect(); _G.RejoinConnection = nil end end end })
 SupportSection:Button({ Title = "Rejoin Server (Manual)", Desc = "Use when stuck in terrain", Callback = function() if #game:GetService("Players"):GetPlayers() <= 1 then TeleportService:Teleport(game.PlaceId, _LocalPlayer22) else TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, _LocalPlayer22) end end })
+SupportSection:Button({ Title = "Infinite Yield", Desc = "Run Infinite Yield", Callback = function() loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))() end })
 local ThemeSection = SettingTab:Section({ Title = "Themes", Icon = "palette", Opened = true, Box = true })
 local validThemes = WindUI:GetThemes()
 local themes = {}
@@ -699,6 +700,7 @@ game:GetService("ScriptContext").Error:Connect(function(message, trace, script)
     -- Hàm này đảm bảo bắt gọn mọi lỗi từ Executor và Roblox
     addLog(tostring(message) .. " | " .. tostring(script), Enum.MessageType.MessageError)
 end)
+ConsoleSec:Button({ Title = "Open Custome Console", Icon = "terminal", Callback = function() openConsole() end })
 ConsoleSec:Button({ 
     Title = "Test All Logs Colors", 
     Icon = "flask-conical", 

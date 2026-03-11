@@ -1,8 +1,8 @@
--- ==========================================================
+--------------------------------------------------------------------------------------------------------------
 -- PART 1: WIND UI SETUP, NOTIFICATIONS & MOVEMENT
--- ==========================================================
+--------------------------------------------------------------------------------------------------------------
 print("Loading script maybe take a few seconds to complete")
-game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Purium On Top!", Text = "Loading Script...", Duration = 3 })
+game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Purium On Top!", Text = "Loading Script...", Duration = 1.5 })
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 local Window = WindUI:CreateWindow({
     Title = "Purium Hub [By @hlck49] | Chain |", Icon = "door-open", Author = "Version : 0.0.1", Folder = "Purium_CHAIN",
@@ -29,8 +29,8 @@ Window:EditOpenButton({
     Icon = "monitor",
     CornerRadius = UDim.new(0,16),
     StrokeThickness = 2,
-    Color = ColorSequence.new( -- ĐÃ ĐỔI SANG GRADIENT TRẮNG ĐEN
-        Color3.fromHex("FFFFFF"), 
+    Color = ColorSequence.new(
+        Color3.fromHex("1e1e1e"), 
         Color3.fromHex("000000")
     ),
     OnlyMobile = false,
@@ -47,6 +47,7 @@ local Workspace = game:GetService("Workspace")
 local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
 
+local InfoTab = Window:Tab({ Title = "Information", Icon = "info" })
 local NotifyTab = Window:Tab({ Title = "Notifications", Icon = "bell" })
 local MainTab = Window:Tab({ Title = "Main & Movement", Icon = "castle" })
 local VisualsTab = Window:Tab({ Title = "Visuals & ESP", Icon = "eye" })
@@ -56,6 +57,27 @@ local MiscTab = Window:Tab({ Title = "World & Items", Icon = "cog" })
 local FarmTab = Window:Tab({ Title = "AutoFarm", Icon = "feather" })
 local ServerTab = Window:Tab({ Title = "Servers", Icon = "server" })
 local SettingTab = Window:Tab({ Title = "Settings", Icon = "settings" })
+
+local InfoSection = InfoTab:Section({ Title = "Script Information", Icon = "book-open", Opened = true, Box = true })
+InfoSection:Paragraph({
+    Title = "Welcome To Purium Hub!", Desc = "Note : Thank You For Using My Script :D !!",
+    Image = "alert-triangle", ImageSize = 5
+})
+InfoSection:Paragraph({
+    Title = "Owner | Developers",
+    Desc = "@hlck49[Owner]\nHieu&Thanh[Developers]",
+})
+InfoTab:Space()
+local UpdateSection = InfoTab:Section({ 
+    Title = "Changelogs & Updates", 
+    Icon = "history", 
+    Opened = true, 
+    Box = true 
+})
+UpdateSection:Paragraph({
+    Title = "Update | Changelogs :",
+    Desc = "[+] Fixed Not Load Tabs\n[+] Added Notifications\n[+] Fixed inf stamina\n[+] Improved Esp",
+})
 
 local NotifSec = NotifyTab:Section({ Title = "Smart Notifications", Icon = "bell", Opened = true, Box = true })
 local notifSet = { power = true, roundTime = true, chain = true, artifact = true, airdrop = true }
@@ -139,10 +161,10 @@ local function sFLY()
 end
 local function NOFLY() FLYING = false; if flyKeyDown then flyKeyDown:Disconnect() flyKeyUp:Disconnect() end; pcall(function() LocalPlayer.Character.Humanoid.PlatformStand = false end) end
 moveSec:Toggle({ Title = "Fly", Value = false, Callback = function(v) if v then sFLY() else NOFLY() end end })
--- ==========================================================
+--------------------------------------------------------------------------------------------------------------
 -- PART 2: DYNAMIC HEALTH ESP & TELEPORTS
--- ==========================================================
-local VisSec = VisualsTab:Section({ Title = "Dynamic Health ESP& Players", Icon = "users", Opened = true, Box = true })
+--------------------------------------------------------------------------------------------------------------
+local VisSec = VisualsTab:Section({ Title = "Dynamic Health ESP & Players", Icon = "users", Opened = true, Box = true })
 local espElements, espConn = {}, nil
 
 local function getHealthColor(health)
@@ -246,9 +268,9 @@ ownTpSec:Button({ Title = "Teleport to Selected", Callback = function() if saved
 local locs = { SafeHouse = CFrame.new(162.68, -94.26, 230.03), WorkShopOut = CFrame.new(130.92, -106.07, -2.17), WorkShopIn = CFrame.new(169.56, -103.65, -30.01), Cabin = CFrame.new(-324.80, -88.61, 290.67), Shop = CFrame.new(-111.37, -87.20, 203.52), PowerStation = CFrame.new(-208.29, -110.60, -120.22), WareHouse = CFrame.new(314.62, -113.51, -258.48), Ritual = CFrame.new(-18.60, -107.77, -229.89) }
 for name, cf in pairs(locs) do TpSec:Button({ Title = name, Callback = function() pcall(function() LocalPlayer.Character.HumanoidRootPart.CFrame = cf end) end }) end
 TpSec:Button({ Title = "Teleport to nearest Airdrop", Callback = function() pcall(function() local drops = Workspace.GameStuff.GameSections.AirDrops:GetChildren(); if #drops > 0 and LocalPlayer.Character then LocalPlayer.Character:PivotTo(drops[1]:GetPivot() * CFrame.new(0, 10, 0)) end end) end})
--- ==========================================================
+--------------------------------------------------------------------------------------------------------------
 -- PART 3: COMBAT, AUTOFARM, MISC & SETTINGS
--- ==========================================================
+--------------------------------------------------------------------------------------------------------------
 local CmbSec = CharTab:Section({ Title = "Combat & Character", Icon = "swords", Opened = true, Box = true })
 
 local infStam, infCombat, autoClash, infGas = false, false, false, false
@@ -327,6 +349,10 @@ SrvSec:Toggle({ Title = "Auto Hop (< 5 Players)", Value = false, Callback = func
     _G.HopSmall = v
     if v then if #Players:GetPlayers() < 5 then WindUI:Notify({Title="Found!", Content="Already in a small server."}); _G.HopSmall=false else game:GetService("TeleportService"):Teleport(game.PlaceId, LocalPlayer) end end
 end})
+SrvSec:Toggle({ Title = "Auto Rejoin (Anti-Disconnect)", Desc = "Automatically reconnect when disconnected or kicked", Flag = "AutoRejoinToggle", Value = false, Callback = function(Value) if Value then _G.RejoinConnection = GuiService.ErrorMessageChanged:Connect(function() task.wait(0.5) if #game:GetService("Players"):GetPlayers() <= 1 then TeleportService:Teleport(game.PlaceId, _LocalPlayer22) else TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, _LocalPlayer22) end end) else if _G.RejoinConnection then _G.RejoinConnection:Disconnect(); _G.RejoinConnection = nil end end end })
+SrvSec:Button({ Title = "Rejoin Server (Manual)", Desc = "Use when stuck in terrain", Callback = function() if #game:GetService("Players"):GetPlayers() <= 1 then TeleportService:Teleport(game.PlaceId, _LocalPlayer22) else TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, _LocalPlayer22) end end })
+
+SettingTab:Space()
 
 local ThemeSection = SettingTab:Section({ Title = "Themes", Icon = "palette", Opened = true, Box = true })
 local validThemes = WindUI:GetThemes()
@@ -381,3 +407,223 @@ ThemeSection:Keybind({
     end
 })
 print("successfully loaded all asset!")
+
+local ConsoleSec = SettingTab:Section({ Title = "Console Manager", Icon = "code", Opened = true, Box = true })
+
+-- 1. Nút mở F9
+local VIM = game:GetService("VirtualInputManager")
+ConsoleSec:Button({ 
+    Title = "Open Roblox Console (F9)", 
+    Desc = "Roblox's console",
+    Icon = "square-terminal", 
+    Callback = function() 
+        pcall(function()
+            VIM:SendKeyEvent(true, Enum.KeyCode.F9, false, game)
+            task.wait(0.05)
+            VIM:SendKeyEvent(false, Enum.KeyCode.F9, false, game)
+        end)
+    end 
+})
+
+-- 2. Hệ thống Custom Console (Đầy đủ 4 màu)
+local LogService = game:GetService("LogService")
+local TweenService = game:GetService("TweenService")
+local CoreGui = (gethui and gethui()) or game:GetService("CoreGui")
+
+-- Các hằng số cho Animation
+local TWEEN_INFO = TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+local NORMAL_SIZE = UDim2.new(0, 500, 0, 320)
+local MINIMIZED_SIZE = UDim2.new(0, 500, 0, 30)
+local MAXIMIZED_SIZE = UDim2.new(0.9, 0, 0.9, 0)
+
+-- Trạng thái
+local isMaximized = false
+local isMinimized = false
+local savedPos = UDim2.new(0.5, -250, 0.5, -160)
+
+local customConsoleGui = Instance.new("ScreenGui")
+customConsoleGui.Name = "Purium_PremiumConsole"
+customConsoleGui.ResetOnSpawn = false
+pcall(function() customConsoleGui.Parent = CoreGui end)
+
+local consoleFrame = Instance.new("Frame", customConsoleGui)
+consoleFrame.Size = UDim2.new(0, 0, 0, 0) -- Bắt đầu từ 0 để làm hiệu ứng Pop-in
+consoleFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+consoleFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+consoleFrame.BorderSizePixel = 0
+consoleFrame.Visible = false
+consoleFrame.ClipsDescendants = true
+consoleFrame.Active = true
+consoleFrame.Draggable = true
+
+local UICorner = Instance.new("UICorner", consoleFrame)
+UICorner.CornerRadius = UDim.new(0, 10)
+
+-- Thanh kéo (Header)
+local topBar = Instance.new("Frame", consoleFrame)
+topBar.Size = UDim2.new(1, 0, 0, 30)
+topBar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+topBar.BorderSizePixel = 0
+local topCorner = Instance.new("UICorner", topBar)
+topCorner.CornerRadius = UDim.new(0, 10)
+local fixSquare = Instance.new("Frame", topBar)
+fixSquare.Size = UDim2.new(1, 0, 0, 10)
+fixSquare.Position = UDim2.new(0, 0, 1, -10)
+fixSquare.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+fixSquare.BorderSizePixel = 0
+
+-- Tiêu đề
+local title = Instance.new("TextLabel", topBar)
+title.Size = UDim2.new(1, -100, 1, 0)
+title.Position = UDim2.new(0, 80, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "Purium Premium Console"
+title.TextColor3 = Color3.fromRGB(200, 200, 200)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 13
+title.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Vùng chứa 3 Nút (MacOS Style)
+local btnContainer = Instance.new("Frame", topBar)
+btnContainer.Size = UDim2.new(0, 60, 1, 0)
+btnContainer.Position = UDim2.new(0, 10, 0, 0)
+btnContainer.BackgroundTransparency = 1
+
+local listLayoutBtns = Instance.new("UIListLayout", btnContainer)
+listLayoutBtns.FillDirection = Enum.FillDirection.Horizontal
+listLayoutBtns.VerticalAlignment = Enum.VerticalAlignment.Center
+listLayoutBtns.Padding = UDim.new(0, 8)
+
+-- Nút Đóng (Đỏ)
+local btnClose = Instance.new("TextButton", btnContainer)
+btnClose.Size = UDim2.new(0, 12, 0, 12)
+btnClose.BackgroundColor3 = Color3.fromRGB(255, 95, 86)
+btnClose.Text = ""
+Instance.new("UICorner", btnClose).CornerRadius = UDim.new(1, 0)
+
+-- Nút Thu nhỏ (Vàng)
+local btnMinimize = Instance.new("TextButton", btnContainer)
+btnMinimize.Size = UDim2.new(0, 12, 0, 12)
+btnMinimize.BackgroundColor3 = Color3.fromRGB(255, 189, 46)
+btnMinimize.Text = ""
+Instance.new("UICorner", btnMinimize).CornerRadius = UDim.new(1, 0)
+
+-- Nút Phóng to (Xanh)
+local btnMaximize = Instance.new("TextButton", btnContainer)
+btnMaximize.Size = UDim2.new(0, 12, 0, 12)
+btnMaximize.BackgroundColor3 = Color3.fromRGB(39, 201, 63)
+btnMaximize.Text = ""
+Instance.new("UICorner", btnMaximize).CornerRadius = UDim.new(1, 0)
+
+-- Vùng Logs
+local scrollFrame = Instance.new("ScrollingFrame", consoleFrame)
+scrollFrame.Size = UDim2.new(1, -10, 1, -40)
+scrollFrame.Position = UDim2.new(0, 5, 0, 35)
+scrollFrame.BackgroundTransparency = 1
+scrollFrame.ScrollBarThickness = 3
+scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 80)
+scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+scrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+
+local listLayout = Instance.new("UIListLayout", scrollFrame)
+listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+listLayout.Padding = UDim.new(0, 3)
+
+-- HÀM ANIMATION MỞ / ĐÓNG GIAO DIỆN
+local function openConsole()
+    consoleFrame.Visible = true
+    if not isMaximized and not isMinimized then
+        TweenService:Create(consoleFrame, TWEEN_INFO, {Size = NORMAL_SIZE, Position = savedPos}):Play()
+    end
+end
+
+local function hideConsole()
+    savedPos = consoleFrame.Position -- Lưu lại vị trí trước khi đóng
+    local closeTween = TweenService:Create(consoleFrame, TWEEN_INFO, {
+        Size = UDim2.new(0, 0, 0, 0),
+        Position = UDim2.new(savedPos.X.Scale, savedPos.X.Offset + (consoleFrame.Size.X.Offset/2), savedPos.Y.Scale, savedPos.Y.Offset + (consoleFrame.Size.Y.Offset/2))
+    })
+    closeTween:Play()
+    closeTween.Completed:Connect(function()
+        if consoleFrame.Size.X.Offset == 0 then consoleFrame.Visible = false end
+    end)
+end
+
+-- LOGIC CÁC NÚT ĐIỀU KHIỂN
+btnClose.MouseButton1Click:Connect(hideConsole)
+
+btnMinimize.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    if isMinimized then
+        if not isMaximized then savedPos = consoleFrame.Position end
+        TweenService:Create(consoleFrame, TWEEN_INFO, {Size = MINIMIZED_SIZE}):Play()
+        scrollFrame.Visible = false
+    else
+        scrollFrame.Visible = true
+        local targetSize = isMaximized and MAXIMIZED_SIZE or NORMAL_SIZE
+        TweenService:Create(consoleFrame, TWEEN_INFO, {Size = targetSize}):Play()
+    end
+end)
+
+btnMaximize.MouseButton1Click:Connect(function()
+    if isMinimized then return end -- Không cho phóng to khi đang cuộn
+    isMaximized = not isMaximized
+    if isMaximized then
+        savedPos = consoleFrame.Position
+        TweenService:Create(consoleFrame, TWEEN_INFO, {
+            Size = MAXIMIZED_SIZE,
+            Position = UDim2.new(0.05, 0, 0.05, 0)
+        }):Play()
+    else
+        TweenService:Create(consoleFrame, TWEEN_INFO, {
+            Size = NORMAL_SIZE,
+            Position = savedPos
+        }):Play()
+    end
+end)
+
+-- HÀM XỬ LÝ LOGS
+local logCount = 0
+local function addLog(message, msgType)
+    logCount = logCount + 1
+    if logCount > 150 then
+        local oldestLog = scrollFrame:FindFirstChildWhichIsA("TextLabel")
+        if oldestLog then oldestLog:Destroy() logCount = logCount - 1 end
+    end
+
+    local logLbl = Instance.new("TextLabel", scrollFrame)
+    logLbl.Size = UDim2.new(1, 0, 0, 18)
+    logLbl.BackgroundTransparency = 1
+    logLbl.Font = Enum.Font.Code
+    logLbl.TextSize = 13
+    logLbl.TextXAlignment = Enum.TextXAlignment.Left
+    logLbl.TextWrapped = true
+    logLbl.AutomaticSize = Enum.AutomaticSize.Y
+
+    if msgType == Enum.MessageType.MessageInfo then
+        logLbl.TextColor3 = Color3.fromRGB(0, 200, 255)
+        logLbl.Text = " [INFO] " .. tostring(message)
+    elseif msgType == Enum.MessageType.MessageWarning then
+        logLbl.TextColor3 = Color3.fromRGB(255, 200, 0)
+        logLbl.Text = " [WARN] " .. tostring(message)
+    elseif msgType == Enum.MessageType.MessageError then
+        logLbl.TextColor3 = Color3.fromRGB(255, 80, 80)
+        logLbl.Text = " [ERROR] " .. tostring(message)
+    else
+        logLbl.TextColor3 = Color3.fromRGB(220, 220, 220)
+        logLbl.Text = " [LOG] " .. tostring(message)
+    end
+    
+    scrollFrame.CanvasPosition = Vector2.new(0, scrollFrame.AbsoluteWindowSize.Y + 9999)
+end
+
+LogService.MessageOut:Connect(addLog)
+
+ConsoleSec:Button({ 
+    Title = "Open Console", 
+    Desc = "Purium custome console",
+    Icon = "terminal",
+    Callback = function() 
+        openConsole()
+    end 
+})

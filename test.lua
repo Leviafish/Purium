@@ -38,24 +38,257 @@ Window:EditOpenButton({
     Draggable = true,
 })
 
-WindUI:AddTheme({ Name = "Dark", Accent = Color3.fromRGB(96, 205, 255), Background = Color3.fromRGB(60, 60, 60), Outline = Color3.fromRGB(35, 35, 35), Text = Color3.fromRGB(240, 240, 240), PlaceholderText = Color3.fromRGB(170, 170, 170) })
-WindUI:AddTheme({ Name = "Darker", Accent = Color3.fromRGB(56, 109, 223), Background = Color3.fromRGB(30, 30, 30), Outline = Color3.fromRGB(25, 25, 25), Text = Color3.fromRGB(240, 240, 240), PlaceholderText = Color3.fromRGB(170, 170, 170) })
-WindUI:AddTheme({ Name = "AMOLED", Accent = Color3.fromRGB(255, 255, 255), Background = Color3.fromRGB(0, 0, 0), Outline = Color3.fromRGB(20, 20, 20), Text = Color3.fromRGB(255, 255, 255), PlaceholderText = Color3.fromRGB(170, 170, 170) })
-WindUI:AddTheme({ Name = "Light", Accent = Color3.fromRGB(0, 103, 192), Background = Color3.fromRGB(200, 200, 200), Outline = Color3.fromRGB(120, 120, 120), Text = Color3.fromRGB(0, 0, 0), PlaceholderText = Color3.fromRGB(40, 40, 40) })
-WindUI:AddTheme({ Name = "Balloon", Accent = Color3.fromRGB(100, 170, 255), Background = Color3.fromRGB(189, 224, 255), Outline = Color3.fromRGB(160, 227, 255), Text = Color3.fromRGB(30, 30, 30), PlaceholderText = Color3.fromRGB(90, 90, 90) })
-WindUI:AddTheme({ Name = "SoftCream", Accent = Color3.fromRGB(206, 163, 90), Background = Color3.fromRGB(255, 245, 220), Outline = Color3.fromRGB(255, 230, 200), Text = Color3.fromRGB(30, 30, 30), PlaceholderText = Color3.fromRGB(90, 90, 90) })
-WindUI:AddTheme({ Name = "Aqua", Accent = Color3.fromRGB(38, 166, 178), Background = Color3.fromRGB(18, 54, 61), Outline = Color3.fromRGB(80, 118, 130), Text = Color3.fromRGB(240, 240, 240), PlaceholderText = Color3.fromRGB(170, 170, 170) })
-WindUI:AddTheme({ Name = "Amethyst", Accent = Color3.fromRGB(126, 44, 182), Background = Color3.fromRGB(40, 12, 71), Outline = Color3.fromRGB(85, 45, 120), Text = Color3.fromRGB(240, 240, 240), PlaceholderText = Color3.fromRGB(170, 170, 170) })
-WindUI:AddTheme({ Name = "Rose", Accent = Color3.fromRGB(219, 48, 123), Background = Color3.fromRGB(35, 25, 30), Outline = Color3.fromRGB(145, 35, 75), Text = Color3.fromRGB(240, 240, 240), PlaceholderText = Color3.fromRGB(170, 170, 170) })
-WindUI:AddTheme({ Name = "Midnight", Accent = Color3.fromRGB(52, 50, 178), Background = Color3.fromRGB(20, 20, 20), Outline = Color3.fromRGB(83, 83, 130), Text = Color3.fromRGB(240, 240, 240), PlaceholderText = Color3.fromRGB(170, 170, 170) })
-WindUI:AddTheme({ Name = "Forest", Accent = Color3.fromRGB(46, 141, 70), Background = Color3.fromRGB(20, 35, 25), Outline = Color3.fromRGB(50, 90, 60), Text = Color3.fromRGB(240, 240, 240), PlaceholderText = Color3.fromRGB(170, 170, 170) })
-WindUI:AddTheme({ Name = "Sunset", Accent = Color3.fromRGB(255, 128, 0), Background = Color3.fromRGB(40, 25, 25), Outline = Color3.fromRGB(130, 80, 60), Text = Color3.fromRGB(240, 240, 240), PlaceholderText = Color3.fromRGB(170, 170, 170) })
-WindUI:AddTheme({ Name = "Ocean", Accent = Color3.fromRGB(0, 141, 255), Background = Color3.fromRGB(20, 25, 40), Outline = Color3.fromRGB(40, 60, 100), Text = Color3.fromRGB(240, 240, 240), PlaceholderText = Color3.fromRGB(170, 170, 170) })
-WindUI:AddTheme({ Name = "Grape", Accent = Color3.fromRGB(183, 176, 223), Background = Color3.fromRGB(6, 0, 16), Outline = Color3.fromRGB(20, 20, 20), Text = Color3.fromRGB(255, 255, 255), PlaceholderText = Color3.fromRGB(123, 144, 170) })
-WindUI:AddTheme({ Name = "Bloody", Accent = Color3.fromRGB(144, 0, 0), Background = Color3.fromRGB(61, 0, 0), Outline = Color3.fromRGB(86, 0, 0), Text = Color3.fromRGB(240, 240, 240), PlaceholderText = Color3.fromRGB(131, 131, 131) })
-WindUI:AddTheme({ Name = "Arctic", Accent = Color3.fromRGB(64, 224, 255), Background = Color3.fromRGB(10, 18, 25), Outline = Color3.fromRGB(35, 55, 70), Text = Color3.fromRGB(240, 250, 255), PlaceholderText = Color3.fromRGB(180, 200, 220) })
-WindUI:AddTheme({ Name = "Cloud", Accent = Color3.fromRGB(255, 255, 255), Background = Color3.fromRGB(230, 240, 250), Outline = Color3.fromRGB(180, 200, 220), Text = Color3.fromRGB(30, 30, 30), PlaceholderText = Color3.fromRGB(100, 100, 100) })
-WindUI:AddTheme({ Name = "Sapphire", Accent = Color3.fromRGB(15, 82, 186), Background = Color3.fromRGB(10, 15, 30), Outline = Color3.fromRGB(30, 45, 80), Text = Color3.fromRGB(240, 240, 240), PlaceholderText = Color3.fromRGB(150, 150, 150) })
+WindUI:AddTheme({
+    Name = "Amethyst",
+    Accent = Color3.fromHex("7E2CB6"),
+    Dialog = Color3.fromHex("321E46"),
+    Outline = Color3.fromHex("552D78"),
+    Text = Color3.fromHex("F0F0F0"),
+    Placeholder = Color3.fromHex("AAAAAA"),
+    Background = Color3.fromHex("280C47"),
+    Button = Color3.fromHex("733796"),
+    Icon = Color3.fromHex("AAAAAA"),
+    Toggle = Color3.fromHex("7E2CB6"),
+    Slider = Color3.fromHex("7E2CB6"),
+    Checkbox = Color3.fromHex("7E2CB6"),
+    PanelBackground = Color3.fromHex("FFFFFF"),
+    PanelBackgroundTransparency = 0.95,
+    SliderIcon = Color3.fromHex("AAAAAA"),
+    Primary = Color3.fromHex("7E2CB6"),
+    LabelBackground = Color3.fromHex("000000"),
+    LabelBackgroundTransparency = 0.85,
+})
+
+WindUI:AddTheme({
+    Name = "Balloon",
+    Accent = Color3.fromHex("64AAFF"),
+    Dialog = Color3.fromHex("BDE6FF"),
+    Outline = Color3.fromHex("82AAE6"),
+    Text = Color3.fromHex("1E1E1E"), -- Chữ đen cho nền sáng
+    Placeholder = Color3.fromHex("5A5A5A"),
+    Background = Color3.fromHex("BDE0FF"),
+    Button = Color3.fromHex("A0C8FF"),
+    Icon = Color3.fromHex("5A5A5A"),
+    Toggle = Color3.fromHex("64AAFF"),
+    Slider = Color3.fromHex("64AAFF"),
+    Checkbox = Color3.fromHex("64AAFF"),
+    PanelBackground = Color3.fromHex("FFFFFF"),
+    PanelBackgroundTransparency = 0, -- Nền sáng không để trong suốt
+    SliderIcon = Color3.fromHex("5A5A5A"),
+    Primary = Color3.fromHex("64AAFF"),
+    LabelBackground = Color3.fromHex("FFFFFF"),
+    LabelBackgroundTransparency = 0,
+})
+
+WindUI:AddTheme({
+    Name = "SoftCream",
+    Accent = Color3.fromHex("CEA35A"),
+    Dialog = Color3.fromHex("FFFFF0"),
+    Outline = Color3.fromHex("FFE6C8"),
+    Text = Color3.fromHex("1E1E1E"), -- Chữ đen
+    Placeholder = Color3.fromHex("5A5A5A"),
+    Background = Color3.fromHex("FFF5DC"),
+    Button = Color3.fromHex("FFD8A1"),
+    Icon = Color3.fromHex("5A5A5A"),
+    Toggle = Color3.fromHex("CEA35A"),
+    Slider = Color3.fromHex("CEA35A"),
+    Checkbox = Color3.fromHex("CEA35A"),
+    PanelBackground = Color3.fromHex("FFFFFF"),
+    PanelBackgroundTransparency = 0,
+    SliderIcon = Color3.fromHex("5A5A5A"),
+    Primary = Color3.fromHex("CEA35A"),
+    LabelBackground = Color3.fromHex("FFFFFF"),
+    LabelBackgroundTransparency = 0,
+})
+
+WindUI:AddTheme({
+    Name = "Midnight",
+    Accent = Color3.fromHex("3432B2"),
+    Dialog = Color3.fromHex("252550"),
+    Outline = Color3.fromHex("535382"),
+    Text = Color3.fromHex("F0F0F0"),
+    Placeholder = Color3.fromHex("AAAAAA"),
+    Background = Color3.fromHex("141414"),
+    Button = Color3.fromHex("6F6CA0"),
+    Icon = Color3.fromHex("AAAAAA"),
+    Toggle = Color3.fromHex("3432B2"),
+    Slider = Color3.fromHex("3432B2"),
+    Checkbox = Color3.fromHex("3432B2"),
+    PanelBackground = Color3.fromHex("FFFFFF"),
+    PanelBackgroundTransparency = 0.95,
+    SliderIcon = Color3.fromHex("AAAAAA"),
+    Primary = Color3.fromHex("3432B2"),
+    LabelBackground = Color3.fromHex("000000"),
+    LabelBackgroundTransparency = 0.85,
+})
+
+WindUI:AddTheme({
+    Name = "Forest",
+    Accent = Color3.fromHex("2E8D46"),
+    Dialog = Color3.fromHex("233C28"),
+    Outline = Color3.fromHex("325A3C"),
+    Text = Color3.fromHex("F0F0F0"),
+    Placeholder = Color3.fromHex("AAAAAA"),
+    Background = Color3.fromHex("142319"),
+    Button = Color3.fromHex("467850"),
+    Icon = Color3.fromHex("AAAAAA"),
+    Toggle = Color3.fromHex("2E8D46"),
+    Slider = Color3.fromHex("2E8D46"),
+    Checkbox = Color3.fromHex("2E8D46"),
+    PanelBackground = Color3.fromHex("FFFFFF"),
+    PanelBackgroundTransparency = 0.95,
+    SliderIcon = Color3.fromHex("AAAAAA"),
+    Primary = Color3.fromHex("2E8D46"),
+    LabelBackground = Color3.fromHex("000000"),
+    LabelBackgroundTransparency = 0.85,
+})
+
+WindUI:AddTheme({
+    Name = "Sunset",
+    Accent = Color3.fromHex("FF8000"),
+    Dialog = Color3.fromHex("3C2319"),
+    Outline = Color3.fromHex("82503C"),
+    Text = Color3.fromHex("F0F0F0"),
+    Placeholder = Color3.fromHex("AAAAAA"),
+    Background = Color3.fromHex("281919"),
+    Button = Color3.fromHex("A06446"),
+    Icon = Color3.fromHex("AAAAAA"),
+    Toggle = Color3.fromHex("FF8000"),
+    Slider = Color3.fromHex("FF8000"),
+    Checkbox = Color3.fromHex("FF8000"),
+    PanelBackground = Color3.fromHex("FFFFFF"),
+    PanelBackgroundTransparency = 0.95,
+    SliderIcon = Color3.fromHex("AAAAAA"),
+    Primary = Color3.fromHex("FF8000"),
+    LabelBackground = Color3.fromHex("000000"),
+    LabelBackgroundTransparency = 0.85,
+})
+
+WindUI:AddTheme({
+    Name = "AMOLED",
+    Accent = Color3.fromHex("FFFFFF"),
+    Dialog = Color3.fromHex("000000"),
+    Outline = Color3.fromHex("141414"),
+    Text = Color3.fromHex("FFFFFF"),
+    Placeholder = Color3.fromHex("AAAAAA"),
+    Background = Color3.fromHex("000000"),
+    Button = Color3.fromHex("0F0F0F"),
+    Icon = Color3.fromHex("FFFFFF"),
+    Toggle = Color3.fromHex("FFFFFF"),
+    Slider = Color3.fromHex("FFFFFF"),
+    Checkbox = Color3.fromHex("FFFFFF"),
+    PanelBackground = Color3.fromHex("000000"),
+    PanelBackgroundTransparency = 0,
+    SliderIcon = Color3.fromHex("AAAAAA"),
+    Primary = Color3.fromHex("FFFFFF"),
+    LabelBackground = Color3.fromHex("000000"),
+    LabelBackgroundTransparency = 0,
+})
+
+WindUI:AddTheme({
+    Name = "Grape",
+    Accent = Color3.fromHex("B7B0DF"),
+    Dialog = Color3.fromHex("070012"),
+    Outline = Color3.fromHex("141414"),
+    Text = Color3.fromHex("FFFFFF"),
+    Placeholder = Color3.fromHex("7B90AA"),
+    Background = Color3.fromHex("060010"),
+    Button = Color3.fromHex("0D0021"),
+    Icon = Color3.fromHex("B7B0DF"),
+    Toggle = Color3.fromHex("B7B0DF"),
+    Slider = Color3.fromHex("B7B0DF"),
+    Checkbox = Color3.fromHex("B7B0DF"),
+    PanelBackground = Color3.fromHex("070012"),
+    PanelBackgroundTransparency = 0.5,
+    SliderIcon = Color3.fromHex("B7B0DF"),
+    Primary = Color3.fromHex("B7B0DF"),
+    LabelBackground = Color3.fromHex("070012"),
+    LabelBackgroundTransparency = 0,
+})
+
+WindUI:AddTheme({
+    Name = "Bloody",
+    Accent = Color3.fromHex("900000"),
+    Dialog = Color3.fromHex("550001"),
+    Outline = Color3.fromHex("560000"),
+    Text = Color3.fromHex("F0F0F0"),
+    Placeholder = Color3.fromHex("838383"),
+    Background = Color3.fromHex("3D0000"),
+    Button = Color3.fromHex("730E15"),
+    Icon = Color3.fromHex("F0F0F0"),
+    Toggle = Color3.fromHex("900000"),
+    Slider = Color3.fromHex("900000"),
+    Checkbox = Color3.fromHex("900000"),
+    PanelBackground = Color3.fromHex("550001"),
+    PanelBackgroundTransparency = 0.5,
+    SliderIcon = Color3.fromHex("F0F0F0"),
+    Primary = Color3.fromHex("900000"),
+    LabelBackground = Color3.fromHex("550001"),
+    LabelBackgroundTransparency = 0,
+})
+
+WindUI:AddTheme({
+    Name = "Arctic",
+    Accent = Color3.fromHex("40E0FF"),
+    Dialog = Color3.fromHex("1E2D3C"),
+    Outline = Color3.fromHex("233746"),
+    Text = Color3.fromHex("F0FAFF"),
+    Placeholder = Color3.fromHex("B4C8D2"),
+    Background = Color3.fromHex("0A1219"),
+    Button = Color3.fromHex("1E2D3C"),
+    Icon = Color3.fromHex("40E0FF"),
+    Toggle = Color3.fromHex("40E0FF"),
+    Slider = Color3.fromHex("40E0FF"),
+    Checkbox = Color3.fromHex("40E0FF"),
+    PanelBackground = Color3.fromHex("1E2D3C"),
+    PanelBackgroundTransparency = 0.5,
+    SliderIcon = Color3.fromHex("40E0FF"),
+    Primary = Color3.fromHex("40E0FF"),
+    LabelBackground = Color3.fromHex("1E2D3C"),
+    LabelBackgroundTransparency = 0,
+})
+
+WindUI:AddTheme({
+    Name = "Cloud",
+    Accent = Color3.fromHex("6DB0FF"),
+    Dialog = Color3.fromHex("FFFFFF"),
+    Outline = Color3.fromHex("C8DCF0"),
+    Text = Color3.fromHex("1E1E1E"), -- Chữ tối trên nền sáng
+    Placeholder = Color3.fromHex("828282"),
+    Background = Color3.fromHex("F0F8FF"),
+    Button = Color3.fromHex("DCEBFA"),
+    Icon = Color3.fromHex("1E1E1E"),
+    Toggle = Color3.fromHex("6DB0FF"),
+    Slider = Color3.fromHex("6DB0FF"),
+    Checkbox = Color3.fromHex("6DB0FF"),
+    PanelBackground = Color3.fromHex("FFFFFF"),
+    PanelBackgroundTransparency = 0,
+    SliderIcon = Color3.fromHex("828282"),
+    Primary = Color3.fromHex("6DB0FF"),
+    LabelBackground = Color3.fromHex("FFFFFF"),
+    LabelBackgroundTransparency = 0,
+})
+
+WindUI:AddTheme({
+    Name = "Sapphire",
+    Accent = Color3.fromHex("0F52BA"),
+    Dialog = Color3.fromHex("0F192D"),
+    Outline = Color3.fromHex("1E2D50"),
+    Text = Color3.fromHex("E6E6E6"),
+    Placeholder = Color3.fromHex("8C8C8C"),
+    Background = Color3.fromHex("0A0F1E"),
+    Button = Color3.fromHex("14233C"),
+    Icon = Color3.fromHex("E6E6E6"),
+    Toggle = Color3.fromHex("0F52BA"),
+    Slider = Color3.fromHex("0F52BA"),
+    Checkbox = Color3.fromHex("0F52BA"),
+    PanelBackground = Color3.fromHex("0F192D"),
+    PanelBackgroundTransparency = 0.5,
+    SliderIcon = Color3.fromHex("8C8C8C"),
+    Primary = Color3.fromHex("0F52BA"),
+    LabelBackground = Color3.fromHex("0F192D"),
+    LabelBackgroundTransparency = 0,
+})
 
 Window:Tag({ Title = "V [0.0.1]", Icon = "github", Color = Color3.fromRGB(48, 255, 106), Radius = 10 })
 

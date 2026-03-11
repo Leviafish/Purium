@@ -5,7 +5,7 @@ print("Loading script maybe take a few seconds to complete")
 game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Purium On Top!", Text = "Loading Script...", Duration = 3 })
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 local Window = WindUI:CreateWindow({
-    Title = "Purium Hub [By @hlck49] | Chain |", Icon = "door-open", Author = "Version : 0.0.3", Folder = "Purium_SBSD",
+    Title = "Purium Hub [By @hlck49] | Chain |", Icon = "door-open", Author = "Version : 0.0.1", Folder = "Purium_CHAIN",
     Size = UDim2.fromOffset(580, 460), MinSize = Vector2.new(560, 350), MaxSize = Vector2.new(850, 560),
     Transparent = true, Theme = "Dark", Resizable = true, SideBarWidth = 200, BackgroundImageTransparency = 0.42,
     HideSearchBar = true, ScrollBarEnabled = false,
@@ -38,7 +38,7 @@ Window:EditOpenButton({
     Draggable = true,
 })
 
-Window:Tag({ Title = "v1.6.6", Icon = "github", Color = Color3.fromRGB(48, 255, 106), Radius = 10 })
+Window:Tag({ Title = "Version 0.0.1", Icon = "github", Color = Color3.fromRGB(48, 255, 106), Radius = 10 })
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -66,7 +66,7 @@ NotifSec:Toggle({ Title = "CHAIN Spawn / Defeat", Value = true, Callback = funct
 NotifSec:Toggle({ Title = "Artifact Spawn", Value = true, Callback = function(v) notifSet.artifact = v end })
 NotifSec:Toggle({ Title = "Airdrop Spawn", Value = true, Callback = function(v) notifSet.airdrop = v end })
 
-local function playSound() pcall(function() local s = Instance.new("Sound", Workspace); s.SoundId = "rbxassetid://15544478080"; s.Volume = 5; s:Play(); game:GetService("Debris"):AddItem(s, 3) end) end
+local function playSound() pcall(function() local s = Instance.new("Sound", Workspace); s.SoundId = "rbxassetid://133278612669127"; s.Volume = 7; s:Play(); game:GetService("Debris"):AddItem(s, 3) end) end
 
 task.spawn(function()
     local valFolder = Workspace:WaitForChild("GameStuff", 5) and Workspace.GameStuff:WaitForChild("Values", 5)
@@ -92,7 +92,7 @@ task.spawn(function()
 end)
 
 local MainSec = MainTab:Section({ Title = "Bypasses & Tools", Icon = "shield", Opened = true, Box = true })
-MainSec:Button({ Title = "Remove Adonis Anticheat", Callback = function() pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/Pixeluted/adoniscries/refs/heads/main/Source.lua"))() WindUI:Notify({Title="Bypassed", Content="Adonis AC Removed!", Duration=3}) end) end })
+MainSec:Button({ Title = "Remove Adonis Anticheat(This may make your device lag)", Callback = function() pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/Pixeluted/adoniscries/refs/heads/main/Source.lua"))() WindUI:Notify({Title="Bypassed", Content="Adonis AC Removed!", Duration=3}) end) end })
 MainSec:Button({ Title = "Infinite Yield", Callback = function() loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))() end })
 MainSec:Button({ Title = "Third Person View", Callback = function() pcall(function() LocalPlayer.CameraMode = Enum.CameraMode.Classic; LocalPlayer.CameraMaxZoomDistance = 1280; LocalPlayer.CameraMinZoomDistance = 0.5 end) end })
 MainSec:Button({ Title = "Remove Mask on head", Callback = function() pcall(function() LocalPlayer.Character.Sack.SurfaceAppearance.Parent:Destroy() end) end })
@@ -142,7 +142,7 @@ moveSec:Toggle({ Title = "Fly", Value = false, Callback = function(v) if v then 
 -- ==========================================================
 -- PART 2: DYNAMIC HEALTH ESP & TELEPORTS
 -- ==========================================================
-local VisSec = VisualsTab:Section({ Title = "Dynamic Health ESP", Icon = "users", Opened = true, Box = true })
+local VisSec = VisualsTab:Section({ Title = "Dynamic Health ESP& Players", Icon = "users", Opened = true, Box = true })
 local espElements, espConn = {}, nil
 
 local function getHealthColor(health)
@@ -201,7 +201,7 @@ local function updatePlayerEsp()
     for player, _ in pairs(espElements) do if not activePlayers[player] then cleanEsp(player) end end
 end
 
-VisSec:Toggle({ Title = "Player ESP (Health Color Chams)", Value = false, Callback = function(v)
+VisSec:Toggle({ Title = "Player ESP", Value = false, Callback = function(v)
     if v then if not espConn then espConn = RunService.RenderStepped:Connect(updatePlayerEsp) end else if espConn then espConn:Disconnect(); espConn = nil end for p, _ in pairs(espElements) do cleanEsp(p) end end
 end})
 
@@ -328,6 +328,56 @@ SrvSec:Toggle({ Title = "Auto Hop (< 5 Players)", Value = false, Callback = func
     if v then if #Players:GetPlayers() < 5 then WindUI:Notify({Title="Found!", Content="Already in a small server."}); _G.HopSmall=false else game:GetService("TeleportService"):Teleport(game.PlaceId, LocalPlayer) end end
 end})
 
-SettingTab:Section({ Title = "Themes & UI", Icon = "palette", Opened = true, Box = true }):Keybind({ Title = "Keybind (Mở/Đóng UI)", Value = "G", Callback = function(v) pcall(function() Window:SetToggleKey(Enum.KeyCode[v]) end) end })
-
-print("Purium Chain Script Successfully Loaded!")
+local ThemeSection = SettingTab:Section({ Title = "Themes", Icon = "palette", Opened = true, Box = true })
+local validThemes = WindUI:GetThemes()
+local themes = {}
+for themeName, _ in pairs(validThemes) do table.insert(themes, themeName) end
+table.sort(themes)
+ThemeSection:Dropdown({ Title = "Theme", Desc = "Choose UI Style", Values = themes, Flag = "ThemeDropdown", Value = "Dark", Callback = function(Value) if validThemes[Value] then pcall(function() WindUI:SetTheme(Value) end) end end })
+SettingTab:Space()
+local ConfigSection = SettingTab:Section({ Title = "Config Manager", Icon = "save", Opened = true, Box = true })
+local ConfigManager = Window.ConfigManager
+local configName = "MainConfig"
+local configFile = ConfigManager:CreateConfig(configName)
+local savedConfigs = ConfigManager:AllConfigs()
+if #savedConfigs == 0 then table.insert(savedConfigs, "MainConfig") end
+local ConfigInput = ConfigSection:Input({ Title = "Config Name", Value = configName, Callback = function(value) configName = value or "MainConfig" end })
+local AutoLoadToggle
+local ConfigDropdown = ConfigSection:Dropdown({ Title = "Choose Saved Config", Values = savedConfigs, Value = configName, AllowNone = false, Callback = function(value) configName = value or "MainConfig" ConfigInput:Set(configName) if AutoLoadToggle then AutoLoadToggle:Set(getAutoLoad() == configName) end end })
+AutoLoadToggle = ConfigSection:Toggle({ Title = "Auto-Load Config", Desc = "Enable to auto load this config on execution", Value = (getAutoLoad() == configName), Callback = function(Value) if Value then setAutoLoad(configName) else setAutoLoad("none") end end })
+ConfigSection:Button({ Title = "Save Config", Icon = "check", Callback = function() configFile = ConfigManager:CreateConfig(configName) if configFile:Save() then local newList = ConfigManager:AllConfigs() if #newList == 0 then table.insert(newList, "MainConfig") end ConfigDropdown:Refresh(newList) WindUI:Notify({ Title = "Save Config", Content = "Saved: " .. configName, Duration = 3 }) end end })
+ConfigSection:Button({ Title = "Load Config", Icon = "refresh-cw", Callback = function() configFile = ConfigManager:CreateConfig(configName) if configFile:Load() then WindUI:Notify({ Title = "Load Config", Content = "Loaded: " .. configName, Duration = 3 }) end end })
+Window:OnClose(function() if ConfigManager and configFile then configFile:Save() end end)
+task.spawn(function()
+    task.wait(1.5)
+    local autoConf = getAutoLoad()
+    if autoConf ~= "none" then
+        configName = autoConf
+        configFile = ConfigManager:CreateConfig(configName)
+        pcall(function()
+            configFile:Load()
+            WindUI:Notify({ Title = "Auto-Load Enabled", Content = "Loaded config: " .. configName, Duration = 3 })
+        end)
+    end
+    task.wait(0.5)
+    pcall(function()
+        Window:Minimize()
+    end)
+    pcall(function()
+        Window:Toggle() 
+    end)
+    WindUI:Notify({
+        Title = "UI Minimized",
+        Content = "The Ui Automatic Minized You Can Open By Click The Ui On The Bottom",
+        Duration = 5
+    })
+end)
+ThemeSection:Keybind({
+    Title = "Keybind",
+    Desc = "Keybind to open ui",
+    Value = "G",
+    Callback = function(v)
+        Window:SetToggleKey(Enum.KeyCode[v])
+    end
+})
+print("successfully loaded all asset!")

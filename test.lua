@@ -296,6 +296,7 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
+local TeleportService = game:GetService("TeleportService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
 
@@ -595,14 +596,11 @@ WorldSec:Toggle({ Title = "Anti-AFK", Value = false, Callback = function(v)
 end})
 
 local SrvSec = ServerTab:Section({ Title = "Server Actions", Icon = "server", Opened = true, Box = true })
-SrvSec:Button({ Title = "Random Server Hop", Callback = function() WindUI:Notify({Title="Teleporting", Content="Hopping..."}); game:GetService("TeleportService"):Teleport(game.PlaceId, LocalPlayer) end })
+SrvSec:Button({ Title = "Random Server Hop", Callback = function() WindUI:Notify({Title="Teleporting", Content="Hopping..."}); TeleportService:Teleport(game.PlaceId, LocalPlayer) end })
 _G.HopSmall = false
-SrvSec:Toggle({ Title = "Auto Hop (< 5 Players)", Value = false, Callback = function(v)
-    _G.HopSmall = v
-    if v then if #Players:GetPlayers() < 5 then WindUI:Notify({Title="Found!", Content="Already in a small server."}); _G.HopSmall=false else game:GetService("TeleportService"):Teleport(game.PlaceId, LocalPlayer) end end
-end})
-SrvSec:Toggle({ Title = "Auto Rejoin (Anti-Disconnect)", Desc = "Automatically reconnect when disconnected or kicked", Flag = "AutoRejoinToggle", Value = false, Callback = function(Value) if Value then _G.RejoinConnection = GuiService.ErrorMessageChanged:Connect(function() task.wait(0.5) if #game:GetService("Players"):GetPlayers() <= 1 then TeleportService:Teleport(game.PlaceId, _LocalPlayer22) else TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, _LocalPlayer22) end end) else if _G.RejoinConnection then _G.RejoinConnection:Disconnect(); _G.RejoinConnection = nil end end end })
-SrvSec:Button({ Title = "Rejoin Server (Manual)", Desc = "Use when stuck in terrain", Callback = function() if #game:GetService("Players"):GetPlayers() <= 1 then TeleportService:Teleport(game.PlaceId, _LocalPlayer22) else TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, _LocalPlayer22) end end })
+SrvSec:Toggle({ Title = "Auto Hop (< 5 Players)", Value = false, Callback = function(v) _G.HopSmall = v; if v then if #Players:GetPlayers() < 5 then WindUI:Notify({Title="Found!", Content="Already in a small server."}); _G.HopSmall=false else TeleportService:Teleport(game.PlaceId, LocalPlayer) end end end})
+SrvSec:Toggle({ Title = "Auto Rejoin (Anti-Disconnect)", Desc = "Automatically reconnect when disconnected or kicked", Flag = "AutoRejoinToggle", Value = false, Callback = function(Value) if Value then _G.RejoinConnection = game:GetService("GuiService").ErrorMessageChanged:Connect(function() task.wait(0.5) if #Players:GetPlayers() <= 1 then TeleportService:Teleport(game.PlaceId, LocalPlayer) else TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer) end end) else if _G.RejoinConnection then _G.RejoinConnection:Disconnect(); _G.RejoinConnection = nil end end end })
+SrvSec:Button({ Title = "Rejoin Server (Manual)", Desc = "Use when stuck in terrain", Callback = function() if #Players:GetPlayers() <= 1 then TeleportService:Teleport(game.PlaceId, LocalPlayer) else TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer) end end })
 
 SettingTab:Space()
 
@@ -612,65 +610,16 @@ local themes = {}
 for themeName, _ in pairs(validThemes) do table.insert(themes, themeName) end
 table.sort(themes)
 ThemeSection:Dropdown({ Title = "Theme", Desc = "Choose UI Style", Values = themes, Flag = "ThemeDropdown", Value = "Dark", Callback = function(Value) if validThemes[Value] then pcall(function() WindUI:SetTheme(Value) end) end end })
+
 SettingTab:Space()
-local ConfigSection = SettingTab:Section({ Title = "Config Manager", Icon = "save", Opened = true, Box = true })
-local ConfigManager = Window.ConfigManager
-local configName = "MainConfig"
-local configFile = ConfigManager:CreateConfig(configName)
 
--- Dùng pcall để "đỡ đạn", script sẽ không bị sập nữa!
-local savedConfigs = {"MainConfig"}
-pcall(function()
-    local fetchedConfigs = ConfigManager:AllConfigs()
-    if fetchedConfigs and #fetchedConfigs > 0 then
-        savedConfigs = fetchedConfigs
-    end
-end)
 
-local ConfigInput = ConfigSection:Input({ Title = "Config Name", Value = configName, Callback = function(value) configName = value or "MainConfig" end })
-local AutoLoadToggle
-local ConfigDropdown = ConfigSection:Dropdown({ Title = "Choose Saved Config", Values = savedConfigs, Value = configName, AllowNone = false, Callback = function(value) configName = value or "MainConfig" ConfigInput:Set(configName) if AutoLoadToggle then AutoLoadToggle:Set(getAutoLoad() == configName) end end })
-AutoLoadToggle = ConfigSection:Toggle({ Title = "Auto-Load Config", Desc = "Enable to auto load this config on execution", Value = (getAutoLoad() == configName), Callback = function(Value) if Value then setAutoLoad(configName) else setAutoLoad("none") end end })
-ConfigSection:Button({ Title = "Save Config", Icon = "check", Callback = function() configFile = ConfigManager:CreateConfig(configName) if configFile:Save() then local newList = ConfigManager:AllConfigs() if #newList == 0 then table.insert(newList, "MainConfig") end ConfigDropdown:Refresh(newList) WindUI:Notify({ Title = "Save Config", Content = "Saved: " .. configName, Duration = 3 }) end end })
-ConfigSection:Button({ Title = "Load Config", Icon = "refresh-cw", Callback = function() configFile = ConfigManager:CreateConfig(configName) if configFile:Load() then WindUI:Notify({ Title = "Load Config", Content = "Loaded: " .. configName, Duration = 3 }) end end })
-Window:OnClose(function() if ConfigManager and configFile then configFile:Save() end end)
-task.spawn(function()
-    task.wait(1.5)
-    local autoConf = getAutoLoad()
-    if autoConf ~= "none" then
-        configName = autoConf
-        configFile = ConfigManager:CreateConfig(configName)
-        pcall(function()
-            configFile:Load()
-            WindUI:Notify({ Title = "Auto-Load Enabled", Content = "Loaded config: " .. configName, Duration = 3 })
-        end)
-    end
-    task.wait(0.5)
-    pcall(function()
-        Window:Minimize()
-    end)
-    pcall(function()
-        Window:Toggle() 
-    end)
-    WindUI:Notify({
-        Title = "UI Minimized",
-        Content = "The Ui Automatic Minized You Can Open By Click The Ui On The Bottom",
-        Duration = 5
-    })
-end)
-ThemeSection:Keybind({
-    Title = "Keybind",
-    Desc = "Keybind to open ui",
-    Value = "G",
-    Callback = function(v)
-        Window:SetToggleKey(Enum.KeyCode[v])
-    end
-})
 local ConsoleSec = SettingTab:Section({ Title = "Console Manager", Icon = "code", Opened = true, Box = true })
 
 local VIM = game:GetService("VirtualInputManager")
 ConsoleSec:Button({ Title = "Open Roblox Console (F9)", Icon = "square-terminal", Callback = function() pcall(function() VIM:SendKeyEvent(true, Enum.KeyCode.F9, false, game); task.wait(0.05); VIM:SendKeyEvent(false, Enum.KeyCode.F9, false, game) end) end })
-local LogService = game:GetService("LogService"); local TweenService = game:GetService("TweenService"); local CoreGui = (gethui and gethui()) or game:GetService("CoreGui")
+
+local LogService = game:GetService("LogService"); local TweenService = game:GetService("TweenService"); local CoreGui = game:GetService("CoreGui")
 local TWEEN_INFO = TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 local NORMAL_SIZE = UDim2.new(0, 500, 0, 320); local MINIMIZED_SIZE = UDim2.new(0, 500, 0, 30); local MAXIMIZED_SIZE = UDim2.new(0.9, 0, 0.9, 0)
 
@@ -678,34 +627,29 @@ local isMaximized, isMinimized = false, false
 local isConsoleOpen = false 
 local savedPos = UDim2.new(0.5, -250, 0.5, -160)
 
-local customConsoleGui = Instance.new("ScreenGui"); customConsoleGui.Name = "Purium_PremiumConsole"; customConsoleGui.ResetOnSpawn = false; pcall(function() customConsoleGui.Parent = CoreGui end)
+local customConsoleGui = Instance.new("ScreenGui"); customConsoleGui.Name = "Purium_PremiumConsole"; customConsoleGui.ResetOnSpawn = false
 
--- KHUNG CHÍNH (Background)
-local consoleFrame = Instance.new("Frame", customConsoleGui); consoleFrame.Size = UDim2.new(0, 0, 0, 0); consoleFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-consoleFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25) 
-consoleFrame.BorderSizePixel = 0; consoleFrame.Visible = false; consoleFrame.ClipsDescendants = true; consoleFrame.Active = true; consoleFrame.Draggable = true
+local successParent = pcall(function() customConsoleGui.Parent = (gethui and gethui()) or CoreGui end)
+if not successParent then pcall(function() customConsoleGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end) end
+
+local consoleFrame = Instance.new("Frame", customConsoleGui); consoleFrame.Size = UDim2.new(0, 0, 0, 0); consoleFrame.Position = UDim2.new(0.5, 0, 0.5, 0); consoleFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25); consoleFrame.BorderSizePixel = 0; consoleFrame.Visible = false; consoleFrame.ClipsDescendants = true; consoleFrame.Active = true; consoleFrame.Draggable = true
 Instance.new("UICorner", consoleFrame).CornerRadius = UDim.new(0, 10)
 
--- TOPBAR (Tràn viền)
 local topBar = Instance.new("Frame", consoleFrame); topBar.Size = UDim2.new(1, 0, 0, 30); topBar.BackgroundColor3 = Color3.fromRGB(25, 25, 25); topBar.BorderSizePixel = 0
 Instance.new("UICorner", topBar).CornerRadius = UDim.new(0, 10)
 local fixSquare = Instance.new("Frame", topBar); fixSquare.Size = UDim2.new(1, 0, 0, 10); fixSquare.Position = UDim2.new(0, 0, 1, -10); fixSquare.BackgroundColor3 = Color3.fromRGB(25, 25, 25); fixSquare.BorderSizePixel = 0
 
--- TIÊU ĐỀ
-local title = Instance.new("TextLabel", topBar); title.Size = UDim2.new(1, -100, 1, 0); title.Position = UDim2.new(0, 15, 0, 0); title.BackgroundTransparency = 1; title.Text = "Purium Custome Console"; title.TextColor3 = Color3.fromRGB(200, 200, 200); title.Font = Enum.Font.GothamBold; title.TextSize = 13; title.TextXAlignment = Enum.TextXAlignment.Left
+local title = Instance.new("TextLabel", topBar); title.Size = UDim2.new(1, -100, 1, 0); title.Position = UDim2.new(0, 15, 0, 0); title.BackgroundTransparency = 1; title.Text = "Purium Custom Console"; title.TextColor3 = Color3.fromRGB(200, 200, 200); title.Font = Enum.Font.GothamBold; title.TextSize = 13; title.TextXAlignment = Enum.TextXAlignment.Left
 
--- VÙNG 3 NÚT MACOS BÊN PHẢI
 local btnContainer = Instance.new("Frame", topBar); btnContainer.Size = UDim2.new(0, 60, 1, 0); btnContainer.AnchorPoint = Vector2.new(1, 0); btnContainer.Position = UDim2.new(1, -10, 0, 0); btnContainer.BackgroundTransparency = 1
 local listLayoutBtns = Instance.new("UIListLayout", btnContainer); listLayoutBtns.FillDirection = Enum.FillDirection.Horizontal; listLayoutBtns.VerticalAlignment = Enum.VerticalAlignment.Center; listLayoutBtns.Padding = UDim.new(0, 8)
 local btnMinimize = Instance.new("TextButton", btnContainer); btnMinimize.Size = UDim2.new(0, 12, 0, 12); btnMinimize.BackgroundColor3 = Color3.fromRGB(255, 189, 46); btnMinimize.Text = ""; Instance.new("UICorner", btnMinimize).CornerRadius = UDim.new(1, 0)
 local btnMaximize = Instance.new("TextButton", btnContainer); btnMaximize.Size = UDim2.new(0, 12, 0, 12); btnMaximize.BackgroundColor3 = Color3.fromRGB(39, 201, 63); btnMaximize.Text = ""; Instance.new("UICorner", btnMaximize).CornerRadius = UDim.new(1, 0)
 local btnClose = Instance.new("TextButton", btnContainer); btnClose.Size = UDim2.new(0, 12, 0, 12); btnClose.BackgroundColor3 = Color3.fromRGB(255, 95, 86); btnClose.Text = ""; Instance.new("UICorner", btnClose).CornerRadius = UDim.new(1, 0)
 
--- VÙNG LOGS
 local scrollFrame = Instance.new("ScrollingFrame", consoleFrame); scrollFrame.Size = UDim2.new(1, -10, 1, -40); scrollFrame.Position = UDim2.new(0, 5, 0, 35); scrollFrame.BackgroundTransparency = 1; scrollFrame.ScrollBarThickness = 3; scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 80); scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0); scrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
 local listLayout = Instance.new("UIListLayout", scrollFrame); listLayout.SortOrder = Enum.SortOrder.LayoutOrder; listLayout.Padding = UDim.new(0, 3)
 
--- HÀM ANIMATION
 local function openConsole() if isConsoleOpen then return end isConsoleOpen = true; consoleFrame.Visible = true; local targetSize = NORMAL_SIZE; local targetPos = savedPos; if isMaximized then targetSize = MAXIMIZED_SIZE; targetPos = UDim2.new(0.05, 0, 0.05, 0) elseif isMinimized then targetSize = MINIMIZED_SIZE end TweenService:Create(consoleFrame, TWEEN_INFO, {Size = targetSize, Position = targetPos}):Play() end
 local function hideConsole() if not isConsoleOpen then return end isConsoleOpen = false; if not isMaximized and not isMinimized then savedPos = consoleFrame.Position end local closeTween = TweenService:Create(consoleFrame, TWEEN_INFO, { Size = UDim2.new(0, 0, 0, 0), Position = UDim2.new(consoleFrame.Position.X.Scale, consoleFrame.Position.X.Offset + (consoleFrame.AbsoluteSize.X/2), consoleFrame.Position.Y.Scale, consoleFrame.Position.Y.Offset + (consoleFrame.AbsoluteSize.Y/2)) }); closeTween:Play(); task.delay(0.3, function() if not isConsoleOpen then consoleFrame.Visible = false end end) end
 
@@ -713,51 +657,53 @@ btnClose.MouseButton1Click:Connect(hideConsole)
 btnMinimize.MouseButton1Click:Connect(function() if not isConsoleOpen then return end isMinimized = not isMinimized if isMinimized then if not isMaximized then savedPos = consoleFrame.Position end TweenService:Create(consoleFrame, TWEEN_INFO, {Size = MINIMIZED_SIZE}):Play(); scrollFrame.Visible = false else scrollFrame.Visible = true; local targetSize = isMaximized and MAXIMIZED_SIZE or NORMAL_SIZE; TweenService:Create(consoleFrame, TWEEN_INFO, {Size = targetSize}):Play() end end)
 btnMaximize.MouseButton1Click:Connect(function() if not isConsoleOpen or isMinimized then return end isMaximized = not isMaximized if isMaximized then savedPos = consoleFrame.Position; TweenService:Create(consoleFrame, TWEEN_INFO, { Size = MAXIMIZED_SIZE, Position = UDim2.new(0.05, 0, 0.05, 0) }):Play() else TweenService:Create(consoleFrame, TWEEN_INFO, { Size = NORMAL_SIZE, Position = savedPos }):Play() end end)
 
--- HÀM XỬ LÝ LOGS VÀ LỌC MÀU
 local logCount = 0
 local function addLog(message, msgType)
     logCount = logCount + 1; if logCount > 150 then local oldestLog = scrollFrame:FindFirstChildWhichIsA("TextLabel"); if oldestLog then oldestLog:Destroy() logCount = logCount - 1 end end
     local logLbl = Instance.new("TextLabel", scrollFrame); logLbl.Size = UDim2.new(1, 0, 0, 18); logLbl.BackgroundTransparency = 1; logLbl.Font = Enum.Font.Code; logLbl.TextSize = 13; logLbl.TextXAlignment = Enum.TextXAlignment.Left; logLbl.TextWrapped = true; logLbl.AutomaticSize = Enum.AutomaticSize.Y
-    
-    if msgType == Enum.MessageType.MessageInfo then 
-        logLbl.TextColor3 = Color3.fromRGB(0, 200, 255); logLbl.Text = " [INFO] " .. tostring(message)
-    elseif msgType == Enum.MessageType.MessageWarning then 
-        logLbl.TextColor3 = Color3.fromRGB(255, 200, 0); logLbl.Text = " [WARN] " .. tostring(message)
-    elseif msgType == Enum.MessageType.MessageError then 
-        logLbl.TextColor3 = Color3.fromRGB(255, 80, 80); logLbl.Text = " [ERROR] " .. tostring(message)
-    else 
-        logLbl.TextColor3 = Color3.fromRGB(220, 220, 220); logLbl.Text = " [LOG] " .. tostring(message) 
-    end
-    
-    -- Delay siêu nhỏ để UI kịp cập nhật kích thước Text trước khi cuộn
-    task.defer(function()
-        scrollFrame.CanvasPosition = Vector2.new(0, scrollFrame.AbsoluteWindowSize.Y + 9999)
-    end)
+    if msgType == Enum.MessageType.MessageInfo then logLbl.TextColor3 = Color3.fromRGB(0, 200, 255); logLbl.Text = " [INFO] " .. tostring(message)
+    elseif msgType == Enum.MessageType.MessageWarning then logLbl.TextColor3 = Color3.fromRGB(255, 200, 0); logLbl.Text = " [WARN] " .. tostring(message)
+    elseif msgType == Enum.MessageType.MessageError then logLbl.TextColor3 = Color3.fromRGB(255, 80, 80); logLbl.Text = " [ERROR] " .. tostring(message)
+    else logLbl.TextColor3 = Color3.fromRGB(220, 220, 220); logLbl.Text = " [LOG] " .. tostring(message) end
+    task.defer(function() scrollFrame.CanvasPosition = Vector2.new(0, scrollFrame.AbsoluteWindowSize.Y + 9999) end)
 end
-
--- KẾT NỐI SỰ KIỆN: BẮT 100% CÁC LOG VÀ LỖI
 LogService.MessageOut:Connect(addLog)
-game:GetService("ScriptContext").Error:Connect(function(message, trace, script)
-    -- Hàm này đảm bảo bắt gọn mọi lỗi từ Executor và Roblox
-    addLog(tostring(message) .. " | " .. tostring(script), Enum.MessageType.MessageError)
+game:GetService("ScriptContext").Error:Connect(function(message, trace, script) addLog(tostring(message) .. " | " .. tostring(script), Enum.MessageType.MessageError) end)
+
+ConsoleSec:Button({ Title = "Open Custom Console", Icon = "terminal", Callback = function() openConsole() end })
+ConsoleSec:Button({ Title = "Check Console Logs", Icon = "flask-conical", Callback = function() print("This is a normal LOG message."); warn("This is a WARNING message."); pcall(function() game:GetService("TestService"):Message("This is an INFO message.") end); task.spawn(function() error("This is an ERROR message.") end) end })
+ConsoleSec:Button({ Title = "Clear Console Data", Icon = "trash", Callback = function() for _, child in ipairs(scrollFrame:GetChildren()) do if child:IsA("TextLabel") then child:Destroy() end end logCount = 0; WindUI:Notify({Title = "Console", Content = "Clear All Custom Console!!"}) end })
+
+SettingTab:Space()
+
+local ConfigSection = SettingTab:Section({ Title = "Config Manager", Icon = "save", Opened = true, Box = true })
+local ConfigManager = Window.ConfigManager
+local configName = "MainConfig"
+local configFile = ConfigManager:CreateConfig(configName)
+
+local savedConfigs = {"MainConfig"}
+pcall(function()
+    local fetchedList = ConfigManager:AllConfigs()
+    if type(fetchedList) == "table" and #fetchedList > 0 then
+        savedConfigs = fetchedList
+    end
 end)
-ConsoleSec:Button({ Title = "Open Custome Console", Icon = "terminal", Callback = function() openConsole() end })
-ConsoleSec:Button({ 
-    Title = "Check Console Logs(If it works)", 
-    Icon = "flask-conical", 
-    Callback = function() 
-        print("This is a normal LOG message.")
-        warn("This is a WARNING message.")
-        
-        -- Gọi Info trước
-        pcall(function() game:GetService("TestService"):Message("This is an INFO message.") end)
-        
-        -- Đưa Error vào luồng riêng để không làm ngắt script hiện tại
-        task.spawn(function()
-            error("This is an ERROR message.")
-        end)
-    end 
-})
- ConsoleSec:Button({ 
-     Title = "Clear Console Data", Icon = "trash", Callback = function() for _, child in ipairs(scrollFrame:GetChildren()) do if child:IsA("TextLabel") then child:Destroy() end end logCount = 0; WindUI:Notify({Title = "Console", Content = "Clear All Custome Console!!"}) end })
-print("successfully loaded all asset!")
+
+local ConfigInput = ConfigSection:Input({ Title = "Config Name", Value = configName, Callback = function(value) configName = value or "MainConfig" end })
+local AutoLoadToggle
+local ConfigDropdown = ConfigSection:Dropdown({ Title = "Choose Saved Config", Values = savedConfigs, Value = configName, AllowNone = false, Callback = function(value) configName = value or "MainConfig" ConfigInput:Set(configName) if AutoLoadToggle then AutoLoadToggle:Set(getAutoLoad() == configName) end end })
+AutoLoadToggle = ConfigSection:Toggle({ Title = "Auto-Load Config", Desc = "Enable to auto load this config on execution", Value = (getAutoLoad() == configName), Callback = function(Value) if Value then setAutoLoad(configName) else setAutoLoad("none") end end })
+ConfigSection:Button({ Title = "Save Config", Icon = "check", Callback = function() configFile = ConfigManager:CreateConfig(configName) if configFile:Save() then local newList = {"MainConfig"} pcall(function() newList = ConfigManager:AllConfigs() end) if #newList == 0 then table.insert(newList, "MainConfig") end ConfigDropdown:Refresh(newList) WindUI:Notify({ Title = "Save Config", Content = "Saved: " .. configName, Duration = 3 }) end end })
+ConfigSection:Button({ Title = "Load Config", Icon = "refresh-cw", Callback = function() configFile = ConfigManager:CreateConfig(configName) if configFile:Load() then WindUI:Notify({ Title = "Load Config", Content = "Loaded: " .. configName, Duration = 3 }) end end })
+Window:OnClose(function() if ConfigManager and configFile then configFile:Save() end end)
+task.spawn(function()
+    task.wait(1.5)
+    local autoConf = getAutoLoad()
+    if autoConf ~= "none" then configName = autoConf; configFile = ConfigManager:CreateConfig(configName); pcall(function() configFile:Load(); WindUI:Notify({ Title = "Auto-Load Enabled", Content = "Loaded config: " .. configName, Duration = 3 }) end) end
+    task.wait(0.5); pcall(function() Window:Minimize() end); pcall(function() Window:Toggle() end)
+    WindUI:Notify({ Title = "UI Minimized", Content = "The Ui Automatic Minized You Can Open By Click The Ui On The Bottom", Duration = 5 })
+end)
+
+ThemeSection:Keybind({ Title = "Keybind", Desc = "Keybind to open ui", Value = "G", Callback = function(v) Window:SetToggleKey(Enum.KeyCode[v]) end })
+
+print("Successfully loaded all assets! Purium on Top!")

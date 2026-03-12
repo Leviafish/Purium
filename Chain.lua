@@ -30,7 +30,7 @@ Window:EditOpenButton({
     CornerRadius = UDim.new(0,16),
     StrokeThickness = 2,
     Color = ColorSequence.new(
-        Color3.fromHex("1e1e1e"), 
+        Color3.fromHex("1a1a1a"), 
         Color3.fromHex("000000")
     ),
     OnlyMobile = false,
@@ -313,14 +313,20 @@ local SettingTab = Window:Tab({ Title = "Settings", Icon = "settings" })
 
 local InfoSection = InfoTab:Section({ Title = "Script Information", Icon = "book-open", Opened = true, Box = true })
 InfoSection:Paragraph({
-    Title = "Welcome To Purium Hub!", Desc = "Note : Thank You For Using My Script :D !!",
-    Image = "alert-triangle", ImageSize = 5
+    Title = "Welcome To Purium Hub!",
+    Desc = "Note : Thank You For Using My Script :D !!",
 })
 InfoSection:Paragraph({
     Title = "Owner | Developers",
     Desc = "@hlck49[Owner]\nHieu&Thanh[Developers]",
 })
+InfoSection:Paragraph({
+    Title = "Executors Support :",
+    Desc = "Mobile : All Executors. \n PC : Only Good Executor Like Velocity , Yub-X. ",
+})
+
 InfoTab:Space()
+
 local UpdateSection = InfoTab:Section({ 
     Title = "Changelogs & Updates", 
     Icon = "history", 

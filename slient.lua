@@ -329,8 +329,9 @@ local function getNearestTarget()
     return nearest
 end
 local MoveSec = MoveTab:Section({ Title = "Character Modification", Icon = "user", Opened = true, Box = true })
+
 local noclipLoop
-MoveSec:Toggle({ Title = "Noclip", Value = false, Callback = function(v)
+MoveSec:Toggle({ Title = "Enable Noclip", Desc = "Walk through walls and obstacles", Value = false, Callback = function(v)
     if v then 
         noclipLoop = RunService.Stepped:Connect(function() 
             if LocalPlayer.Character then 
@@ -353,14 +354,14 @@ MoveSec:Divider()
 
 _G.WsEnabled = false
 _G.WsValue = 25
-MoveSec:Toggle({ Title = "Enable WalkSpeed", Value = false, Callback = function(v) 
+MoveSec:Toggle({ Title = "Enable WalkSpeed", Desc = "Modify your movement speed", Value = false, Callback = function(v) 
     _G.WsEnabled = v
     if not v then 
         pcall(function() LocalPlayer.Character.Humanoid.WalkSpeed = 16 end) 
     end 
 end})
 
-MoveSec:Slider({ Title = "WalkSpeed Amount", Value = {Min = 16, Max = 150, Default = 25}, Callback = function(v) 
+MoveSec:Slider({ Title = "Speed Amount", Value = {Min = 16, Max = 150, Default = 25}, Callback = function(v) 
     _G.WsValue = v 
 end})
 
@@ -368,23 +369,32 @@ MoveSec:Divider()
 
 _G.JpEnabled = false
 _G.JpValue = 100
-MoveSec:Toggle({ Title = "Enable JumpPower", Value = false, Callback = function(v) 
+MoveSec:Toggle({ Title = "Enable JumpPower", Desc = "Modify your jump height", Value = false, Callback = function(v) 
     _G.JpEnabled = v
     if not v then 
         pcall(function() LocalPlayer.Character.Humanoid.JumpPower = 50 end) 
     end 
 end})
 
-MoveSec:Slider({ Title = "JumpPower Amount", Value = {Min = 50, Max = 250, Default = 100}, Callback = function(v) 
+MoveSec:Slider({ Title = "Jump Amount", Value = {Min = 50, Max = 250, Default = 100}, Callback = function(v) 
     _G.JpValue = v 
 end})
 
 RunService.Heartbeat:Connect(function()
     pcall(function()
-        local hum = LocalPlayer.Character:FindFirstChild("Humanoid")
-        if hum then
-            if _G.WsEnabled then hum.WalkSpeed = _G.WsValue end
-            if _G.JpEnabled then hum.JumpPower = _G.JpValue end
+        local char = LocalPlayer.Character
+        if char then
+            local hum = char:FindFirstChild("Humanoid")
+            if hum then
+                if _G.WsEnabled then 
+                    hum.WalkSpeed = _G.WsValue 
+                elseif _G.AntiSlow and hum.WalkSpeed < 16 then
+                    hum.WalkSpeed = 16
+                end
+                if _G.JpEnabled then 
+                    hum.JumpPower = _G.JpValue 
+                end
+            end
         end
     end)
 end)

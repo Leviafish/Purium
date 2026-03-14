@@ -2,7 +2,7 @@ print("Loading script maybe take a few seconds to complete")
 game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Purium On Top!", Text = "Loading Script...", Duration = 3 })
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 local Window = WindUI:CreateWindow({
-    Title = "Purium Hub [By @hlck49] | Silent assassin |", Icon = "door-open", Author = "Version : 0.0.1", Folder = "Purium_SBSD",
+    Title = "Purium Hub [By @hlck49] | Silent assassin |", Icon = "door-open", Author = "Version : 0.0.1", Folder = "Purium_Silent_Assassin",
     Size = UDim2.fromOffset(580, 460), MinSize = Vector2.new(560, 350), MaxSize = Vector2.new(850, 560),
     Transparent = true, Theme = "Dark", Resizable = true, SideBarWidth = 200, BackgroundImageTransparency = 0.42,
     HideSearchBar = true, ScrollBarEnabled = false,
@@ -284,6 +284,23 @@ local Camera = Workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 local GameRemote = ReplicatedStorage:WaitForChild("Events"):WaitForChild("GameRemoteFunction")
 
+_G.CustomHpEnabled = false
+_G.CustomHpValue = 2000
+
+local oldNamecall
+oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
+    local method = getnamecallmethod()
+    local args = {...}
+    if not checkcaller() and (method == "FireServer" or method == "InvokeServer") then
+        if _G.CustomHpEnabled and tostring(self) == "GameRemoteFunction" then
+            if args[1] == "Damage" or args[1] == "TakeDamage" then
+                return nil
+            end
+        end
+    end
+    return oldNamecall(self, ...)
+end)
+
 local CombatTab = Window:Tab({ Title = "Combat & Farm", Icon = "swords" })
 local MoveTab = Window:Tab({ Title = "Movement", Icon = "move" })
 local VisTab = Window:Tab({ Title = "Visuals (ESP)", Icon = "eye" })
@@ -309,7 +326,6 @@ local function getNearestTarget()
 end
 
 local MoveSec = MoveTab:Section({ Title = "Character", Icon = "user", Opened = true, Box = true })
-
 local noclipLoop
 MoveSec:Toggle({ Title = "Noclip", Value = false, Callback = function(v)
     if v then 
@@ -332,15 +348,35 @@ end})
 
 MoveSec:Divider()
 
+MoveSec:Toggle({ Title = "Enable Custom Health", Desc = "Tăng giới hạn máu để có lợi thế (Tắt sẽ về 100)", Value = false, Callback = function(v) 
+    _G.CustomHpEnabled = v 
+    if not v then
+        pcall(function()
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+                LocalPlayer.Character.Humanoid.MaxHealth = 100
+                if LocalPlayer.Character.Humanoid.Health > 100 then LocalPlayer.Character.Humanoid.Health = 100 end
+            end
+            local pHealth = LocalPlayer:FindFirstChild("Health") or LocalPlayer:FindFirstChild("health") or LocalPlayer:FindFirstChild("HP")
+            if pHealth and pHealth:IsA("ValueBase") then pHealth.Value = 100 end
+            if LocalPlayer.Character then
+                local cHealth = LocalPlayer.Character:FindFirstChild("Health") or LocalPlayer.Character:FindFirstChild("health") or LocalPlayer.Character:FindFirstChild("HP")
+                if cHealth and cHealth:IsA("ValueBase") then cHealth.Value = 100 end
+            end
+        end)
+    end
+end})
+MoveSec:Slider({ Title = "Health Amount", Value = {Min = 100, Max = 2000, Default = 2000}, Callback = function(v) 
+    _G.CustomHpValue = v 
+end})
+
+MoveSec:Divider()
+
 _G.WsEnabled = false
 _G.WsValue = 25
 MoveSec:Toggle({ Title = "Enable WalkSpeed", Value = false, Callback = function(v) 
     _G.WsEnabled = v
-    if not v then 
-        pcall(function() LocalPlayer.Character.Humanoid.WalkSpeed = 16 end) 
-    end 
+    if not v then pcall(function() LocalPlayer.Character.Humanoid.WalkSpeed = 16 end) end 
 end})
-
 MoveSec:Slider({ Title = "WalkSpeed Amount", Value = {Min = 16, Max = 150, Default = 25}, Callback = function(v) 
     _G.WsValue = v 
 end})
@@ -351,43 +387,71 @@ _G.JpEnabled = false
 _G.JpValue = 100
 MoveSec:Toggle({ Title = "Enable JumpPower", Value = false, Callback = function(v) 
     _G.JpEnabled = v
-    if not v then 
-        pcall(function() LocalPlayer.Character.Humanoid.JumpPower = 50 end) 
-    end 
+    if not v then pcall(function() LocalPlayer.Character.Humanoid.JumpPower = 50 end) end 
 end})
-
 MoveSec:Slider({ Title = "JumpPower Amount", Value = {Min = 50, Max = 250, Default = 100}, Callback = function(v) 
     _G.JpValue = v 
 end})
 
 RunService.Heartbeat:Connect(function()
     pcall(function()
-        local hum = LocalPlayer.Character:FindFirstChild("Humanoid")
+        local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
         if hum then
             if _G.WsEnabled then hum.WalkSpeed = _G.WsValue end
             if _G.JpEnabled then hum.JumpPower = _G.JpValue end
+            if _G.CustomHpEnabled then 
+                hum.MaxHealth = _G.CustomHpValue
+                if hum.Health < _G.CustomHpValue then hum.Health = _G.CustomHpValue end
+            end
+        end
+        if _G.CustomHpEnabled then
+            local pHealth = LocalPlayer:FindFirstChild("Health") or LocalPlayer:FindFirstChild("health") or LocalPlayer:FindFirstChild("HP")
+            if pHealth and pHealth:IsA("ValueBase") then pHealth.Value = _G.CustomHpValue end
+            if LocalPlayer.Character then
+                local cHealth = LocalPlayer.Character:FindFirstChild("Health") or LocalPlayer.Character:FindFirstChild("health") or LocalPlayer.Character:FindFirstChild("HP")
+                if cHealth and cHealth:IsA("ValueBase") then cHealth.Value = _G.CustomHpValue end
+            end
+            if LocalPlayer:GetAttribute("Health") then LocalPlayer:SetAttribute("Health", _G.CustomHpValue) end
+            if LocalPlayer.Character and LocalPlayer.Character:GetAttribute("Health") then LocalPlayer.Character:SetAttribute("Health", _G.CustomHpValue) end
         end
     end)
 end)
-MoveSec:Divider()
-_G.CustomHpEnabled = false
-_G.CustomHpValue = 2000
-MoveSec:Toggle({ Title = "Enable Custom Health", Desc = "Tăng giới hạn máu để có lợi thế (Tắt sẽ về 100)", Value = false, Callback = function(v) 
-    _G.CustomHpEnabled = v 
-    if not v then
-        pcall(function()
-            LocalPlayer.Character.Humanoid.MaxHealth = 100
-            if LocalPlayer.Character.Humanoid.Health > 100 then
-                LocalPlayer.Character.Humanoid.Health = 100
-            end
-        end)
-    end
+local CombatSec = CombatTab:Section({ Title = "Auto Attack & Farm", Icon = "crosshair", Opened = true, Box = true })
+
+_G.AntiSlow = false
+_G.NoCooldown = false
+
+CombatSec:Toggle({ Title = "Anti-Slow", Desc = "Chống bị làm chậm khi tự vung dao", Value = false, Callback = function(v) 
+    _G.AntiSlow = v 
 end})
 
-MoveSec:Slider({ Title = "Health Amount", Value = {Min = 100, Max = 2000, Default = 200}, Callback = function(v) 
-    _G.CustomHpValue = v 
+CombatSec:Toggle({ Title = "No Cooldown", Desc = "Gỡ bỏ độ trễ vũ khí để click xả láng", Value = false, Callback = function(v) 
+    _G.NoCooldown = v 
 end})
-local CombatSec = CombatTab:Section({ Title = "Auto Attack & Farm", Icon = "crosshair", Opened = true, Box = true })
+
+task.spawn(function()
+    while task.wait(1) do
+        if _G.NoCooldown or _G.AntiSlow then
+            pcall(function()
+                for _, v in pairs(getgc(true)) do
+                    if type(v) == "table" and rawget(v, "attackCooldown") ~= nil then
+                        if _G.NoCooldown then
+                            rawset(v, "attackCooldown", 0)
+                            if rawget(v, "attackTime") ~= nil then rawset(v, "attackTime", 0) end
+                        end
+                        if _G.AntiSlow then
+                            if rawget(v, "slowMult") ~= nil then rawset(v, "slowMult", 1) end
+                            if rawget(v, "slowTime") ~= nil then rawset(v, "slowTime", 0) end
+                            if rawget(v, "shouldSlow") ~= nil then rawset(v, "shouldSlow", false) end
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+CombatSec:Divider()
 
 local function AttemptWeaponHit(TargetChar)
     local Char = LocalPlayer.Character
@@ -395,13 +459,12 @@ local function AttemptWeaponHit(TargetChar)
     
     local MyTool = Char:FindFirstChildOfClass("Tool")
     if not MyTool then 
-        -- Tự động lấy vũ khí từ Backpack nếu chưa cầm trên tay
         local backpackTool = LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
         if backpackTool then
             pcall(function() LocalPlayer.Character.Humanoid:EquipTool(backpackTool) end)
             MyTool = backpackTool
         else
-            return -- Hết vũ khí
+            return 
         end
     end
     
@@ -496,6 +559,7 @@ task.spawn(function()
         end
     end
 end)
+
 CombatSec:Divider()
 
 local AimSec = CombatTab:Section({ Title = "Aimbot Settings", Icon = "crosshair", Opened = true, Box = true })
@@ -601,7 +665,9 @@ VisSec:Toggle({ Title = "Enable ESP", Value = false, Callback = function(v)
         end 
     end
 end})
+
 VisSec:Divider()
+
 local antiInvisLoop
 VisSec:Toggle({ Title = "Show Players", Desc = "Disable Game Invisible", Value = false, Callback = function(v)
     if v then
@@ -659,7 +725,7 @@ local themes = {}
 for themeName, _ in pairs(validThemes) do table.insert(themes, themeName) end
 table.sort(themes)
 
-ThemeSection:Dropdown({ Title = "Theme", Desc = "Choose UI Style", Values = themes, Flag = "ThemeDropdown", Value = "Night", Callback = function(Value) 
+ThemeSection:Dropdown({ Title = "Theme", Desc = "Choose UI Style", Values = themes, Flag = "ThemeDropdown", Value = "Dark", Callback = function(Value) 
     if validThemes[Value] then 
         pcall(function() WindUI:SetTheme(Value) end) 
     end 

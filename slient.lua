@@ -135,7 +135,7 @@ MoveSec:Toggle({ Title = "Enable WalkSpeed", Desc = "Modify your movement speed"
     end 
 end})
 
-MoveSec:Slider({ Title = "Speed Amount", Value = {Min = 16, Max = 150, Default = 25}, Callback = function(v) 
+MoveSec:Slider({ Title = "Speed Amount", Value = {Min = 16, Max = 15000, Default = 25}, Callback = function(v) 
     _G.WsValue = v 
 end})
 
@@ -150,7 +150,7 @@ MoveSec:Toggle({ Title = "Enable JumpPower", Desc = "Modify your jump height", V
     end 
 end})
 
-MoveSec:Slider({ Title = "Jump Amount", Value = {Min = 50, Max = 250, Default = 100}, Callback = function(v) 
+MoveSec:Slider({ Title = "Jump Amount", Value = {Min = 50, Max = 2500, Default = 100}, Callback = function(v) 
     _G.JpValue = v 
 end})
 
@@ -293,11 +293,41 @@ task.spawn(function()
 end)
 local CombatSec = CombatTab:Section({ Title = "Attack Settings", Icon = "crosshair", Opened = true, Box = true })
 
+_G.AntiSlow = false
 CombatSec:Toggle({ Title = "Enable Anti-Slow", Desc = "Remove movement penalty while swinging weapon", Value = false, Callback = function(v) 
     _G.AntiSlow = v 
 end})
 
 CombatSec:Divider()
+
+_G.AttackDelay = 0
+CombatSec:Slider({ Title = "Attack Delay (Seconds)", Desc = "0 is instant frame spam, 10 is slow", Value = {Min = 0, Max = 10, Default = 0}, Callback = function(v) 
+    _G.AttackDelay = v 
+end})
+
+CombatSec:Divider()
+
+local function getNearestTarget()
+    local nearest = nil
+    local minDist = math.huge
+    local char = LocalPlayer.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return nil end
+    
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character then
+            local hrp = p.Character:FindFirstChild("HumanoidRootPart")
+            local hum = p.Character:FindFirstChild("Humanoid")
+            if hrp and hum and hum.Health > 0 then
+                local dist = (hrp.Position - char.HumanoidRootPart.Position).Magnitude
+                if dist < minDist then
+                    minDist = dist
+                    nearest = p.Character
+                end
+            end
+        end
+    end
+    return nearest
+end
 
 local function AttemptWeaponHit(TargetChar)
     pcall(function()
@@ -356,17 +386,23 @@ CombatSec:Toggle({ Title = "Kill All Players", Desc = "Attack everyone everywher
     _G.KillAll = v 
 end})
 
+local lastKillAll = 0
 RunService.Heartbeat:Connect(function()
     pcall(function()
         if _G.KillAll and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            for _, p in ipairs(Players:GetPlayers()) do
-                if p ~= LocalPlayer and p.Character then
-                    local hrp = p.Character:FindFirstChild("HumanoidRootPart")
-                    local hum = p.Character:FindFirstChild("Humanoid")
-                    if hrp and hum and hum.Health > 0 then
-                        AttemptWeaponHit(p.Character)
+            if tick() - lastKillAll >= _G.AttackDelay then
+                local attacked = false
+                for _, p in ipairs(Players:GetPlayers()) do
+                    if p ~= LocalPlayer and p.Character then
+                        local hrp = p.Character:FindFirstChild("HumanoidRootPart")
+                        local hum = p.Character:FindFirstChild("Humanoid")
+                        if hrp and hum and hum.Health > 0 then
+                            AttemptWeaponHit(p.Character)
+                            attacked = true
+                        end
                     end
                 end
+                if attacked then lastKillAll = tick() end
             end
         end
     end)
@@ -376,7 +412,7 @@ CombatSec:Divider()
 
 _G.AutoHit = false
 _G.HitRange = 15
-CombatSec:Toggle({ Title = "Auto Hit By Distance", Desc = "Automatically attack enemies near you", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Auto Hit By Distance", Desc = "Automatically attack enemies in the range hit", Value = false, Callback = function(v) 
     _G.AutoHit = v 
 end})
 
@@ -384,14 +420,18 @@ CombatSec:Slider({ Title = "Auto Hit Range", Value = {Min = 5, Max = 100, Defaul
     _G.HitRange = v 
 end})
 
+local lastAutoHit = 0
 RunService.Heartbeat:Connect(function()
     pcall(function()
         if _G.AutoHit and not _G.KillAll and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            local target = getNearestTarget()
-            if target and target:FindFirstChild("HumanoidRootPart") then
-                local dist = (target.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-                if dist <= _G.HitRange then 
-                    AttemptWeaponHit(target) 
+            if tick() - lastAutoHit >= _G.AttackDelay then
+                local target = getNearestTarget()
+                if target and target:FindFirstChild("HumanoidRootPart") then
+                    local dist = (target.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+                    if dist <= _G.HitRange then 
+                        AttemptWeaponHit(target) 
+                        lastAutoHit = tick()
+                    end
                 end
             end
         end
@@ -406,7 +446,7 @@ CombatSec:Toggle({ Title = "Auto Farm", Desc = "Teleport behind targets and elim
 end})
 
 task.spawn(function()
-    while task.wait(0.1) do
+    while task.wait() do
         pcall(function()
             if _G.AutoFarm and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
                 local target = getNearestTarget()
@@ -414,11 +454,10 @@ task.spawn(function()
                     local hrp = LocalPlayer.Character.HumanoidRootPart
                     local tHrp = target.HumanoidRootPart
                     hrp.CFrame = tHrp.CFrame * CFrame.new(0, 0, 3)
-                    task.wait(0.1)
                     AttemptWeaponHit(target) 
                     hrp.CFrame = tHrp.CFrame * CFrame.new(0, 25, 0)
                     hrp.Velocity = Vector3.new(0, 0, 0)
-                    task.wait(0.2)
+                    task.wait(math.max(_G.AttackDelay, 0.1))
                 end
             end
         end)

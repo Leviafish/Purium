@@ -2,7 +2,7 @@ print("Loading script maybe take a few seconds to complete")
 game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Purium On Top!", Text = "Loading Script...", Duration = 3 })
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 local Window = WindUI:CreateWindow({
-    Title = "Purium Hub [By @hlck49] | Silent Assassin |", Icon = "door-open", Author = "Version : 0.0.1", Folder = "Purium_SBSD",
+    Title = "Purium Hub [By @hlck49] | Silent Assassin |", Icon = "door-open", Author = "Version : 0.0.1", Folder = "Purium_Silent-Assassin",
     Size = UDim2.fromOffset(580, 460), MinSize = Vector2.new(560, 350), MaxSize = Vector2.new(850, 560),
     Transparent = true, Theme = "Dark", Resizable = true, SideBarWidth = 200, BackgroundImageTransparency = 0.42,
     HideSearchBar = true, ScrollBarEnabled = false,
@@ -352,7 +352,7 @@ local function AttemptWeaponHit(TargetChar)
 end
 
 _G.KillAll = false
-CombatSec:Toggle({ Title = "Kill All Players", Desc = "Attack everyone everywhere (Depends on FPS)", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Kill All Players", Desc = "Attack everyone everywhere", Value = false, Callback = function(v) 
     _G.KillAll = v 
 end})
 
@@ -499,8 +499,6 @@ local function cleanEsp(player)
     if espElements[player] then 
         pcall(function() 
             espElements[player].Name:Remove()
-            espElements[player].Tracer:Remove()
-            espElements[player].Box:Remove()
             espElements[player].Highlight:Destroy() 
         end) 
         espElements[player] = nil 
@@ -515,28 +513,18 @@ local function updatePlayerEsp()
                 activePlayers[player] = true
                 local char = player.Character
                 local hrp = char and char:FindFirstChild("HumanoidRootPart")
-                local head = char and char:FindFirstChild("Head")
                 local hum = char and char:FindFirstChild("Humanoid")
                 
-                if char and hrp and head and hum and hum.Health > 0 then
+                if char and hrp and hum and hum.Health > 0 then
                     if not espElements[player] then
                         local d = { 
                             Name = Drawing.new("Text"), 
-                            Tracer = Drawing.new("Line"), 
-                            Box = Drawing.new("Square"),
                             Highlight = Instance.new("Highlight") 
                         }
                         d.Name.Size = 16
                         d.Name.Center = true
                         d.Name.Outline = true
                         d.Name.Font = 2
-                        
-                        d.Tracer.Thickness = 1.5
-                        d.Tracer.Transparency = 0.8
-                        
-                        d.Box.Thickness = 1.5
-                        d.Box.Filled = false
-                        d.Box.Transparency = 1
                         
                         d.Highlight.FillTransparency = 0.5
                         d.Highlight.OutlineTransparency = 0
@@ -550,35 +538,19 @@ local function updatePlayerEsp()
                     local rootPos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
                     
                     if onScreen then
-                        local headPos = Camera:WorldToViewportPoint(head.Position + Vector3.new(0, 0.5, 0))
-                        local legPos = Camera:WorldToViewportPoint(hrp.Position - Vector3.new(0, 3, 0))
-                        local height = math.abs(headPos.Y - legPos.Y)
-                        local width = height / 2
                         local dist = (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")) and (LocalPlayer.Character.HumanoidRootPart.Position - hrp.Position).Magnitude or 0
                         local teamColor = player.TeamColor and player.TeamColor.Color or Color3.fromRGB(255, 50, 50)
                         
                         d.Name.Color = teamColor
                         d.Name.Text = player.Name .. " ["..math.floor(dist).."m]"
-                        d.Name.Position = Vector2.new(rootPos.X, headPos.Y - 20)
+                        d.Name.Position = Vector2.new(rootPos.X, rootPos.Y - 40)
                         d.Name.Visible = _G.ShowESP
-                        
-                        d.Box.Size = Vector2.new(width, height)
-                        d.Box.Position = Vector2.new(rootPos.X - width / 2, headPos.Y)
-                        d.Box.Color = teamColor
-                        d.Box.Visible = _G.ShowESP
-                        
-                        d.Tracer.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
-                        d.Tracer.To = Vector2.new(rootPos.X, rootPos.Y)
-                        d.Tracer.Color = teamColor
-                        d.Tracer.Visible = _G.ShowESP
                         
                         d.Highlight.FillColor = teamColor
                         d.Highlight.Parent = char
                         d.Highlight.Enabled = _G.ShowESP
                     else 
                         d.Name.Visible = false
-                        d.Tracer.Visible = false
-                        d.Box.Visible = false
                         d.Highlight.Enabled = false
                     end
                 else 
@@ -595,7 +567,7 @@ local function updatePlayerEsp()
 end
 
 _G.ShowESP = false
-VisSec:Toggle({ Title = "Enable ESP (Box, Chams, Tracers, Name)", Desc = "Draws full ESP around players", Value = false, Callback = function(v)
+VisSec:Toggle({ Title = "Enable ESP (Chams & Name)", Desc = "Draws highlight and name around players", Value = false, Callback = function(v)
     _G.ShowESP = v
     if v then 
         if not espConn then espConn = RunService.RenderStepped:Connect(updatePlayerEsp) end 

@@ -416,17 +416,14 @@ local function AttemptWeaponHit(TargetChar)
 end
 
 _G.KillAll = false
-CombatSec:Toggle({ Title = "Kill All Players", Desc = "Instantly Kill All Players When The Round Start ( Ban Risk )", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Kill All Players", Desc = "More FPS = More faster", Value = false, Callback = function(v) 
     _G.KillAll = v 
 end})
-
-task.spawn(function()
-    while task.wait(0.05) do -- Tốc độ cực nhanh
-        if _G.KillAll and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            for _, p in ipairs(Players:GetPlayers()) do
-                if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
-                    AttemptWeaponHit(p.Character)
-                end
+RunService.Heartbeat:Connect(function()
+    if _G.KillAll and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        for _, p in ipairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
+                AttemptWeaponHit(p.Character)
             end
         end
     end
@@ -460,7 +457,7 @@ end)
 CombatSec:Divider()
 
 _G.AutoFarm = false
-CombatSec:Toggle({ Title = "Auto Farm (TP & Bay cao)", Desc = "Tự TP đến mục tiêu, chém rồi bay lên để né", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Auto Farm", Desc = "", Value = false, Callback = function(v) 
     _G.AutoFarm = v 
 end})
 
@@ -482,10 +479,15 @@ task.spawn(function()
         end
     end
 end)
+CombatSec:Divider()
+_G.InfHealth = false
+MoveSec:Toggle({ Title = "Infinite Health (God Mode)", Desc = "I don't Know If it actually work", Value = false, Callback = function(v) 
+    _G.InfHealth = v 
+end})
 
 local AimSec = CombatTab:Section({ Title = "Aimbot Settings", Icon = "crosshair", Opened = true, Box = true })
 _G.AimbotMode = "None"
-AimSec:Dropdown({ Title = "Aimbot Mode", Values = {"None", "Camera", "Character", "Both"}, Value = "None", Callback = function(v) 
+AimSec:Dropdown({ Title = "Aimbot Mode", Values = {"None", "Camera", "Character", "Camera & Character"}, Value = "None", Callback = function(v) 
     _G.AimbotMode = v 
 end})
 
@@ -495,10 +497,10 @@ RunService.RenderStepped:Connect(function()
         if target and target:FindFirstChild("HumanoidRootPart") then
             local myHrp = LocalPlayer.Character.HumanoidRootPart
             local tPos = target.HumanoidRootPart.Position
-            if _G.AimbotMode == "Camera" or _G.AimbotMode == "Both" then
+            if _G.AimbotMode == "Camera" or _G.AimbotMode == "Camera & Character" then
                 Camera.CFrame = CFrame.lookAt(Camera.CFrame.Position, tPos)
             end
-            if _G.AimbotMode == "Character" or _G.AimbotMode == "Both" then
+            if _G.AimbotMode == "Character" or _G.AimbotMode == "Camera & Character" then
                 myHrp.CFrame = CFrame.lookAt(myHrp.Position, Vector3.new(tPos.X, myHrp.Position.Y, tPos.Z))
             end
         end

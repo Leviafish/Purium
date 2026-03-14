@@ -369,7 +369,24 @@ RunService.Heartbeat:Connect(function()
         end
     end)
 end)
+MoveSec:Divider()
+_G.CustomHpEnabled = false
+_G.CustomHpValue = 2000
+MoveSec:Toggle({ Title = "Enable Custom Health", Desc = "Tăng giới hạn máu để có lợi thế (Tắt sẽ về 100)", Value = false, Callback = function(v) 
+    _G.CustomHpEnabled = v 
+    if not v then
+        pcall(function()
+            LocalPlayer.Character.Humanoid.MaxHealth = 100
+            if LocalPlayer.Character.Humanoid.Health > 100 then
+                LocalPlayer.Character.Humanoid.Health = 100
+            end
+        end)
+    end
+end})
 
+MoveSec:Slider({ Title = "Health Amount", Value = {Min = 100, Max = 2000, Default = 200}, Callback = function(v) 
+    _G.CustomHpValue = v 
+end})
 local CombatSec = CombatTab:Section({ Title = "Auto Attack & Farm", Icon = "crosshair", Opened = true, Box = true })
 
 local function AttemptWeaponHit(TargetChar)
@@ -480,10 +497,6 @@ task.spawn(function()
     end
 end)
 CombatSec:Divider()
-_G.InfHealth = false
-MoveSec:Toggle({ Title = "Infinite Health (God Mode)", Desc = "I don't Know If it actually work", Value = false, Callback = function(v) 
-    _G.InfHealth = v 
-end})
 
 local AimSec = CombatTab:Section({ Title = "Aimbot Settings", Icon = "crosshair", Opened = true, Box = true })
 _G.AimbotMode = "None"
@@ -588,7 +601,30 @@ VisSec:Toggle({ Title = "Enable ESP", Value = false, Callback = function(v)
         end 
     end
 end})
-
+VisSec:Divider()
+local antiInvisLoop
+VisSec:Toggle({ Title = "Show Players", Desc = "Disable Game Invisible", Value = false, Callback = function(v)
+    if v then
+        antiInvisLoop = RunService.RenderStepped:Connect(function()
+            for _, p in ipairs(Players:GetPlayers()) do
+                if p ~= LocalPlayer and p.Character then
+                    for _, part in ipairs(p.Character:GetDescendants()) do
+                        if (part:IsA("BasePart") or part:IsA("Decal")) and part.Name ~= "HumanoidRootPart" then
+                            if part.Transparency > 0 then
+                                part.Transparency = 0
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    else
+        if antiInvisLoop then
+            antiInvisLoop:Disconnect()
+            antiInvisLoop = nil
+        end
+    end
+end})
 local PlayerSec = PlayerTab:Section({ Title = "Server Players", Icon = "users", Opened = true, Box = true })
 local playerNames = {}
 local PlayerDropdown = PlayerSec:Dropdown({ Title = "Select Player", Values = {"None"}, Callback = function(sel) 

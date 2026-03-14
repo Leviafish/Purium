@@ -1,19 +1,13 @@
-game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Wind UI", Text = "Loading VIP Script...", Duration = 1.5 })
-
+print("Loading script maybe take a few seconds to complete")
+game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Purium On Top!", Text = "Loading Script...", Duration = 3 })
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
-local Window = WindUI:CreateWindow({ Title = "Silent Assassin | Purium Hub", Icon = "swords", Author = "hlck49", Folder = "SA_Config", Size = UDim2.fromOffset(580, 460), Transparent = true, Theme = "Night", Resizable = true, HideSearchBar = true })
-WindUI:AddTheme({ Name = "Amethyst", Accent = Color3.fromHex("7E2CB6"), Dialog = Color3.fromHex("321E46"), Outline = Color3.fromHex("552D78"), Text = Color3.fromHex("F0F0F0"), Placeholder = Color3.fromHex("AAAAAA"), Background = Color3.fromHex("280C47"), Button = Color3.fromHex("733796"), Icon = Color3.fromHex("AAAAAA"), Toggle = Color3.fromHex("7E2CB6"), Slider = Color3.fromHex("7E2CB6"), Checkbox = Color3.fromHex("7E2CB6"), PanelBackground = Color3.fromHex("FFFFFF"), PanelBackgroundTransparency = 0.95, SliderIcon = Color3.fromHex("AAAAAA"), Primary = Color3.fromHex("7E2CB6"), LabelBackground = Color3.fromHex("000000"), LabelBackgroundTransparency = 0.85 })
-WindUI:AddTheme({ Name = "Balloon", Accent = Color3.fromHex("64AAFF"), Dialog = Color3.fromHex("BDE6FF"), Outline = Color3.fromHex("82AAE6"), Text = Color3.fromHex("1E1E1E"), Placeholder = Color3.fromHex("5A5A5A"), Background = Color3.fromHex("BDE0FF"), Button = Color3.fromHex("A0C8FF"), Icon = Color3.fromHex("5A5A5A"), Toggle = Color3.fromHex("64AAFF"), Slider = Color3.fromHex("64AAFF"), Checkbox = Color3.fromHex("64AAFF"), PanelBackground = Color3.fromHex("FFFFFF"), PanelBackgroundTransparency = 0, SliderIcon = Color3.fromHex("5A5A5A"), Primary = Color3.fromHex("64AAFF"), LabelBackground = Color3.fromHex("FFFFFF"), LabelBackgroundTransparency = 0 })
-WindUI:AddTheme({ Name = "SoftCream", Accent = Color3.fromHex("CEA35A"), Dialog = Color3.fromHex("FFFFF0"), Outline = Color3.fromHex("FFE6C8"), Text = Color3.fromHex("1E1E1E"), Placeholder = Color3.fromHex("5A5A5A"), Background = Color3.fromHex("FFF5DC"), Button = Color3.fromHex("FFD8A1"), Icon = Color3.fromHex("5A5A5A"), Toggle = Color3.fromHex("CEA35A"), Slider = Color3.fromHex("CEA35A"), Checkbox = Color3.fromHex("CEA35A"), PanelBackground = Color3.fromHex("FFFFFF"), PanelBackgroundTransparency = 0, SliderIcon = Color3.fromHex("5A5A5A"), Primary = Color3.fromHex("CEA35A"), LabelBackground = Color3.fromHex("FFFFFF"), LabelBackgroundTransparency = 0 })
-WindUI:AddTheme({ Name = "Night", Accent = Color3.fromHex("3432B2"), Dialog = Color3.fromHex("252550"), Outline = Color3.fromHex("535382"), Text = Color3.fromHex("F0F0F0"), Placeholder = Color3.fromHex("AAAAAA"), Background = Color3.fromHex("141414"), Button = Color3.fromHex("6F6CA0"), Icon = Color3.fromHex("AAAAAA"), Toggle = Color3.fromHex("3432B2"), Slider = Color3.fromHex("3432B2"), Checkbox = Color3.fromHex("3432B2"), PanelBackground = Color3.fromHex("FFFFFF"), PanelBackgroundTransparency = 0.95, SliderIcon = Color3.fromHex("AAAAAA"), Primary = Color3.fromHex("3432B2"), LabelBackground = Color3.fromHex("000000"), LabelBackgroundTransparency = 0.85 })
-WindUI:AddTheme({ Name = "Forest", Accent = Color3.fromHex("2E8D46"), Dialog = Color3.fromHex("233C28"), Outline = Color3.fromHex("325A3C"), Text = Color3.fromHex("F0F0F0"), Placeholder = Color3.fromHex("AAAAAA"), Background = Color3.fromHex("142319"), Button = Color3.fromHex("467850"), Icon = Color3.fromHex("AAAAAA"), Toggle = Color3.fromHex("2E8D46"), Slider = Color3.fromHex("2E8D46"), Checkbox = Color3.fromHex("2E8D46"), PanelBackground = Color3.fromHex("FFFFFF"), PanelBackgroundTransparency = 0.95, SliderIcon = Color3.fromHex("AAAAAA"), Primary = Color3.fromHex("2E8D46"), LabelBackground = Color3.fromHex("000000"), LabelBackgroundTransparency = 0.85 })
-WindUI:AddTheme({ Name = "Sunset", Accent = Color3.fromHex("FF8000"), Dialog = Color3.fromHex("3C2319"), Outline = Color3.fromHex("82503C"), Text = Color3.fromHex("F0F0F0"), Placeholder = Color3.fromHex("AAAAAA"), Background = Color3.fromHex("281919"), Button = Color3.fromHex("A06446"), Icon = Color3.fromHex("AAAAAA"), Toggle = Color3.fromHex("FF8000"), Slider = Color3.fromHex("FF8000"), Checkbox = Color3.fromHex("FF8000"), PanelBackground = Color3.fromHex("FFFFFF"), PanelBackgroundTransparency = 0.95, SliderIcon = Color3.fromHex("AAAAAA"), Primary = Color3.fromHex("FF8000"), LabelBackground = Color3.fromHex("000000"), LabelBackgroundTransparency = 0.85 })
-WindUI:AddTheme({ Name = "AMOLED", Accent = Color3.fromHex("FFFFFF"), Dialog = Color3.fromHex("000000"), Outline = Color3.fromHex("141414"), Text = Color3.fromHex("FFFFFF"), Placeholder = Color3.fromHex("AAAAAA"), Background = Color3.fromHex("000000"), Button = Color3.fromHex("0F0F0F"), Icon = Color3.fromHex("FFFFFF"), Toggle = Color3.fromHex("FFFFFF"), Slider = Color3.fromHex("FFFFFF"), Checkbox = Color3.fromHex("FFFFFF"), PanelBackground = Color3.fromHex("000000"), PanelBackgroundTransparency = 0, SliderIcon = Color3.fromHex("AAAAAA"), Primary = Color3.fromHex("FFFFFF"), LabelBackground = Color3.fromHex("000000"), LabelBackgroundTransparency = 0 })
-WindUI:AddTheme({ Name = "Grape", Accent = Color3.fromHex("B7B0DF"), Dialog = Color3.fromHex("070012"), Outline = Color3.fromHex("141414"), Text = Color3.fromHex("FFFFFF"), Placeholder = Color3.fromHex("7B90AA"), Background = Color3.fromHex("060010"), Button = Color3.fromHex("0D0021"), Icon = Color3.fromHex("B7B0DF"), Toggle = Color3.fromHex("B7B0DF"), Slider = Color3.fromHex("B7B0DF"), Checkbox = Color3.fromHex("B7B0DF"), PanelBackground = Color3.fromHex("070012"), PanelBackgroundTransparency = 0.5, SliderIcon = Color3.fromHex("B7B0DF"), Primary = Color3.fromHex("B7B0DF"), LabelBackground = Color3.fromHex("070012"), LabelBackgroundTransparency = 0 })
-WindUI:AddTheme({ Name = "Bloody", Accent = Color3.fromHex("900000"), Dialog = Color3.fromHex("550001"), Outline = Color3.fromHex("560000"), Text = Color3.fromHex("F0F0F0"), Placeholder = Color3.fromHex("838383"), Background = Color3.fromHex("3D0000"), Button = Color3.fromHex("730E15"), Icon = Color3.fromHex("F0F0F0"), Toggle = Color3.fromHex("900000"), Slider = Color3.fromHex("900000"), Checkbox = Color3.fromHex("900000"), PanelBackground = Color3.fromHex("550001"), PanelBackgroundTransparency = 0.5, SliderIcon = Color3.fromHex("F0F0F0"), Primary = Color3.fromHex("900000"), LabelBackground = Color3.fromHex("550001"), LabelBackgroundTransparency = 0 })
-WindUI:AddTheme({ Name = "Arctic", Accent = Color3.fromHex("40E0FF"), Dialog = Color3.fromHex("1E2D3C"), Outline = Color3.fromHex("233746"), Text = Color3.fromHex("F0FAFF"), Placeholder = Color3.fromHex("B4C8D2"), Background = Color3.fromHex("0A1219"), Button = Color3.fromHex("1E2D3C"), Icon = Color3.fromHex("40E0FF"), Toggle = Color3.fromHex("40E0FF"), Slider = Color3.fromHex("40E0FF"), Checkbox = Color3.fromHex("40E0FF"), PanelBackground = Color3.fromHex("1E2D3C"), PanelBackgroundTransparency = 0.5, SliderIcon = Color3.fromHex("40E0FF"), Primary = Color3.fromHex("40E0FF"), LabelBackground = Color3.fromHex("1E2D3C"), LabelBackgroundTransparency = 0 })
-WindUI:AddTheme({ Name = "Cloud", Accent = Color3.fromHex("6DB0FF"), Dialog = Color3.fromHex("FFFFFF"), Outline = Color3.fromHex("C8DCF0"), Text = Color3.fromHex("1E1E1E"), Placeholder = Color3.fromHex("828282"), Background = Color3.fromHex("F0F8FF"), Button = Color3.fromHex("DCEBFA"), Icon = Color3.fromHex("1E1E1E"), Toggle = Color3.fromHex("6DB0FF"), Slider = Color3.fromHex("6DB0FF"), Checkbox = Color3.fromHex("6DB0FF"), PanelBackground = Color3.fromHex("FFFFFF"), PanelBackgroundTransparency = 0, SliderIcon = Color3.fromHex("828282"), Primary = Color3.fromHex("6DB0FF"), LabelBackground = Color3.fromHex("FFFFFF"), LabelBackgroundTransparency = 0 })
-WindUI:AddTheme({ Name = "Sapphire", Accent = Color3.fromHex("0F52BA"), Dialog = Color3.fromHex("0F192D"), Outline = Color3.fromHex("1E2D50"), Text = Color3.fromHex("E6E6E6"), Placeholder = Color3.fromHex("8C8C8C"), Background = Color3.fromHex("0A0F1E"), Button = Color3.fromHex("14233C"), Icon = Color3.fromHex("E6E6E6"), Toggle = Color3.fromHex("0F52BA"), Slider = Color3.fromHex("0F52BA"), Checkbox = Color3.fromHex("0F52BA"), PanelBackground = Color3.fromHex("0F192D"), PanelBackgroundTransparency = 0.5, SliderIcon = Color3.fromHex("8C8C8C"), Primary = Color3.fromHex("0F52BA"), LabelBackground = Color3.fromHex("0F192D"), LabelBackgroundTransparency = 0 })
+local Window = WindUI:CreateWindow({
+    Title = "Purium Hub [By @hlck49] | Silent assassin|", Icon = "door-open", Author = "Version : 0.0.3", Folder = "Purium_SBSD",
+    Size = UDim2.fromOffset(580, 460), MinSize = Vector2.new(560, 350), MaxSize = Vector2.new(850, 560),
+    Transparent = true, Theme = "Dark", Resizable = true, SideBarWidth = 200, BackgroundImageTransparency = 0.42,
+    HideSearchBar = true, ScrollBarEnabled = false,
+    User = { Enabled = true, Anonymous = true, Callback = function() print("Purium") end }
+})
 
 Window:EditOpenButton({
     Title = "Open Ui",
@@ -29,8 +23,259 @@ Window:EditOpenButton({
     Draggable = true,
 })
 
-Window:Tag({ Title = "v1.6.6", Icon = "github", Color = Color3.fromRGB(48, 255, 106), Radius = 10 })
+WindUI:AddTheme({
+    Name = "Amethyst",
+    Accent = Color3.fromHex("7E2CB6"),
+    Dialog = Color3.fromHex("321E46"),
+    Outline = Color3.fromHex("552D78"),
+    Text = Color3.fromHex("F0F0F0"),
+    Placeholder = Color3.fromHex("AAAAAA"),
+    Background = Color3.fromHex("280C47"),
+    Button = Color3.fromHex("733796"),
+    Icon = Color3.fromHex("AAAAAA"),
+    Toggle = Color3.fromHex("7E2CB6"),
+    Slider = Color3.fromHex("7E2CB6"),
+    Checkbox = Color3.fromHex("7E2CB6"),
+    PanelBackground = Color3.fromHex("FFFFFF"),
+    PanelBackgroundTransparency = 0.95,
+    SliderIcon = Color3.fromHex("AAAAAA"),
+    Primary = Color3.fromHex("7E2CB6"),
+    LabelBackground = Color3.fromHex("000000"),
+    LabelBackgroundTransparency = 0.85,
+})
 
+WindUI:AddTheme({
+    Name = "Balloon",
+    Accent = Color3.fromHex("64AAFF"),
+    Dialog = Color3.fromHex("BDE6FF"),
+    Outline = Color3.fromHex("82AAE6"),
+    Text = Color3.fromHex("1E1E1E"), -- Chữ đen cho nền sáng
+    Placeholder = Color3.fromHex("5A5A5A"),
+    Background = Color3.fromHex("BDE0FF"),
+    Button = Color3.fromHex("A0C8FF"),
+    Icon = Color3.fromHex("5A5A5A"),
+    Toggle = Color3.fromHex("64AAFF"),
+    Slider = Color3.fromHex("64AAFF"),
+    Checkbox = Color3.fromHex("64AAFF"),
+    PanelBackground = Color3.fromHex("FFFFFF"),
+    PanelBackgroundTransparency = 0, -- Nền sáng không để trong suốt
+    SliderIcon = Color3.fromHex("5A5A5A"),
+    Primary = Color3.fromHex("64AAFF"),
+    LabelBackground = Color3.fromHex("FFFFFF"),
+    LabelBackgroundTransparency = 0,
+})
+
+WindUI:AddTheme({
+    Name = "SoftCream",
+    Accent = Color3.fromHex("CEA35A"),
+    Dialog = Color3.fromHex("FFFFF0"),
+    Outline = Color3.fromHex("FFE6C8"),
+    Text = Color3.fromHex("1E1E1E"), -- Chữ đen
+    Placeholder = Color3.fromHex("5A5A5A"),
+    Background = Color3.fromHex("FFF5DC"),
+    Button = Color3.fromHex("FFD8A1"),
+    Icon = Color3.fromHex("5A5A5A"),
+    Toggle = Color3.fromHex("CEA35A"),
+    Slider = Color3.fromHex("CEA35A"),
+    Checkbox = Color3.fromHex("CEA35A"),
+    PanelBackground = Color3.fromHex("FFFFFF"),
+    PanelBackgroundTransparency = 0,
+    SliderIcon = Color3.fromHex("5A5A5A"),
+    Primary = Color3.fromHex("CEA35A"),
+    LabelBackground = Color3.fromHex("FFFFFF"),
+    LabelBackgroundTransparency = 0,
+})
+
+WindUI:AddTheme({
+    Name = "Night",
+    Accent = Color3.fromHex("3432B2"),
+    Dialog = Color3.fromHex("252550"),
+    Outline = Color3.fromHex("535382"),
+    Text = Color3.fromHex("F0F0F0"),
+    Placeholder = Color3.fromHex("AAAAAA"),
+    Background = Color3.fromHex("141414"),
+    Button = Color3.fromHex("6F6CA0"),
+    Icon = Color3.fromHex("AAAAAA"),
+    Toggle = Color3.fromHex("3432B2"),
+    Slider = Color3.fromHex("3432B2"),
+    Checkbox = Color3.fromHex("3432B2"),
+    PanelBackground = Color3.fromHex("FFFFFF"),
+    PanelBackgroundTransparency = 0.95,
+    SliderIcon = Color3.fromHex("AAAAAA"),
+    Primary = Color3.fromHex("3432B2"),
+    LabelBackground = Color3.fromHex("000000"),
+    LabelBackgroundTransparency = 0.85,
+})
+
+WindUI:AddTheme({
+    Name = "Forest",
+    Accent = Color3.fromHex("2E8D46"),
+    Dialog = Color3.fromHex("233C28"),
+    Outline = Color3.fromHex("325A3C"),
+    Text = Color3.fromHex("F0F0F0"),
+    Placeholder = Color3.fromHex("AAAAAA"),
+    Background = Color3.fromHex("142319"),
+    Button = Color3.fromHex("467850"),
+    Icon = Color3.fromHex("AAAAAA"),
+    Toggle = Color3.fromHex("2E8D46"),
+    Slider = Color3.fromHex("2E8D46"),
+    Checkbox = Color3.fromHex("2E8D46"),
+    PanelBackground = Color3.fromHex("FFFFFF"),
+    PanelBackgroundTransparency = 0.95,
+    SliderIcon = Color3.fromHex("AAAAAA"),
+    Primary = Color3.fromHex("2E8D46"),
+    LabelBackground = Color3.fromHex("000000"),
+    LabelBackgroundTransparency = 0.85,
+})
+
+WindUI:AddTheme({
+    Name = "Sunset",
+    Accent = Color3.fromHex("FF8000"),
+    Dialog = Color3.fromHex("3C2319"),
+    Outline = Color3.fromHex("82503C"),
+    Text = Color3.fromHex("F0F0F0"),
+    Placeholder = Color3.fromHex("AAAAAA"),
+    Background = Color3.fromHex("281919"),
+    Button = Color3.fromHex("A06446"),
+    Icon = Color3.fromHex("AAAAAA"),
+    Toggle = Color3.fromHex("FF8000"),
+    Slider = Color3.fromHex("FF8000"),
+    Checkbox = Color3.fromHex("FF8000"),
+    PanelBackground = Color3.fromHex("FFFFFF"),
+    PanelBackgroundTransparency = 0.95,
+    SliderIcon = Color3.fromHex("AAAAAA"),
+    Primary = Color3.fromHex("FF8000"),
+    LabelBackground = Color3.fromHex("000000"),
+    LabelBackgroundTransparency = 0.85,
+})
+
+WindUI:AddTheme({
+    Name = "AMOLED",
+    Accent = Color3.fromHex("FFFFFF"),
+    Dialog = Color3.fromHex("000000"),
+    Outline = Color3.fromHex("141414"),
+    Text = Color3.fromHex("FFFFFF"),
+    Placeholder = Color3.fromHex("AAAAAA"),
+    Background = Color3.fromHex("000000"),
+    Button = Color3.fromHex("0F0F0F"),
+    Icon = Color3.fromHex("FFFFFF"),
+    Toggle = Color3.fromHex("FFFFFF"),
+    Slider = Color3.fromHex("FFFFFF"),
+    Checkbox = Color3.fromHex("FFFFFF"),
+    PanelBackground = Color3.fromHex("000000"),
+    PanelBackgroundTransparency = 0,
+    SliderIcon = Color3.fromHex("AAAAAA"),
+    Primary = Color3.fromHex("FFFFFF"),
+    LabelBackground = Color3.fromHex("000000"),
+    LabelBackgroundTransparency = 0,
+})
+
+WindUI:AddTheme({
+    Name = "Grape",
+    Accent = Color3.fromHex("B7B0DF"),
+    Dialog = Color3.fromHex("070012"),
+    Outline = Color3.fromHex("141414"),
+    Text = Color3.fromHex("FFFFFF"),
+    Placeholder = Color3.fromHex("7B90AA"),
+    Background = Color3.fromHex("060010"),
+    Button = Color3.fromHex("0D0021"),
+    Icon = Color3.fromHex("B7B0DF"),
+    Toggle = Color3.fromHex("B7B0DF"),
+    Slider = Color3.fromHex("B7B0DF"),
+    Checkbox = Color3.fromHex("B7B0DF"),
+    PanelBackground = Color3.fromHex("070012"),
+    PanelBackgroundTransparency = 0.5,
+    SliderIcon = Color3.fromHex("B7B0DF"),
+    Primary = Color3.fromHex("B7B0DF"),
+    LabelBackground = Color3.fromHex("070012"),
+    LabelBackgroundTransparency = 0,
+})
+
+WindUI:AddTheme({
+    Name = "Bloody",
+    Accent = Color3.fromHex("900000"),
+    Dialog = Color3.fromHex("550001"),
+    Outline = Color3.fromHex("560000"),
+    Text = Color3.fromHex("F0F0F0"),
+    Placeholder = Color3.fromHex("838383"),
+    Background = Color3.fromHex("3D0000"),
+    Button = Color3.fromHex("730E15"),
+    Icon = Color3.fromHex("F0F0F0"),
+    Toggle = Color3.fromHex("900000"),
+    Slider = Color3.fromHex("900000"),
+    Checkbox = Color3.fromHex("900000"),
+    PanelBackground = Color3.fromHex("550001"),
+    PanelBackgroundTransparency = 0.5,
+    SliderIcon = Color3.fromHex("F0F0F0"),
+    Primary = Color3.fromHex("900000"),
+    LabelBackground = Color3.fromHex("550001"),
+    LabelBackgroundTransparency = 0,
+})
+
+WindUI:AddTheme({
+    Name = "Arctic",
+    Accent = Color3.fromHex("40E0FF"),
+    Dialog = Color3.fromHex("1E2D3C"),
+    Outline = Color3.fromHex("233746"),
+    Text = Color3.fromHex("F0FAFF"),
+    Placeholder = Color3.fromHex("B4C8D2"),
+    Background = Color3.fromHex("0A1219"),
+    Button = Color3.fromHex("1E2D3C"),
+    Icon = Color3.fromHex("40E0FF"),
+    Toggle = Color3.fromHex("40E0FF"),
+    Slider = Color3.fromHex("40E0FF"),
+    Checkbox = Color3.fromHex("40E0FF"),
+    PanelBackground = Color3.fromHex("1E2D3C"),
+    PanelBackgroundTransparency = 0.5,
+    SliderIcon = Color3.fromHex("40E0FF"),
+    Primary = Color3.fromHex("40E0FF"),
+    LabelBackground = Color3.fromHex("1E2D3C"),
+    LabelBackgroundTransparency = 0,
+})
+
+WindUI:AddTheme({
+    Name = "Cloud",
+    Accent = Color3.fromHex("6DB0FF"),
+    Dialog = Color3.fromHex("FFFFFF"),
+    Outline = Color3.fromHex("C8DCF0"),
+    Text = Color3.fromHex("1E1E1E"), -- Chữ tối trên nền sáng
+    Placeholder = Color3.fromHex("828282"),
+    Background = Color3.fromHex("F0F8FF"),
+    Button = Color3.fromHex("DCEBFA"),
+    Icon = Color3.fromHex("1E1E1E"),
+    Toggle = Color3.fromHex("6DB0FF"),
+    Slider = Color3.fromHex("6DB0FF"),
+    Checkbox = Color3.fromHex("6DB0FF"),
+    PanelBackground = Color3.fromHex("FFFFFF"),
+    PanelBackgroundTransparency = 0,
+    SliderIcon = Color3.fromHex("828282"),
+    Primary = Color3.fromHex("6DB0FF"),
+    LabelBackground = Color3.fromHex("FFFFFF"),
+    LabelBackgroundTransparency = 0,
+})
+
+WindUI:AddTheme({
+    Name = "Sapphire",
+    Accent = Color3.fromHex("0F52BA"),
+    Dialog = Color3.fromHex("0F192D"),
+    Outline = Color3.fromHex("1E2D50"),
+    Text = Color3.fromHex("E6E6E6"),
+    Placeholder = Color3.fromHex("8C8C8C"),
+    Background = Color3.fromHex("0A0F1E"),
+    Button = Color3.fromHex("14233C"),
+    Icon = Color3.fromHex("E6E6E6"),
+    Toggle = Color3.fromHex("0F52BA"),
+    Slider = Color3.fromHex("0F52BA"),
+    Checkbox = Color3.fromHex("0F52BA"),
+    PanelBackground = Color3.fromHex("0F192D"),
+    PanelBackgroundTransparency = 0.5,
+    SliderIcon = Color3.fromHex("8C8C8C"),
+    Primary = Color3.fromHex("0F52BA"),
+    LabelBackground = Color3.fromHex("0F192D"),
+    LabelBackgroundTransparency = 0,
+})
+
+Window:Tag({ Title = "v1.6.6", Icon = "github", Color = Color3.fromRGB(48, 255, 106), Radius = 10 })
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")

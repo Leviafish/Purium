@@ -284,26 +284,6 @@ local Camera = Workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 local GameRemote = ReplicatedStorage:WaitForChild("Events"):WaitForChild("GameRemoteFunction")
 
-_G.CustomHpEnabled = false
-
-local oldNamecall
-oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
-    local method = getnamecallmethod()
-    local args = {...}
-    
-    if not checkcaller() and (method == "FireServer" or method == "InvokeServer") then
-        if _G.CustomHpEnabled then
-            if type(args[1]) == "string" then
-                local act = string.lower(args[1])
-                if string.find(act, "damage") or string.find(act, "kill") or string.find(act, "death") or string.find(act, "hit") then
-                    return nil
-                end
-            end
-        end
-    end
-    return oldNamecall(self, ...)
-end)
-
 local CombatTab = Window:Tab({ Title = "Combat & Farm", Icon = "swords" })
 local MoveTab = Window:Tab({ Title = "Movement", Icon = "move" })
 local VisTab = Window:Tab({ Title = "Visuals (ESP)", Icon = "eye" })
@@ -347,27 +327,6 @@ MoveSec:Toggle({ Title = "Noclip", Value = false, Callback = function(v)
             noclipLoop:Disconnect()
             noclipLoop = nil 
         end 
-    end
-end})
-
-MoveSec:Divider()
-
-MoveSec:Toggle({ Title = "True God Mode (Bất Tử)", Desc = "Vô hiệu 1-Shot, chặn gửi Damage & bơm 1 tỷ máu", Value = false, Callback = function(v) 
-    _G.CustomHpEnabled = v 
-    if not v then
-        pcall(function()
-            local resetVal = 100
-            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-                LocalPlayer.Character.Humanoid.MaxHealth = resetVal
-                LocalPlayer.Character.Humanoid.Health = resetVal
-            end
-            local pHealth = LocalPlayer:FindFirstChild("Health") or LocalPlayer:FindFirstChild("health") or LocalPlayer:FindFirstChild("HP")
-            if pHealth and pHealth:IsA("ValueBase") then pHealth.Value = resetVal end
-            if LocalPlayer.Character then
-                local cHealth = LocalPlayer.Character:FindFirstChild("Health") or LocalPlayer.Character:FindFirstChild("health") or LocalPlayer.Character:FindFirstChild("HP")
-                if cHealth and cHealth:IsA("ValueBase") then cHealth.Value = resetVal end
-            end
-        end)
     end
 end})
 
@@ -428,7 +387,7 @@ end)
 local CombatSec = CombatTab:Section({ Title = "Auto Attack & Farm", Icon = "crosshair", Opened = true, Box = true })
 
 _G.NoCooldown = false
-CombatSec:Toggle({ Title = "No Cooldown & Anti-Slow", Desc = "Bạn tự tay chém siêu nhanh không cần chờ, không bị chậm", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Anti-Slow", Desc = "Make you Can Be Slow After Slash", Value = false, Callback = function(v) 
     _G.NoCooldown = v 
 end})
 
@@ -501,7 +460,7 @@ local function AttemptWeaponHit(TargetChar)
 end
 
 _G.KillAll = false
-CombatSec:Toggle({ Title = "Kill All Players (God Mode)", Desc = "Chém tốc độ khung hình không giới hạn khoảng cách", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Kill All Players", Desc = "Instantly Kill All Players But More FPS Meaning More Faster", Value = false, Callback = function(v) 
     _G.KillAll = v 
 end})
 
@@ -519,11 +478,11 @@ CombatSec:Divider()
 
 _G.AutoHit = false
 _G.HitRange = 15
-CombatSec:Toggle({ Title = "Auto Hit (Khi ở gần)", Desc = "Chém tốc độ khung hình trong phạm vi", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Auto Hit", Desc = "Slash Per Frames", Value = false, Callback = function(v) 
     _G.AutoHit = v 
 end})
 
-CombatSec:Slider({ Title = "Khoảng cách Hit", Value = {Min = 5, Max = 100, Default = 15}, Callback = function(v) 
+CombatSec:Slider({ Title = "Range Hit", Value = {Min = 5, Max = 500, Default = 15}, Callback = function(v) 
     _G.HitRange = v 
 end})
 
@@ -592,7 +551,7 @@ end)
 local VisSec = VisTab:Section({ Title = "Player Visuals", Icon = "eye", Opened = true, Box = true })
 
 local antiInvisLoop
-VisSec:Toggle({ Title = "Anti-Invisibility (Phá Tàng Hình)", Desc = "Ép mọi người chơi hiện nguyên hình, vô hiệu hoá tàng hình", Value = false, Callback = function(v)
+VisSec:Toggle({ Title = "Show all players", Desc = "Make you can see other without esp", Value = false, Callback = function(v)
     if v then
         antiInvisLoop = RunService.RenderStepped:Connect(function()
             for _, p in ipairs(Players:GetPlayers()) do
@@ -712,7 +671,7 @@ VisSec:Toggle({ Title = "Enable ESP (Chams & Name)", Value = false, Callback = f
 end})
 
 _G.ShowTracers = false
-VisSec:Toggle({ Title = "Show Tracers (Đường kẻ đến người chơi)", Desc = "Vẽ đường thẳng từ màn hình đến mọi người", Value = false, Callback = function(v)
+VisSec:Toggle({ Title = "Show Tracers & Esp", Desc = "Vẽ đường thẳng từ màn hình đến mọi người", Value = false, Callback = function(v)
     _G.ShowTracers = v
     if v or _G.ShowNameESP then 
         if not espConn then espConn = RunService.RenderStepped:Connect(updatePlayerEsp) end 
@@ -725,41 +684,57 @@ VisSec:Toggle({ Title = "Show Tracers (Đường kẻ đến người chơi)", D
     end
 end})
 
-local MiscSec = MiscTab:Section({ Title = "Skins & Inventory", Icon = "box", Opened = true, Box = true })
+local HitboxSec = MiscTab:Section({ Title = "Hitbox Expander", Icon = "maximize", Opened = true, Box = true })
 
-MiscSec:Button({ Title = "Unlock All Skins (Client-Side)", Icon = "unlock", Callback = function()
-    pcall(function()
-        local count = 0
-        for _, v in pairs(getgc(true)) do
-            if type(v) == "table" then
-                if rawget(v, "Owned") ~= nil and v.Owned == false then
-                    rawset(v, "Owned", true)
-                    count = count + 1
-                end
-                if rawget(v, "Unlocked") ~= nil and v.Unlocked == false then
-                    rawset(v, "Unlocked", true)
-                    count = count + 1
-                end
-                if rawget(v, "Price") ~= nil then
-                    rawset(v, "Price", 0)
-                end
-            end
-        end
-        WindUI:Notify({Title = "Skins Unlocked", Content = "Đã mở khóa " .. tostring(count) .. " skins và ép giá về 0!"})
-    end)
+_G.HitboxStatus = false
+_G.HitboxSize = 25
+
+HitboxSec:Toggle({ Title = "Enable Hitbox", Desc = "Make Others Hitbox Bigger", Value = false, Callback = function(v) 
+    _G.HitboxStatus = v 
 end})
 
-MiscSec:Divider()
+HitboxSec:Slider({ Title = "Hitbox Size", Value = {Min = 5, Max = 100, Default = 25}, Callback = function(v) 
+    _G.HitboxSize = v 
+end})
 
-MiscSec:Button({ Title = "Equip All Effects", Icon = "sparkles", Callback = function()
-    pcall(function()
-        for _, v in pairs(getgc(true)) do
-            if type(v) == "table" and rawget(v, "Equipped") ~= nil then
-                rawset(v, "Equipped", true)
+RunService.RenderStepped:Connect(function()
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            local hrp = p.Character.HumanoidRootPart
+            if _G.HitboxStatus then
+                hrp.Size = Vector3.new(_G.HitboxSize, _G.HitboxSize, _G.HitboxSize)
+                hrp.Transparency = 0.8
+                hrp.BrickColor = BrickColor.new("Really red")
+                hrp.CanCollide = false
+            else
+                hrp.Size = Vector3.new(2, 2, 1)
+                hrp.Transparency = 1
             end
         end
-        WindUI:Notify({Title = "Effects", Content = "Đã trang bị toàn bộ hiệu ứng trong máy!"})
-    end)
+    end
+end)
+
+HitboxSec:Divider()
+
+local FlingSec = MiscTab:Section({ Title = "Fling Exploit (Lỗi Vật Lý)", Icon = "wind", Opened = true, Box = true })
+
+_G.Fling = false
+local flingLoop
+
+FlingSec:Toggle({ Title = "Enable Fling", Desc = "Send Your Enemies To The Void", Value = false, Callback = function(v) 
+    _G.Fling = v 
+    if v then
+        flingLoop = RunService.Stepped:Connect(function()
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                LocalPlayer.Character.HumanoidRootPart.RotVelocity = Vector3.new(50000, 50000, 50000)
+            end
+        end)
+    else
+        if flingLoop then 
+            flingLoop:Disconnect()
+            flingLoop = nil 
+        end
+    end
 end})
 local PlayerSec = PlayerTab:Section({ Title = "Server Players", Icon = "users", Opened = true, Box = true })
 local playerNames = {}

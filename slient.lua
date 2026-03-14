@@ -2,7 +2,7 @@ print("Loading script maybe take a few seconds to complete")
 game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Purium On Top!", Text = "Loading Script...", Duration = 3 })
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 local Window = WindUI:CreateWindow({
-    Title = "Purium Hub [By @hlck49] | Silent assassin |", Icon = "door-open", Author = "Version : 0.0.1", Folder = "Purium_SBSD",
+    Title = "Purium Hub [By @hlck49] | Silent Assassin |", Icon = "door-open", Author = "Version : 0.0.1", Folder = "Purium_SBSD",
     Size = UDim2.fromOffset(580, 460), MinSize = Vector2.new(560, 350), MaxSize = Vector2.new(850, 560),
     Transparent = true, Theme = "Dark", Resizable = true, SideBarWidth = 200, BackgroundImageTransparency = 0.42,
     HideSearchBar = true, ScrollBarEnabled = false,
@@ -10,272 +10,39 @@ local Window = WindUI:CreateWindow({
 })
 
 Window:EditOpenButton({
-    Title = "Open Ui",
+    Title = "Open UI",
     Icon = "monitor",
     CornerRadius = UDim.new(0,16),
     StrokeThickness = 2,
-    Color = ColorSequence.new(
-        Color3.fromHex("1e1e1e"), 
-        Color3.fromHex("000000")
-    ),
+    Color = ColorSequence.new(Color3.fromHex("1e1e1e"), Color3.fromHex("000000")),
     OnlyMobile = false,
     Enabled = true,
     Draggable = true,
 })
 
-WindUI:AddTheme({
-    Name = "Amethyst",
-    Accent = Color3.fromHex("7E2CB6"),
-    Dialog = Color3.fromHex("321E46"),
-    Outline = Color3.fromHex("552D78"),
-    Text = Color3.fromHex("F0F0F0"),
-    Placeholder = Color3.fromHex("AAAAAA"),
-    Background = Color3.fromHex("280C47"),
-    Button = Color3.fromHex("733796"),
-    Icon = Color3.fromHex("AAAAAA"),
-    Toggle = Color3.fromHex("7E2CB6"),
-    Slider = Color3.fromHex("7E2CB6"),
-    Checkbox = Color3.fromHex("7E2CB6"),
-    PanelBackground = Color3.fromHex("FFFFFF"),
-    PanelBackgroundTransparency = 0.95,
-    SliderIcon = Color3.fromHex("AAAAAA"),
-    Primary = Color3.fromHex("7E2CB6"),
-    LabelBackground = Color3.fromHex("000000"),
-    LabelBackgroundTransparency = 0.85,
-})
-
-WindUI:AddTheme({
-    Name = "Balloon",
-    Accent = Color3.fromHex("64AAFF"),
-    Dialog = Color3.fromHex("BDE6FF"),
-    Outline = Color3.fromHex("82AAE6"),
-    Text = Color3.fromHex("1E1E1E"),
-    Placeholder = Color3.fromHex("5A5A5A"),
-    Background = Color3.fromHex("BDE0FF"),
-    Button = Color3.fromHex("A0C8FF"),
-    Icon = Color3.fromHex("5A5A5A"),
-    Toggle = Color3.fromHex("64AAFF"),
-    Slider = Color3.fromHex("64AAFF"),
-    Checkbox = Color3.fromHex("64AAFF"),
-    PanelBackground = Color3.fromHex("FFFFFF"),
-    PanelBackgroundTransparency = 0,
-    SliderIcon = Color3.fromHex("5A5A5A"),
-    Primary = Color3.fromHex("64AAFF"),
-    LabelBackground = Color3.fromHex("FFFFFF"),
-    LabelBackgroundTransparency = 0,
-})
-
-WindUI:AddTheme({
-    Name = "SoftCream",
-    Accent = Color3.fromHex("CEA35A"),
-    Dialog = Color3.fromHex("FFFFF0"),
-    Outline = Color3.fromHex("FFE6C8"),
-    Text = Color3.fromHex("1E1E1E"),
-    Placeholder = Color3.fromHex("5A5A5A"),
-    Background = Color3.fromHex("FFF5DC"),
-    Button = Color3.fromHex("FFD8A1"),
-    Icon = Color3.fromHex("5A5A5A"),
-    Toggle = Color3.fromHex("CEA35A"),
-    Slider = Color3.fromHex("CEA35A"),
-    Checkbox = Color3.fromHex("CEA35A"),
-    PanelBackground = Color3.fromHex("FFFFFF"),
-    PanelBackgroundTransparency = 0,
-    SliderIcon = Color3.fromHex("5A5A5A"),
-    Primary = Color3.fromHex("CEA35A"),
-    LabelBackground = Color3.fromHex("FFFFFF"),
-    LabelBackgroundTransparency = 0,
-})
-
-WindUI:AddTheme({
-    Name = "Night",
-    Accent = Color3.fromHex("3432B2"),
-    Dialog = Color3.fromHex("252550"),
-    Outline = Color3.fromHex("535382"),
-    Text = Color3.fromHex("F0F0F0"),
-    Placeholder = Color3.fromHex("AAAAAA"),
-    Background = Color3.fromHex("141414"),
-    Button = Color3.fromHex("6F6CA0"),
-    Icon = Color3.fromHex("AAAAAA"),
-    Toggle = Color3.fromHex("3432B2"),
-    Slider = Color3.fromHex("3432B2"),
-    Checkbox = Color3.fromHex("3432B2"),
-    PanelBackground = Color3.fromHex("FFFFFF"),
-    PanelBackgroundTransparency = 0.95,
-    SliderIcon = Color3.fromHex("AAAAAA"),
-    Primary = Color3.fromHex("3432B2"),
-    LabelBackground = Color3.fromHex("000000"),
-    LabelBackgroundTransparency = 0.85,
-})
-
-WindUI:AddTheme({
-    Name = "Forest",
-    Accent = Color3.fromHex("2E8D46"),
-    Dialog = Color3.fromHex("233C28"),
-    Outline = Color3.fromHex("325A3C"),
-    Text = Color3.fromHex("F0F0F0"),
-    Placeholder = Color3.fromHex("AAAAAA"),
-    Background = Color3.fromHex("142319"),
-    Button = Color3.fromHex("467850"),
-    Icon = Color3.fromHex("AAAAAA"),
-    Toggle = Color3.fromHex("2E8D46"),
-    Slider = Color3.fromHex("2E8D46"),
-    Checkbox = Color3.fromHex("2E8D46"),
-    PanelBackground = Color3.fromHex("FFFFFF"),
-    PanelBackgroundTransparency = 0.95,
-    SliderIcon = Color3.fromHex("AAAAAA"),
-    Primary = Color3.fromHex("2E8D46"),
-    LabelBackground = Color3.fromHex("000000"),
-    LabelBackgroundTransparency = 0.85,
-})
-
-WindUI:AddTheme({
-    Name = "Sunset",
-    Accent = Color3.fromHex("FF8000"),
-    Dialog = Color3.fromHex("3C2319"),
-    Outline = Color3.fromHex("82503C"),
-    Text = Color3.fromHex("F0F0F0"),
-    Placeholder = Color3.fromHex("AAAAAA"),
-    Background = Color3.fromHex("281919"),
-    Button = Color3.fromHex("A06446"),
-    Icon = Color3.fromHex("AAAAAA"),
-    Toggle = Color3.fromHex("FF8000"),
-    Slider = Color3.fromHex("FF8000"),
-    Checkbox = Color3.fromHex("FF8000"),
-    PanelBackground = Color3.fromHex("FFFFFF"),
-    PanelBackgroundTransparency = 0.95,
-    SliderIcon = Color3.fromHex("AAAAAA"),
-    Primary = Color3.fromHex("FF8000"),
-    LabelBackground = Color3.fromHex("000000"),
-    LabelBackgroundTransparency = 0.85,
-})
-
-WindUI:AddTheme({
-    Name = "AMOLED",
-    Accent = Color3.fromHex("FFFFFF"),
-    Dialog = Color3.fromHex("000000"),
-    Outline = Color3.fromHex("141414"),
-    Text = Color3.fromHex("FFFFFF"),
-    Placeholder = Color3.fromHex("AAAAAA"),
-    Background = Color3.fromHex("000000"),
-    Button = Color3.fromHex("0F0F0F"),
-    Icon = Color3.fromHex("FFFFFF"),
-    Toggle = Color3.fromHex("FFFFFF"),
-    Slider = Color3.fromHex("FFFFFF"),
-    Checkbox = Color3.fromHex("FFFFFF"),
-    PanelBackground = Color3.fromHex("000000"),
-    PanelBackgroundTransparency = 0,
-    SliderIcon = Color3.fromHex("AAAAAA"),
-    Primary = Color3.fromHex("FFFFFF"),
-    LabelBackground = Color3.fromHex("000000"),
-    LabelBackgroundTransparency = 0,
-})
-
-WindUI:AddTheme({
-    Name = "Grape",
-    Accent = Color3.fromHex("B7B0DF"),
-    Dialog = Color3.fromHex("070012"),
-    Outline = Color3.fromHex("141414"),
-    Text = Color3.fromHex("FFFFFF"),
-    Placeholder = Color3.fromHex("7B90AA"),
-    Background = Color3.fromHex("060010"),
-    Button = Color3.fromHex("0D0021"),
-    Icon = Color3.fromHex("B7B0DF"),
-    Toggle = Color3.fromHex("B7B0DF"),
-    Slider = Color3.fromHex("B7B0DF"),
-    Checkbox = Color3.fromHex("B7B0DF"),
-    PanelBackground = Color3.fromHex("070012"),
-    PanelBackgroundTransparency = 0.5,
-    SliderIcon = Color3.fromHex("B7B0DF"),
-    Primary = Color3.fromHex("B7B0DF"),
-    LabelBackground = Color3.fromHex("070012"),
-    LabelBackgroundTransparency = 0,
-})
-
-WindUI:AddTheme({
-    Name = "Bloody",
-    Accent = Color3.fromHex("900000"),
-    Dialog = Color3.fromHex("550001"),
-    Outline = Color3.fromHex("560000"),
-    Text = Color3.fromHex("F0F0F0"),
-    Placeholder = Color3.fromHex("838383"),
-    Background = Color3.fromHex("3D0000"),
-    Button = Color3.fromHex("730E15"),
-    Icon = Color3.fromHex("F0F0F0"),
-    Toggle = Color3.fromHex("900000"),
-    Slider = Color3.fromHex("900000"),
-    Checkbox = Color3.fromHex("900000"),
-    PanelBackground = Color3.fromHex("550001"),
-    PanelBackgroundTransparency = 0.5,
-    SliderIcon = Color3.fromHex("F0F0F0"),
-    Primary = Color3.fromHex("900000"),
-    LabelBackground = Color3.fromHex("550001"),
-    LabelBackgroundTransparency = 0,
-})
-
-WindUI:AddTheme({
-    Name = "Arctic",
-    Accent = Color3.fromHex("40E0FF"),
-    Dialog = Color3.fromHex("1E2D3C"),
-    Outline = Color3.fromHex("233746"),
-    Text = Color3.fromHex("F0FAFF"),
-    Placeholder = Color3.fromHex("B4C8D2"),
-    Background = Color3.fromHex("0A1219"),
-    Button = Color3.fromHex("1E2D3C"),
-    Icon = Color3.fromHex("40E0FF"),
-    Toggle = Color3.fromHex("40E0FF"),
-    Slider = Color3.fromHex("40E0FF"),
-    Checkbox = Color3.fromHex("40E0FF"),
-    PanelBackground = Color3.fromHex("1E2D3C"),
-    PanelBackgroundTransparency = 0.5,
-    SliderIcon = Color3.fromHex("40E0FF"),
-    Primary = Color3.fromHex("40E0FF"),
-    LabelBackground = Color3.fromHex("1E2D3C"),
-    LabelBackgroundTransparency = 0,
-})
-
-WindUI:AddTheme({
-    Name = "Cloud",
-    Accent = Color3.fromHex("6DB0FF"),
-    Dialog = Color3.fromHex("FFFFFF"),
-    Outline = Color3.fromHex("C8DCF0"),
-    Text = Color3.fromHex("1E1E1E"),
-    Placeholder = Color3.fromHex("828282"),
-    Background = Color3.fromHex("F0F8FF"),
-    Button = Color3.fromHex("DCEBFA"),
-    Icon = Color3.fromHex("1E1E1E"),
-    Toggle = Color3.fromHex("6DB0FF"),
-    Slider = Color3.fromHex("6DB0FF"),
-    Checkbox = Color3.fromHex("6DB0FF"),
-    PanelBackground = Color3.fromHex("FFFFFF"),
-    PanelBackgroundTransparency = 0,
-    SliderIcon = Color3.fromHex("828282"),
-    Primary = Color3.fromHex("6DB0FF"),
-    LabelBackground = Color3.fromHex("FFFFFF"),
-    LabelBackgroundTransparency = 0,
-})
-
-WindUI:AddTheme({
-    Name = "Sapphire",
-    Accent = Color3.fromHex("0F52BA"),
-    Dialog = Color3.fromHex("0F192D"),
-    Outline = Color3.fromHex("1E2D50"),
-    Text = Color3.fromHex("E6E6E6"),
-    Placeholder = Color3.fromHex("8C8C8C"),
-    Background = Color3.fromHex("0A0F1E"),
-    Button = Color3.fromHex("14233C"),
-    Icon = Color3.fromHex("E6E6E6"),
-    Toggle = Color3.fromHex("0F52BA"),
-    Slider = Color3.fromHex("0F52BA"),
-    Checkbox = Color3.fromHex("0F52BA"),
-    PanelBackground = Color3.fromHex("0F192D"),
-    PanelBackgroundTransparency = 0.5,
-    SliderIcon = Color3.fromHex("8C8C8C"),
-    Primary = Color3.fromHex("0F52BA"),
-    LabelBackground = Color3.fromHex("0F192D"),
-    LabelBackgroundTransparency = 0,
-})
+WindUI:AddTheme({ Name = "Amethyst", Accent = Color3.fromHex("7E2CB6"), Dialog = Color3.fromHex("321E46"), Outline = Color3.fromHex("552D78"), Text = Color3.fromHex("F0F0F0"), Placeholder = Color3.fromHex("AAAAAA"), Background = Color3.fromHex("280C47"), Button = Color3.fromHex("733796"), Icon = Color3.fromHex("AAAAAA"), Toggle = Color3.fromHex("7E2CB6"), Slider = Color3.fromHex("7E2CB6"), Checkbox = Color3.fromHex("7E2CB6"), PanelBackground = Color3.fromHex("FFFFFF"), PanelBackgroundTransparency = 0.95, SliderIcon = Color3.fromHex("AAAAAA"), Primary = Color3.fromHex("7E2CB6"), LabelBackground = Color3.fromHex("000000"), LabelBackgroundTransparency = 0.85 })
+WindUI:AddTheme({ Name = "Balloon", Accent = Color3.fromHex("64AAFF"), Dialog = Color3.fromHex("BDE6FF"), Outline = Color3.fromHex("82AAE6"), Text = Color3.fromHex("1E1E1E"), Placeholder = Color3.fromHex("5A5A5A"), Background = Color3.fromHex("BDE0FF"), Button = Color3.fromHex("A0C8FF"), Icon = Color3.fromHex("5A5A5A"), Toggle = Color3.fromHex("64AAFF"), Slider = Color3.fromHex("64AAFF"), Checkbox = Color3.fromHex("64AAFF"), PanelBackground = Color3.fromHex("FFFFFF"), PanelBackgroundTransparency = 0, SliderIcon = Color3.fromHex("5A5A5A"), Primary = Color3.fromHex("64AAFF"), LabelBackground = Color3.fromHex("FFFFFF"), LabelBackgroundTransparency = 0 })
+WindUI:AddTheme({ Name = "SoftCream", Accent = Color3.fromHex("CEA35A"), Dialog = Color3.fromHex("FFFFF0"), Outline = Color3.fromHex("FFE6C8"), Text = Color3.fromHex("1E1E1E"), Placeholder = Color3.fromHex("5A5A5A"), Background = Color3.fromHex("FFF5DC"), Button = Color3.fromHex("FFD8A1"), Icon = Color3.fromHex("5A5A5A"), Toggle = Color3.fromHex("CEA35A"), Slider = Color3.fromHex("CEA35A"), Checkbox = Color3.fromHex("CEA35A"), PanelBackground = Color3.fromHex("FFFFFF"), PanelBackgroundTransparency = 0, SliderIcon = Color3.fromHex("5A5A5A"), Primary = Color3.fromHex("CEA35A"), LabelBackground = Color3.fromHex("FFFFFF"), LabelBackgroundTransparency = 0 })
+WindUI:AddTheme({ Name = "Night", Accent = Color3.fromHex("3432B2"), Dialog = Color3.fromHex("252550"), Outline = Color3.fromHex("535382"), Text = Color3.fromHex("F0F0F0"), Placeholder = Color3.fromHex("AAAAAA"), Background = Color3.fromHex("141414"), Button = Color3.fromHex("6F6CA0"), Icon = Color3.fromHex("AAAAAA"), Toggle = Color3.fromHex("3432B2"), Slider = Color3.fromHex("3432B2"), Checkbox = Color3.fromHex("3432B2"), PanelBackground = Color3.fromHex("FFFFFF"), PanelBackgroundTransparency = 0.95, SliderIcon = Color3.fromHex("AAAAAA"), Primary = Color3.fromHex("3432B2"), LabelBackground = Color3.fromHex("000000"), LabelBackgroundTransparency = 0.85 })
+WindUI:AddTheme({ Name = "Forest", Accent = Color3.fromHex("2E8D46"), Dialog = Color3.fromHex("233C28"), Outline = Color3.fromHex("325A3C"), Text = Color3.fromHex("F0F0F0"), Placeholder = Color3.fromHex("AAAAAA"), Background = Color3.fromHex("142319"), Button = Color3.fromHex("467850"), Icon = Color3.fromHex("AAAAAA"), Toggle = Color3.fromHex("2E8D46"), Slider = Color3.fromHex("2E8D46"), Checkbox = Color3.fromHex("2E8D46"), PanelBackground = Color3.fromHex("FFFFFF"), PanelBackgroundTransparency = 0.95, SliderIcon = Color3.fromHex("AAAAAA"), Primary = Color3.fromHex("2E8D46"), LabelBackground = Color3.fromHex("000000"), LabelBackgroundTransparency = 0.85 })
+WindUI:AddTheme({ Name = "Sunset", Accent = Color3.fromHex("FF8000"), Dialog = Color3.fromHex("3C2319"), Outline = Color3.fromHex("82503C"), Text = Color3.fromHex("F0F0F0"), Placeholder = Color3.fromHex("AAAAAA"), Background = Color3.fromHex("281919"), Button = Color3.fromHex("A06446"), Icon = Color3.fromHex("AAAAAA"), Toggle = Color3.fromHex("FF8000"), Slider = Color3.fromHex("FF8000"), Checkbox = Color3.fromHex("FF8000"), PanelBackground = Color3.fromHex("FFFFFF"), PanelBackgroundTransparency = 0.95, SliderIcon = Color3.fromHex("AAAAAA"), Primary = Color3.fromHex("FF8000"), LabelBackground = Color3.fromHex("000000"), LabelBackgroundTransparency = 0.85 })
+WindUI:AddTheme({ Name = "AMOLED", Accent = Color3.fromHex("FFFFFF"), Dialog = Color3.fromHex("000000"), Outline = Color3.fromHex("141414"), Text = Color3.fromHex("FFFFFF"), Placeholder = Color3.fromHex("AAAAAA"), Background = Color3.fromHex("000000"), Button = Color3.fromHex("0F0F0F"), Icon = Color3.fromHex("FFFFFF"), Toggle = Color3.fromHex("FFFFFF"), Slider = Color3.fromHex("FFFFFF"), Checkbox = Color3.fromHex("FFFFFF"), PanelBackground = Color3.fromHex("000000"), PanelBackgroundTransparency = 0, SliderIcon = Color3.fromHex("AAAAAA"), Primary = Color3.fromHex("FFFFFF"), LabelBackground = Color3.fromHex("000000"), LabelBackgroundTransparency = 0 })
+WindUI:AddTheme({ Name = "Grape", Accent = Color3.fromHex("B7B0DF"), Dialog = Color3.fromHex("070012"), Outline = Color3.fromHex("141414"), Text = Color3.fromHex("FFFFFF"), Placeholder = Color3.fromHex("7B90AA"), Background = Color3.fromHex("060010"), Button = Color3.fromHex("0D0021"), Icon = Color3.fromHex("B7B0DF"), Toggle = Color3.fromHex("B7B0DF"), Slider = Color3.fromHex("B7B0DF"), Checkbox = Color3.fromHex("B7B0DF"), PanelBackground = Color3.fromHex("070012"), PanelBackgroundTransparency = 0.5, SliderIcon = Color3.fromHex("B7B0DF"), Primary = Color3.fromHex("B7B0DF"), LabelBackground = Color3.fromHex("070012"), LabelBackgroundTransparency = 0 })
+WindUI:AddTheme({ Name = "Bloody", Accent = Color3.fromHex("900000"), Dialog = Color3.fromHex("550001"), Outline = Color3.fromHex("560000"), Text = Color3.fromHex("F0F0F0"), Placeholder = Color3.fromHex("838383"), Background = Color3.fromHex("3D0000"), Button = Color3.fromHex("730E15"), Icon = Color3.fromHex("F0F0F0"), Toggle = Color3.fromHex("900000"), Slider = Color3.fromHex("900000"), Checkbox = Color3.fromHex("900000"), PanelBackground = Color3.fromHex("550001"), PanelBackgroundTransparency = 0.5, SliderIcon = Color3.fromHex("F0F0F0"), Primary = Color3.fromHex("900000"), LabelBackground = Color3.fromHex("550001"), LabelBackgroundTransparency = 0 })
+WindUI:AddTheme({ Name = "Arctic", Accent = Color3.fromHex("40E0FF"), Dialog = Color3.fromHex("1E2D3C"), Outline = Color3.fromHex("233746"), Text = Color3.fromHex("F0FAFF"), Placeholder = Color3.fromHex("B4C8D2"), Background = Color3.fromHex("0A1219"), Button = Color3.fromHex("1E2D3C"), Icon = Color3.fromHex("40E0FF"), Toggle = Color3.fromHex("40E0FF"), Slider = Color3.fromHex("40E0FF"), Checkbox = Color3.fromHex("40E0FF"), PanelBackground = Color3.fromHex("1E2D3C"), PanelBackgroundTransparency = 0.5, SliderIcon = Color3.fromHex("40E0FF"), Primary = Color3.fromHex("40E0FF"), LabelBackground = Color3.fromHex("1E2D3C"), LabelBackgroundTransparency = 0 })
+WindUI:AddTheme({ Name = "Cloud", Accent = Color3.fromHex("6DB0FF"), Dialog = Color3.fromHex("FFFFFF"), Outline = Color3.fromHex("C8DCF0"), Text = Color3.fromHex("1E1E1E"), Placeholder = Color3.fromHex("828282"), Background = Color3.fromHex("F0F8FF"), Button = Color3.fromHex("DCEBFA"), Icon = Color3.fromHex("1E1E1E"), Toggle = Color3.fromHex("6DB0FF"), Slider = Color3.fromHex("6DB0FF"), Checkbox = Color3.fromHex("6DB0FF"), PanelBackground = Color3.fromHex("FFFFFF"), PanelBackgroundTransparency = 0, SliderIcon = Color3.fromHex("828282"), Primary = Color3.fromHex("6DB0FF"), LabelBackground = Color3.fromHex("FFFFFF"), LabelBackgroundTransparency = 0 })
+WindUI:AddTheme({ Name = "Sapphire", Accent = Color3.fromHex("0F52BA"), Dialog = Color3.fromHex("0F192D"), Outline = Color3.fromHex("1E2D50"), Text = Color3.fromHex("E6E6E6"), Placeholder = Color3.fromHex("8C8C8C"), Background = Color3.fromHex("0A0F1E"), Button = Color3.fromHex("14233C"), Icon = Color3.fromHex("E6E6E6"), Toggle = Color3.fromHex("0F52BA"), Slider = Color3.fromHex("0F52BA"), Checkbox = Color3.fromHex("0F52BA"), PanelBackground = Color3.fromHex("0F192D"), PanelBackgroundTransparency = 0.5, SliderIcon = Color3.fromHex("8C8C8C"), Primary = Color3.fromHex("0F52BA"), LabelBackground = Color3.fromHex("0F192D"), LabelBackgroundTransparency = 0 })
 
 Window:Tag({ Title = "v1.6.6", Icon = "github", Color = Color3.fromRGB(48, 255, 106), Radius = 10 })
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local UserInputService = game:GetService("UserInputService")
+local Camera = Workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+local GameRemote = ReplicatedStorage:WaitForChild("Events"):WaitForChild("GameRemoteFunction")
 
 _G.AntiSlow = false
 
@@ -304,10 +71,10 @@ oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
     return oldNamecall(self, ...)
 end)
 
+local BypassTab = Window:Tab({ Title = "Server Bypass", Icon = "shield-alert" })
 local CombatTab = Window:Tab({ Title = "Combat & Farm", Icon = "swords" })
 local MoveTab = Window:Tab({ Title = "Movement", Icon = "move" })
 local VisTab = Window:Tab({ Title = "Visuals (ESP)", Icon = "eye" })
-local BypassTab = Window:Tab({ Title = "Server Modification", Icon = "shield-alert" })
 local PlayerTab = Window:Tab({ Title = "Players List", Icon = "users" })
 local SettingTab = Window:Tab({ Title = "Settings", Icon = "settings" })
 
@@ -332,19 +99,22 @@ local function getNearestTarget()
     end
     return nearest
 end
+
 local MoveSec = MoveTab:Section({ Title = "Character Modification", Icon = "user", Opened = true, Box = true })
 
 local noclipLoop
 MoveSec:Toggle({ Title = "Enable Noclip", Desc = "Walk through walls and obstacles", Value = false, Callback = function(v)
     if v then 
         noclipLoop = RunService.Stepped:Connect(function() 
-            if LocalPlayer.Character then 
-                for _, p in pairs(LocalPlayer.Character:GetDescendants()) do 
-                    if p:IsA("BasePart") and p.CanCollide then 
-                        p.CanCollide = false 
+            pcall(function()
+                if LocalPlayer.Character then 
+                    for _, p in pairs(LocalPlayer.Character:GetDescendants()) do 
+                        if p:IsA("BasePart") and p.CanCollide then 
+                            p.CanCollide = false 
+                        end 
                     end 
                 end 
-            end 
+            end)
         end) 
     else 
         if noclipLoop then 
@@ -402,14 +172,13 @@ RunService.Heartbeat:Connect(function()
         end
     end)
 end)
-
 local HitboxSec = BypassTab:Section({ Title = "Hitbox Expander", Icon = "maximize", Opened = true, Box = true })
 
 _G.HitboxStatus = false
 _G.HitboxSize = 25
 _G.HitboxStyle = "Red"
 
-HitboxSec:Toggle({ Title = "Enable Hitbox", Value = false, Callback = function(v) 
+HitboxSec:Toggle({ Title = "Enable Hitbox Expander", Desc = "Expand enemy body parts to hit them easily", Value = false, Callback = function(v) 
     _G.HitboxStatus = v 
 end})
 
@@ -417,63 +186,65 @@ HitboxSec:Slider({ Title = "Hitbox Size", Value = {Min = 5, Max = 100, Default =
     _G.HitboxSize = v 
 end})
 
-HitboxSec:Dropdown({ Title = "Hitbox Color", Values = {"Red", "White", "Light Blue", "Black", "Transparent Outline"}, Value = "Red", Callback = function(v) 
+HitboxSec:Dropdown({ Title = "Hitbox Style & Color", Values = {"Red", "White", "Light Blue", "Black", "Transparent Outline"}, Value = "Red", Callback = function(v) 
     _G.HitboxStyle = v 
 end})
 
 RunService.RenderStepped:Connect(function()
-    for _, p in pairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-            local hrp = p.Character.HumanoidRootPart
-            if _G.HitboxStatus then
-                hrp.Size = Vector3.new(_G.HitboxSize, _G.HitboxSize, _G.HitboxSize)
-                hrp.CanCollide = false
-                if _G.HitboxStyle == "Transparent Outline" then
-                    hrp.Transparency = 1
-                    if not hrp:FindFirstChild("HitboxBox") then
-                        local box = Instance.new("SelectionBox")
-                        box.Name = "HitboxBox"
-                        box.Adornee = hrp
-                        box.LineThickness = 0.05
-                        box.Color3 = Color3.fromRGB(255, 255, 255)
-                        box.Parent = hrp
+    pcall(function()
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                local hrp = p.Character.HumanoidRootPart
+                if _G.HitboxStatus then
+                    hrp.Size = Vector3.new(_G.HitboxSize, _G.HitboxSize, _G.HitboxSize)
+                    hrp.CanCollide = false
+                    if _G.HitboxStyle == "Transparent Outline" then
+                        hrp.Transparency = 1
+                        if not hrp:FindFirstChild("HitboxSelection") then
+                            local box = Instance.new("SelectionBox")
+                            box.Name = "HitboxSelection"
+                            box.Adornee = hrp
+                            box.LineThickness = 0.05
+                            box.Color3 = Color3.fromRGB(255, 255, 255)
+                            box.Parent = hrp
+                        end
+                    else
+                        if hrp:FindFirstChild("HitboxSelection") then 
+                            hrp.HitboxSelection:Destroy() 
+                        end
+                        hrp.Transparency = 0.7
+                        hrp.Material = Enum.Material.Neon
+                        if _G.HitboxStyle == "White" then 
+                            hrp.BrickColor = BrickColor.new("White")
+                        elseif _G.HitboxStyle == "Light Blue" then 
+                            hrp.BrickColor = BrickColor.new("Toothpaste")
+                        elseif _G.HitboxStyle == "Black" then 
+                            hrp.BrickColor = BrickColor.new("Really black")
+                        else 
+                            hrp.BrickColor = BrickColor.new("Really red") 
+                        end
                     end
                 else
-                    if hrp:FindFirstChild("HitboxBox") then 
-                        hrp.HitboxBox:Destroy() 
+                    hrp.Size = Vector3.new(2, 2, 1)
+                    hrp.Transparency = 1
+                    if hrp:FindFirstChild("HitboxSelection") then 
+                        hrp.HitboxSelection:Destroy() 
                     end
-                    hrp.Transparency = 0.7
-                    hrp.Material = Enum.Material.Neon
-                    if _G.HitboxStyle == "White" then 
-                        hrp.BrickColor = BrickColor.new("White")
-                    elseif _G.HitboxStyle == "Light Blue" then 
-                        hrp.BrickColor = BrickColor.new("Toothpaste")
-                    elseif _G.HitboxStyle == "Black" then 
-                        hrp.BrickColor = BrickColor.new("Really black")
-                    else 
-                        hrp.BrickColor = BrickColor.new("Really red") 
-                    end
-                end
-            else
-                hrp.Size = Vector3.new(2, 2, 1)
-                hrp.Transparency = 1
-                if hrp:FindFirstChild("HitboxBox") then 
-                    hrp.HitboxBox:Destroy() 
                 end
             end
         end
-    end
+    end)
 end)
 
 HitboxSec:Divider()
 
-local FlingSec = BypassTab:Section({ Title = "Fling Exploit", Icon = "wind", Opened = true, Box = true })
+local FlingSec = BypassTab:Section({ Title = "Physics Fling Exploit", Icon = "wind", Opened = true, Box = true })
 
 _G.FlingActive = false
 _G.FlingMode = "Touch Fling"
 _G.FlingTarget = ""
 
-FlingSec:Toggle({ Title = "Enable Fling", Value = false, Callback = function(v) 
+FlingSec:Toggle({ Title = "Enable Fling", Desc = "Use high velocity to fling players out of map", Value = false, Callback = function(v) 
     _G.FlingActive = v 
 end})
 
@@ -481,51 +252,55 @@ FlingSec:Dropdown({ Title = "Fling Mode", Values = {"Touch Fling", "Fling Target
     _G.FlingMode = v 
 end})
 
-FlingSec:Input({ Title = "Target Name (For Fling Target)", Value = "", Callback = function(v) 
+FlingSec:Input({ Title = "Target Username (For Target Mode)", Value = "", Callback = function(v) 
     _G.FlingTarget = v 
 end})
 
 RunService.Stepped:Connect(function()
-    if _G.FlingActive and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        LocalPlayer.Character.HumanoidRootPart.RotVelocity = Vector3.new(0, 50000, 0)
-    end
+    pcall(function()
+        if _G.FlingActive and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            LocalPlayer.Character.HumanoidRootPart.RotVelocity = Vector3.new(0, 50000, 0)
+        end
+    end)
 end)
 
 task.spawn(function()
     while task.wait(0.1) do
-        if _G.FlingActive and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            local hrp = LocalPlayer.Character.HumanoidRootPart
-            if _G.FlingMode == "Fling Target" and _G.FlingTarget ~= "" then
-                for _, p in pairs(Players:GetPlayers()) do
-                    if p ~= LocalPlayer and string.find(string.lower(p.Name), string.lower(_G.FlingTarget)) and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                        hrp.CFrame = p.Character.HumanoidRootPart.CFrame
-                        break
+        pcall(function()
+            if _G.FlingActive and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                local hrp = LocalPlayer.Character.HumanoidRootPart
+                if _G.FlingMode == "Fling Target" and _G.FlingTarget ~= "" then
+                    for _, p in pairs(Players:GetPlayers()) do
+                        if p ~= LocalPlayer and string.find(string.lower(p.Name), string.lower(_G.FlingTarget)) and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                            hrp.CFrame = p.Character.HumanoidRootPart.CFrame
+                            break
+                        end
                     end
-                end
-            elseif _G.FlingMode == "Fling All" then
-                local targets = {}
-                for _, p in pairs(Players:GetPlayers()) do
-                    if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
-                        table.insert(targets, p.Character.HumanoidRootPart)
+                elseif _G.FlingMode == "Fling All" then
+                    local targets = {}
+                    for _, p in pairs(Players:GetPlayers()) do
+                        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
+                            table.insert(targets, p.Character.HumanoidRootPart)
+                        end
                     end
-                end
-                if #targets > 0 then
-                    hrp.CFrame = targets[math.random(1, #targets)].CFrame
+                    if #targets > 0 then
+                        hrp.CFrame = targets[math.random(1, #targets)].CFrame
+                    end
                 end
             end
-        end
+        end)
     end
 end)
-local CombatSec = CombatTab:Section({ Title = "Auto Attack & Farm", Icon = "crosshair", Opened = true, Box = true })
+local CombatSec = CombatTab:Section({ Title = "Attack Settings", Icon = "crosshair", Opened = true, Box = true })
 
-CombatSec:Toggle({ Title = "Anti-Slow", Desc = "Remove slowdown effects when attacking", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Enable Anti-Slow", Desc = "Remove movement penalty while swinging weapon", Value = false, Callback = function(v) 
     _G.AntiSlow = v 
 end})
 
 CombatSec:Divider()
 
 local function AttemptWeaponHit(TargetChar)
-    pcall(function() -- Bọc pcall chống mọi lỗi đứt gãy luồng
+    pcall(function()
         local Char = LocalPlayer.Character
         if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
         if not TargetChar or not TargetChar:FindFirstChild("HumanoidRootPart") then return end
@@ -545,7 +320,6 @@ local function AttemptWeaponHit(TargetChar)
         local slowMul = _G.AntiSlow and 1 or 0.2
         local slowTim = _G.AntiSlow and 0 or 1.5
         
-        -- Sửa lỗi văng script do tính toán chia cho 0 (Vector NaN)
         local direction = (TargetChar.HumanoidRootPart.Position - Char.HumanoidRootPart.Position).Unit
         if direction.X ~= direction.X then direction = Vector3.new(0, 0, 1) end 
         
@@ -639,7 +413,6 @@ task.spawn(function()
                 if target and target:FindFirstChild("HumanoidRootPart") then
                     local hrp = LocalPlayer.Character.HumanoidRootPart
                     local tHrp = target.HumanoidRootPart
-                    
                     hrp.CFrame = tHrp.CFrame * CFrame.new(0, 0, 3)
                     task.wait(0.1)
                     AttemptWeaponHit(target) 
@@ -650,54 +423,56 @@ task.spawn(function()
             end
         end)
     end
-end) 
+end)
 
-local AimSec = CombatTab:Section({ Title = "Aimbot Settings", Icon = "crosshair", Opened = true, Box = true })
+local AimSec = CombatTab:Section({ Title = "Aimbot Configuration", Icon = "crosshair", Opened = true, Box = true })
 _G.AimbotMode = "None"
-AimSec:Dropdown({ Title = "Aimbot Mode", Values = {"None", "Camera", "Character", "Both"}, Value = "None", Callback = function(v) 
+AimSec:Dropdown({ Title = "Select Aimbot Mode", Values = {"None", "Camera", "Character", "Camera & Character"}, Value = "None", Callback = function(v) 
     _G.AimbotMode = v 
 end})
 
 RunService.RenderStepped:Connect(function()
-    if _G.AimbotMode ~= "None" and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        local target = getNearestTarget()
-        if target and target:FindFirstChild("HumanoidRootPart") then
-            local myHrp = LocalPlayer.Character.HumanoidRootPart
-            local tPos = target.HumanoidRootPart.Position
-            if _G.AimbotMode == "Camera" or _G.AimbotMode == "Both" then
-                Camera.CFrame = CFrame.lookAt(Camera.CFrame.Position, tPos)
-            end
-            if _G.AimbotMode == "Character" or _G.AimbotMode == "Both" then
-                myHrp.CFrame = CFrame.lookAt(myHrp.Position, Vector3.new(tPos.X, myHrp.Position.Y, tPos.Z))
+    pcall(function()
+        if _G.AimbotMode ~= "None" and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local target = getNearestTarget()
+            if target and target:FindFirstChild("HumanoidRootPart") then
+                local myHrp = LocalPlayer.Character.HumanoidRootPart
+                local tPos = target.HumanoidRootPart.Position
+                if _G.AimbotMode == "Camera" or _G.AimbotMode == "Camera & Character" then
+                    Camera.CFrame = CFrame.lookAt(Camera.CFrame.Position, tPos)
+                end
+                if _G.AimbotMode == "Character" or _G.AimbotMode == "Camera & Character" then
+                    myHrp.CFrame = CFrame.lookAt(myHrp.Position, Vector3.new(tPos.X, myHrp.Position.Y, tPos.Z))
+                end
             end
         end
-    end
+    end)
 end)
-
-local VisSec = VisTab:Section({ Title = "Player Visuals", Icon = "eye", Opened = true, Box = true })
+local VisSec = VisTab:Section({ Title = "ESP & Visuals", Icon = "eye", Opened = true, Box = true })
 
 local originalTrans = {}
 local antiInvisLoop
-
-VisSec:Toggle({ Title = "Show Hidden Players", Desc = "Force invisible players to be visible", Value = false, Callback = function(v)
+VisSec:Toggle({ Title = "Show Invisible Players", Desc = "Force hidden players to appear normally", Value = false, Callback = function(v)
     if v then
         antiInvisLoop = RunService.RenderStepped:Connect(function()
-            for _, p in ipairs(Players:GetPlayers()) do
-                if p ~= LocalPlayer and p.Character then
-                    for _, part in ipairs(p.Character:GetDescendants()) do
-                        if (part:IsA("BasePart") or part:IsA("Decal")) then
-                            if part.Name ~= "HumanoidRootPart" and not string.find(string.lower(part.Name), "hitbox") then
-                                if part.Transparency > 0 and part.Transparency < 1 then
-                                    if originalTrans[part] == nil then 
-                                        originalTrans[part] = part.Transparency 
+            pcall(function()
+                for _, p in ipairs(Players:GetPlayers()) do
+                    if p ~= LocalPlayer and p.Character then
+                        for _, part in ipairs(p.Character:GetDescendants()) do
+                            if (part:IsA("BasePart") or part:IsA("Decal")) then
+                                if part.Name ~= "HumanoidRootPart" and not string.find(string.lower(part.Name), "hitbox") then
+                                    if part.Transparency > 0 and part.Transparency < 1 then
+                                        if originalTrans[part] == nil then 
+                                            originalTrans[part] = part.Transparency 
+                                        end
+                                        part.Transparency = 0
                                     end
-                                    part.Transparency = 0
                                 end
                             end
                         end
                     end
                 end
-            end
+            end)
         end)
     else
         if antiInvisLoop then
@@ -733,88 +508,90 @@ local function cleanEsp(player)
 end
 
 local function updatePlayerEsp()
-    local activePlayers = {}
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer then
-            activePlayers[player] = true
-            local char = player.Character
-            local hrp = char and char:FindFirstChild("HumanoidRootPart")
-            local head = char and char:FindFirstChild("Head")
-            local hum = char and char:FindFirstChild("Humanoid")
-            
-            if char and hrp and head and hum and hum.Health > 0 then
-                if not espElements[player] then
-                    local d = { 
-                        Name = Drawing.new("Text"), 
-                        Tracer = Drawing.new("Line"), 
-                        Box = Drawing.new("Square"),
-                        Highlight = Instance.new("Highlight") 
-                    }
-                    d.Name.Size = 16
-                    d.Name.Center = true
-                    d.Name.Outline = true
-                    d.Name.Font = 2
-                    
-                    d.Tracer.Thickness = 1.5
-                    d.Tracer.Transparency = 0.8
-                    
-                    d.Box.Thickness = 1.5
-                    d.Box.Filled = false
-                    d.Box.Transparency = 1
-                    
-                    d.Highlight.FillTransparency = 0.5
-                    d.Highlight.OutlineTransparency = 0
-                    d.Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-                    d.Highlight.Parent = char
-                    
-                    espElements[player] = d
-                end
+    pcall(function()
+        local activePlayers = {}
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer then
+                activePlayers[player] = true
+                local char = player.Character
+                local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                local head = char and char:FindFirstChild("Head")
+                local hum = char and char:FindFirstChild("Humanoid")
                 
-                local d = espElements[player]
-                local rootPos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
-                
-                if onScreen then
-                    local headPos = Camera:WorldToViewportPoint(head.Position + Vector3.new(0, 0.5, 0))
-                    local legPos = Camera:WorldToViewportPoint(hrp.Position - Vector3.new(0, 3, 0))
-                    local height = math.abs(headPos.Y - legPos.Y)
-                    local width = height / 2
-                    local dist = (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")) and (LocalPlayer.Character.HumanoidRootPart.Position - hrp.Position).Magnitude or 0
-                    local teamColor = player.TeamColor and player.TeamColor.Color or Color3.fromRGB(255, 50, 50)
+                if char and hrp and head and hum and hum.Health > 0 then
+                    if not espElements[player] then
+                        local d = { 
+                            Name = Drawing.new("Text"), 
+                            Tracer = Drawing.new("Line"), 
+                            Box = Drawing.new("Square"),
+                            Highlight = Instance.new("Highlight") 
+                        }
+                        d.Name.Size = 16
+                        d.Name.Center = true
+                        d.Name.Outline = true
+                        d.Name.Font = 2
+                        
+                        d.Tracer.Thickness = 1.5
+                        d.Tracer.Transparency = 0.8
+                        
+                        d.Box.Thickness = 1.5
+                        d.Box.Filled = false
+                        d.Box.Transparency = 1
+                        
+                        d.Highlight.FillTransparency = 0.5
+                        d.Highlight.OutlineTransparency = 0
+                        d.Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                        d.Highlight.Parent = char
+                        
+                        espElements[player] = d
+                    end
                     
-                    d.Name.Color = teamColor
-                    d.Name.Text = player.Name .. " ["..math.floor(dist).."m]"
-                    d.Name.Position = Vector2.new(rootPos.X, headPos.Y - 20)
-                    d.Name.Visible = _G.ShowESP
+                    local d = espElements[player]
+                    local rootPos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
                     
-                    d.Box.Size = Vector2.new(width, height)
-                    d.Box.Position = Vector2.new(rootPos.X - width / 2, headPos.Y)
-                    d.Box.Color = teamColor
-                    d.Box.Visible = _G.ShowESP
-                    
-                    d.Tracer.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
-                    d.Tracer.To = Vector2.new(rootPos.X, rootPos.Y)
-                    d.Tracer.Color = teamColor
-                    d.Tracer.Visible = _G.ShowESP
-                    
-                    d.Highlight.FillColor = teamColor
-                    d.Highlight.Parent = char
-                    d.Highlight.Enabled = _G.ShowESP
+                    if onScreen then
+                        local headPos = Camera:WorldToViewportPoint(head.Position + Vector3.new(0, 0.5, 0))
+                        local legPos = Camera:WorldToViewportPoint(hrp.Position - Vector3.new(0, 3, 0))
+                        local height = math.abs(headPos.Y - legPos.Y)
+                        local width = height / 2
+                        local dist = (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")) and (LocalPlayer.Character.HumanoidRootPart.Position - hrp.Position).Magnitude or 0
+                        local teamColor = player.TeamColor and player.TeamColor.Color or Color3.fromRGB(255, 50, 50)
+                        
+                        d.Name.Color = teamColor
+                        d.Name.Text = player.Name .. " ["..math.floor(dist).."m]"
+                        d.Name.Position = Vector2.new(rootPos.X, headPos.Y - 20)
+                        d.Name.Visible = _G.ShowESP
+                        
+                        d.Box.Size = Vector2.new(width, height)
+                        d.Box.Position = Vector2.new(rootPos.X - width / 2, headPos.Y)
+                        d.Box.Color = teamColor
+                        d.Box.Visible = _G.ShowESP
+                        
+                        d.Tracer.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
+                        d.Tracer.To = Vector2.new(rootPos.X, rootPos.Y)
+                        d.Tracer.Color = teamColor
+                        d.Tracer.Visible = _G.ShowESP
+                        
+                        d.Highlight.FillColor = teamColor
+                        d.Highlight.Parent = char
+                        d.Highlight.Enabled = _G.ShowESP
+                    else 
+                        d.Name.Visible = false
+                        d.Tracer.Visible = false
+                        d.Box.Visible = false
+                        d.Highlight.Enabled = false
+                    end
                 else 
-                    d.Name.Visible = false
-                    d.Tracer.Visible = false
-                    d.Box.Visible = false
-                    d.Highlight.Enabled = false
+                    cleanEsp(player) 
                 end
-            else 
-                cleanEsp(player) 
             end
         end
-    end
-    for player, _ in pairs(espElements) do 
-        if not activePlayers[player] then 
-            cleanEsp(player) 
-        end 
-    end
+        for player, _ in pairs(espElements) do 
+            if not activePlayers[player] then 
+                cleanEsp(player) 
+            end 
+        end
+    end)
 end
 
 _G.ShowESP = false
@@ -851,27 +628,29 @@ PlayerSec:Divider()
 
 PlayerSec:Button({ Title = "Refresh Player List", Icon = "refresh-cw", Callback = refreshPlayers })
 PlayerSec:Button({ Title = "Teleport To Player", Icon = "map-pin", Callback = function()
-    local target = Players:FindFirstChild(_G.SelectedPlayer)
-    if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character then
-        LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame
-        WindUI:Notify({Title = "Teleport", Content = "Teleported to " .. target.Name, Duration=2})
-    end
+    pcall(function()
+        local target = Players:FindFirstChild(_G.SelectedPlayer)
+        if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame
+            WindUI:Notify({Title = "Teleport", Content = "Teleported to " .. target.Name, Duration=2})
+        end
+    end)
 end})
 refreshPlayers()
 
-local ThemeSection = SettingTab:Section({ Title = "Themes", Icon = "palette", Opened = true, Box = true })
+local ThemeSection = SettingTab:Section({ Title = "Themes Configuration", Icon = "palette", Opened = true, Box = true })
 local validThemes = WindUI:GetThemes()
 local themes = {}
 for themeName, _ in pairs(validThemes) do table.insert(themes, themeName) end
 table.sort(themes)
 
-ThemeSection:Dropdown({ Title = "Theme", Desc = "Choose UI Style", Values = themes, Flag = "ThemeDropdown", Value = "Night", Callback = function(Value) 
+ThemeSection:Dropdown({ Title = "UI Theme", Desc = "Choose UI Style", Values = themes, Flag = "ThemeDropdown", Value = "Night", Callback = function(Value) 
     if validThemes[Value] then 
         pcall(function() WindUI:SetTheme(Value) end) 
     end 
 end})
 
-ThemeSection:Keybind({ Title = "Keybind", Desc = "Keybind to open ui", Value = "G", Callback = function(v) pcall(function() Window:SetToggleKey(Enum.KeyCode[v]) end) end })
+ThemeSection:Keybind({ Title = "Toggle Keybind", Desc = "Key to open/close UI", Value = "G", Callback = function(v) pcall(function() Window:SetToggleKey(Enum.KeyCode[v]) end) end })
 
 local ConfigSection = SettingTab:Section({ Title = "Config Manager", Icon = "save", Opened = true, Box = true })
 local ConfigManager = Window.ConfigManager
@@ -892,7 +671,7 @@ end})
 
 local AutoLoadToggle
 local ConfigDropdown = ConfigSection:Dropdown({ 
-    Title = "Choose Saved Config", 
+    Title = "Select Saved Config", 
     Values = savedConfigs, 
     Value = configName, 
     AllowNone = false, 
@@ -907,7 +686,7 @@ local ConfigDropdown = ConfigSection:Dropdown({
 
 ConfigSection:Divider()
 
-AutoLoadToggle = ConfigSection:Toggle({ Title = "Auto-Load Config", Desc = "Enable to auto load this config on execution", Value = (getAutoLoad() == configName), Callback = function(Value) 
+AutoLoadToggle = ConfigSection:Toggle({ Title = "Auto-Load Config", Desc = "Enable to auto load this config upon execution", Value = (getAutoLoad() == configName), Callback = function(Value) 
     if Value then 
         setAutoLoad(configName) 
     else 
@@ -915,35 +694,27 @@ AutoLoadToggle = ConfigSection:Toggle({ Title = "Auto-Load Config", Desc = "Enab
     end 
 end})
     
-ConfigSection:Button({ 
-    Title = "Save Config", 
-    Icon = "check", 
-    Callback = function() 
-        pcall(function() 
-            configFile = ConfigManager:CreateConfig(configName) 
-            if configFile:Save() then 
-                local newList = {"MainConfig"} 
-                pcall(function() newList = ConfigManager:AllConfigs() end) 
-                if #newList == 0 then table.insert(newList, "MainConfig") end 
-                ConfigDropdown:Refresh(newList) 
-                WindUI:Notify({ Title = "Save Config", Content = "Saved: " .. configName, Duration = 3 }) 
-            end 
-        end) 
-    end 
-})
+ConfigSection:Button({ Title = "Save Config", Icon = "check", Callback = function() 
+    pcall(function() 
+        configFile = ConfigManager:CreateConfig(configName) 
+        if configFile:Save() then 
+            local newList = {"MainConfig"} 
+            pcall(function() newList = ConfigManager:AllConfigs() end) 
+            if #newList == 0 then table.insert(newList, "MainConfig") end 
+            ConfigDropdown:Refresh(newList) 
+            WindUI:Notify({ Title = "Success", Content = "Configuration saved: " .. configName, Duration = 3 }) 
+        end 
+    end) 
+end })
     
-ConfigSection:Button({ 
-    Title = "Load Config", 
-    Icon = "refresh-cw", 
-    Callback = function() 
-        pcall(function() 
-            configFile = ConfigManager:CreateConfig(configName) 
-            if configFile:Load() then 
-                WindUI:Notify({ Title = "Load Config", Content = "Loaded: " .. configName, Duration = 3 }) 
-            end 
-        end) 
-    end 
-})
+ConfigSection:Button({ Title = "Load Config", Icon = "refresh-cw", Callback = function() 
+    pcall(function() 
+        configFile = ConfigManager:CreateConfig(configName) 
+        if configFile:Load() then 
+            WindUI:Notify({ Title = "Success", Content = "Configuration loaded: " .. configName, Duration = 3 }) 
+        end 
+    end) 
+end })
 
 pcall(function() Window:OnClose(function() pcall(function() if ConfigManager and configFile then configFile:Save() end end) end) end)
 
@@ -955,13 +726,13 @@ task.spawn(function()
             configName = autoConf
             configFile = ConfigManager:CreateConfig(configName)
             configFile:Load()
-            WindUI:Notify({ Title = "Auto-Load Enabled", Content = "Loaded config: " .. configName, Duration = 3 })
+            WindUI:Notify({ Title = "Auto-Load Enabled", Content = "Loaded configuration: " .. configName, Duration = 3 })
         end)
     end
     task.wait(0.5)
     pcall(function() Window:Minimize() end)
     pcall(function() Window:Toggle() end)
-    pcall(function() WindUI:Notify({ Title = "UI Minimized", Content = "The Ui Automatic Minized You Can Open By Click The Ui On The Bottom", Duration = 5 }) end)
+    pcall(function() WindUI:Notify({ Title = "UI Minimized", Content = "The UI has minimized. Click the icon to open it.", Duration = 5 }) end)
 end)
 
 local ConsoleSec = SettingTab:Section({ Title = "Console Manager", Icon = "code", Opened = true, Box = true })
@@ -1166,7 +937,7 @@ end)
 
 ConsoleSec:Button({ Title = "Open Custom Console", Icon = "terminal", Callback = function() openConsole() end })
 ConsoleSec:Button({ 
-    Title = "Test Console", 
+    Title = "Test Console Logs", 
     Icon = "flask-conical", 
     Callback = function() 
         print("This is a normal LOG message.")
@@ -1186,7 +957,7 @@ ConsoleSec:Button({
             end 
         end 
         logCount = 0
-        pcall(function() WindUI:Notify({Title = "Console", Content = "Clear All Logs In Custom Console!"}) end) 
+        pcall(function() WindUI:Notify({Title = "Console", Content = "Cleared All Custom Console Logs!"}) end) 
     end 
 })
 

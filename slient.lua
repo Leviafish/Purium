@@ -532,11 +532,9 @@ local function AttemptWeaponHit(TargetChar)
         
         local MyTool = Char:FindFirstChildOfClass("Tool")
         if not MyTool then 
-            local backpack = LocalPlayer:FindFirstChild("Backpack")
-            local backpackTool = backpack and backpack:FindFirstChildOfClass("Tool")
-            local hum = Char:FindFirstChild("Humanoid")
-            if backpackTool and hum then
-                hum:EquipTool(backpackTool)
+            local backpackTool = LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
+            if backpackTool then
+                pcall(function() LocalPlayer.Character.Humanoid:EquipTool(backpackTool) end)
                 MyTool = backpackTool
             else
                 return
@@ -547,8 +545,8 @@ local function AttemptWeaponHit(TargetChar)
         local slowMul = _G.AntiSlow and 1 or 0.2
         local slowTim = _G.AntiSlow and 0 or 1.5
         
+        -- Sửa lỗi văng script do tính toán chia cho 0 (Vector NaN)
         local direction = (TargetChar.HumanoidRootPart.Position - Char.HumanoidRootPart.Position).Unit
-        -- Sửa lỗi sập Heartbeat khi đứng trùng tọa độ (Vector NaN)
         if direction.X ~= direction.X then direction = Vector3.new(0, 0, 1) end 
         
         local Args = {
@@ -585,14 +583,12 @@ CombatSec:Toggle({ Title = "Kill All Players", Desc = "Attack everyone everywher
 end})
 
 RunService.Heartbeat:Connect(function()
-    pcall(function() -- Bọc pcall để bắt mọi lỗi phát sinh, chống sập Heartbeat
+    pcall(function()
         if _G.KillAll and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
             for _, p in ipairs(Players:GetPlayers()) do
                 if p ~= LocalPlayer and p.Character then
-                    -- Kiểm tra an toàn: Đảm bảo mục tiêu có đủ bộ phận và còn sống mới chém
                     local hrp = p.Character:FindFirstChild("HumanoidRootPart")
                     local hum = p.Character:FindFirstChild("Humanoid")
-                    
                     if hrp and hum and hum.Health > 0 then
                         AttemptWeaponHit(p.Character)
                     end
@@ -606,11 +602,11 @@ CombatSec:Divider()
 
 _G.AutoHit = false
 _G.HitRange = 15
-CombatSec:Toggle({ Title = "Auto Hit", Desc = "Automatically attack enemies within range", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Auto Hit By Distance", Desc = "Automatically attack enemies near you", Value = false, Callback = function(v) 
     _G.AutoHit = v 
 end})
 
-CombatSec:Slider({ Title = "Hit Range", Value = {Min = 5, Max = 100, Default = 15}, Callback = function(v) 
+CombatSec:Slider({ Title = "Auto Hit Range", Value = {Min = 5, Max = 100, Default = 15}, Callback = function(v) 
     _G.HitRange = v 
 end})
 
@@ -631,28 +627,30 @@ end)
 CombatSec:Divider()
 
 _G.AutoFarm = false
-CombatSec:Toggle({ Title = "Auto Farm", Desc = "Teleport behind target, kill, and float", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Auto Farm", Desc = "Teleport behind targets and eliminate them", Value = false, Callback = function(v) 
     _G.AutoFarm = v 
 end})
 
 task.spawn(function()
     while task.wait(0.1) do
-        if _G.AutoFarm and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            local target = getNearestTarget()
-            if target and target:FindFirstChild("HumanoidRootPart") then
-                local hrp = LocalPlayer.Character.HumanoidRootPart
-                local tHrp = target.HumanoidRootPart
-                
-                hrp.CFrame = tHrp.CFrame * CFrame.new(0, 0, 3)
-                task.wait(0.1)
-                AttemptWeaponHit(target) 
-                hrp.CFrame = tHrp.CFrame * CFrame.new(0, 25, 0)
-                hrp.Velocity = Vector3.new(0, 0, 0)
-                task.wait(0.2)
+        pcall(function()
+            if _G.AutoFarm and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                local target = getNearestTarget()
+                if target and target:FindFirstChild("HumanoidRootPart") then
+                    local hrp = LocalPlayer.Character.HumanoidRootPart
+                    local tHrp = target.HumanoidRootPart
+                    
+                    hrp.CFrame = tHrp.CFrame * CFrame.new(0, 0, 3)
+                    task.wait(0.1)
+                    AttemptWeaponHit(target) 
+                    hrp.CFrame = tHrp.CFrame * CFrame.new(0, 25, 0)
+                    hrp.Velocity = Vector3.new(0, 0, 0)
+                    task.wait(0.2)
+                end
             end
-        end
+        end)
     end
-end)
+end) 
 
 local AimSec = CombatTab:Section({ Title = "Aimbot Settings", Icon = "crosshair", Opened = true, Box = true })
 _G.AimbotMode = "None"

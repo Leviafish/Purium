@@ -2,7 +2,7 @@ print("Loading script maybe take a few seconds to complete")
 game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Purium On Top!", Text = "Loading Script...", Duration = 3 })
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 local Window = WindUI:CreateWindow({
-    Title = "Purium Hub [By @hlck49] | Silent assassin |", Icon = "door-open", Author = "Version : 0.0.1", Folder = "Purium_Silent_Assassin",
+    Title = "Purium Hub [By @hlck49] | Silent assassin |", Icon = "door-open", Author = "Version : 0.0.1", Folder = "Purium_SBSD",
     Size = UDim2.fromOffset(580, 460), MinSize = Vector2.new(560, 350), MaxSize = Vector2.new(850, 560),
     Transparent = true, Theme = "Dark", Resizable = true, SideBarWidth = 200, BackgroundImageTransparency = 0.42,
     HideSearchBar = true, ScrollBarEnabled = false,
@@ -49,7 +49,7 @@ WindUI:AddTheme({
     Accent = Color3.fromHex("64AAFF"),
     Dialog = Color3.fromHex("BDE6FF"),
     Outline = Color3.fromHex("82AAE6"),
-    Text = Color3.fromHex("1E1E1E"), -- Chữ đen cho nền sáng
+    Text = Color3.fromHex("1E1E1E"),
     Placeholder = Color3.fromHex("5A5A5A"),
     Background = Color3.fromHex("BDE0FF"),
     Button = Color3.fromHex("A0C8FF"),
@@ -58,7 +58,7 @@ WindUI:AddTheme({
     Slider = Color3.fromHex("64AAFF"),
     Checkbox = Color3.fromHex("64AAFF"),
     PanelBackground = Color3.fromHex("FFFFFF"),
-    PanelBackgroundTransparency = 0, -- Nền sáng không để trong suốt
+    PanelBackgroundTransparency = 0,
     SliderIcon = Color3.fromHex("5A5A5A"),
     Primary = Color3.fromHex("64AAFF"),
     LabelBackground = Color3.fromHex("FFFFFF"),
@@ -70,7 +70,7 @@ WindUI:AddTheme({
     Accent = Color3.fromHex("CEA35A"),
     Dialog = Color3.fromHex("FFFFF0"),
     Outline = Color3.fromHex("FFE6C8"),
-    Text = Color3.fromHex("1E1E1E"), -- Chữ đen
+    Text = Color3.fromHex("1E1E1E"),
     Placeholder = Color3.fromHex("5A5A5A"),
     Background = Color3.fromHex("FFF5DC"),
     Button = Color3.fromHex("FFD8A1"),
@@ -238,7 +238,7 @@ WindUI:AddTheme({
     Accent = Color3.fromHex("6DB0FF"),
     Dialog = Color3.fromHex("FFFFFF"),
     Outline = Color3.fromHex("C8DCF0"),
-    Text = Color3.fromHex("1E1E1E"), -- Chữ tối trên nền sáng
+    Text = Color3.fromHex("1E1E1E"),
     Placeholder = Color3.fromHex("828282"),
     Background = Color3.fromHex("F0F8FF"),
     Button = Color3.fromHex("DCEBFA"),
@@ -276,10 +276,12 @@ WindUI:AddTheme({
 })
 
 Window:Tag({ Title = "v1.6.6", Icon = "github", Color = Color3.fromRGB(48, 255, 106), Radius = 10 })
+
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
+local UserInputService = game:GetService("UserInputService")
 local Camera = Workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 local GameRemote = ReplicatedStorage:WaitForChild("Events"):WaitForChild("GameRemoteFunction")
@@ -287,8 +289,8 @@ local GameRemote = ReplicatedStorage:WaitForChild("Events"):WaitForChild("GameRe
 local CombatTab = Window:Tab({ Title = "Combat & Farm", Icon = "swords" })
 local MoveTab = Window:Tab({ Title = "Movement", Icon = "move" })
 local VisTab = Window:Tab({ Title = "Visuals (ESP)", Icon = "eye" })
-local MiscTab = Window:Tab({ Title = "Misc & Skins", Icon = "box" })
 local PlayerTab = Window:Tab({ Title = "Players List", Icon = "users" })
+local BypassTab = Window:Tab({ Title = "Server Modification", Icon = "shield-alert" })
 local SettingTab = Window:Tab({ Title = "Settings", Icon = "settings" })
 
 local function getNearestTarget()
@@ -310,6 +312,7 @@ local function getNearestTarget()
 end
 
 local MoveSec = MoveTab:Section({ Title = "Character", Icon = "user", Opened = true, Box = true })
+
 local noclipLoop
 MoveSec:Toggle({ Title = "Noclip", Value = false, Callback = function(v)
     if v then 
@@ -336,7 +339,9 @@ _G.WsEnabled = false
 _G.WsValue = 25
 MoveSec:Toggle({ Title = "Enable WalkSpeed", Value = false, Callback = function(v) 
     _G.WsEnabled = v
-    if not v then pcall(function() LocalPlayer.Character.Humanoid.WalkSpeed = 16 end) end 
+    if not v then 
+        pcall(function() LocalPlayer.Character.Humanoid.WalkSpeed = 16 end) 
+    end 
 end})
 
 MoveSec:Slider({ Title = "WalkSpeed Amount", Value = {Min = 16, Max = 150, Default = 25}, Callback = function(v) 
@@ -349,7 +354,9 @@ _G.JpEnabled = false
 _G.JpValue = 100
 MoveSec:Toggle({ Title = "Enable JumpPower", Value = false, Callback = function(v) 
     _G.JpEnabled = v
-    if not v then pcall(function() LocalPlayer.Character.Humanoid.JumpPower = 50 end) end 
+    if not v then 
+        pcall(function() LocalPlayer.Character.Humanoid.JumpPower = 50 end) 
+    end 
 end})
 
 MoveSec:Slider({ Title = "JumpPower Amount", Value = {Min = 50, Max = 250, Default = 100}, Callback = function(v) 
@@ -358,56 +365,139 @@ end})
 
 RunService.Heartbeat:Connect(function()
     pcall(function()
-        if LocalPlayer.Character then
-            local hum = LocalPlayer.Character:FindFirstChild("Humanoid")
-            if hum then
-                if _G.WsEnabled then hum.WalkSpeed = _G.WsValue end
-                if _G.JpEnabled then hum.JumpPower = _G.JpValue end
-            end
-            
-            if _G.CustomHpEnabled then 
-                local godHp = 999999999
-                if hum then
-                    hum.MaxHealth = godHp
-                    if hum.Health < godHp then hum.Health = godHp end
-                end
-                
-                local pHealth = LocalPlayer:FindFirstChild("Health") or LocalPlayer:FindFirstChild("health") or LocalPlayer:FindFirstChild("HP")
-                if pHealth and pHealth:IsA("ValueBase") then pHealth.Value = godHp end
-                
-                local cHealth = LocalPlayer.Character:FindFirstChild("Health") or LocalPlayer.Character:FindFirstChild("health") or LocalPlayer.Character:FindFirstChild("HP")
-                if cHealth and cHealth:IsA("ValueBase") then cHealth.Value = godHp end
-                
-                if LocalPlayer:GetAttribute("Health") then LocalPlayer:SetAttribute("Health", godHp) end
-                if LocalPlayer.Character:GetAttribute("Health") then LocalPlayer.Character:SetAttribute("Health", godHp) end
-            end
+        local hum = LocalPlayer.Character:FindFirstChild("Humanoid")
+        if hum then
+            if _G.WsEnabled then hum.WalkSpeed = _G.WsValue end
+            if _G.JpEnabled then hum.JumpPower = _G.JpValue end
         end
     end)
 end)
-local CombatSec = CombatTab:Section({ Title = "Auto Attack & Farm", Icon = "crosshair", Opened = true, Box = true })
 
-_G.NoCooldown = false
-CombatSec:Toggle({ Title = "Anti-Slow", Desc = "Make you Can Be Slow After Slash", Value = false, Callback = function(v) 
-    _G.NoCooldown = v 
+local HitboxSec = BypassTab:Section({ Title = "Hitbox Expander", Icon = "maximize", Opened = true, Box = true })
+
+_G.HitboxStatus = false
+_G.HitboxSize = 25
+_G.HitboxStyle = "Red (Default)"
+
+HitboxSec:Toggle({ Title = "Enable Hitbox", Value = false, Callback = function(v) 
+    _G.HitboxStatus = v 
 end})
 
-task.spawn(function()
-    while task.wait(0.5) do
-        if _G.NoCooldown then
-            pcall(function()
-                for _, v in pairs(getgc(true)) do
-                    if type(v) == "table" and rawget(v, "attackCooldown") ~= nil then
-                        rawset(v, "attackCooldown", 0)
-                        if rawget(v, "attackTime") ~= nil then rawset(v, "attackTime", 0) end
-                        if rawget(v, "slowTime") ~= nil then rawset(v, "slowTime", 0) end
-                        if rawget(v, "slowMult") ~= nil then rawset(v, "slowMult", 1) end
-                        if rawget(v, "shouldSlow") ~= nil then rawset(v, "shouldSlow", false) end
+HitboxSec:Slider({ Title = "Hitbox Size", Value = {Min = 5, Max = 100, Default = 25}, Callback = function(v) 
+    _G.HitboxSize = v 
+end})
+
+HitboxSec:Dropdown({ Title = "Hitbox Color & Style", Values = {"Red (Default)", "White", "Light Blue", "Black", "Transparent Outline"}, Value = "Red (Default)", Callback = function(v) 
+    _G.HitboxStyle = v 
+end})
+
+RunService.RenderStepped:Connect(function()
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            local hrp = p.Character.HumanoidRootPart
+            if _G.HitboxStatus then
+                hrp.Size = Vector3.new(_G.HitboxSize, _G.HitboxSize, _G.HitboxSize)
+                hrp.CanCollide = false
+                if _G.HitboxStyle == "Transparent Outline" then
+                    hrp.Transparency = 1
+                    if not hrp:FindFirstChild("HitboxBox") then
+                        local box = Instance.new("SelectionBox")
+                        box.Name = "HitboxBox"
+                        box.Adornee = hrp
+                        box.LineThickness = 0.05
+                        box.Color3 = Color3.fromRGB(255, 255, 255)
+                        box.Parent = hrp
+                    end
+                else
+                    if hrp:FindFirstChild("HitboxBox") then 
+                        hrp.HitboxBox:Destroy() 
+                    end
+                    hrp.Transparency = 0.7
+                    hrp.Material = Enum.Material.Neon
+                    if _G.HitboxStyle == "White" then 
+                        hrp.BrickColor = BrickColor.new("White")
+                    elseif _G.HitboxStyle == "Light Blue" then 
+                        hrp.BrickColor = BrickColor.new("Toothpaste")
+                    elseif _G.HitboxStyle == "Black" then 
+                        hrp.BrickColor = BrickColor.new("Really black")
+                    else 
+                        hrp.BrickColor = BrickColor.new("Really red") 
                     end
                 end
-            end)
+            else
+                hrp.Size = Vector3.new(2, 2, 1)
+                hrp.Transparency = 1
+                if hrp:FindFirstChild("HitboxBox") then 
+                    hrp.HitboxBox:Destroy() 
+                end
+            end
         end
     end
 end)
+
+HitboxSec:Divider()
+
+local FlingSec = BypassTab:Section({ Title = "Fling Exploit", Icon = "wind", Opened = true, Box = true })
+
+_G.FlingActive = false
+_G.FlingMode = "Touch Fling"
+_G.FlingTarget = ""
+
+FlingSec:Toggle({ Title = "Enable Fling", Value = false, Callback = function(v) 
+    _G.FlingActive = v 
+end})
+
+FlingSec:Dropdown({ Title = "Fling Mode", Values = {"Touch Fling", "Fling Target", "Fling All"}, Value = "Touch Fling", Callback = function(v) 
+    _G.FlingMode = v 
+end})
+
+FlingSec:Input({ Title = "Target Name (For Fling Target)", Value = "", Callback = function(v) 
+    _G.FlingTarget = v 
+end})
+
+RunService.Stepped:Connect(function()
+    if _G.FlingActive and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        LocalPlayer.Character.HumanoidRootPart.RotVelocity = Vector3.new(50000, 50000, 50000)
+    end
+end)
+
+task.spawn(function()
+    while task.wait(0.1) do
+        if _G.FlingActive and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local hrp = LocalPlayer.Character.HumanoidRootPart
+            if _G.FlingMode == "Fling Target" and _G.FlingTarget ~= "" then
+                for _, p in pairs(Players:GetPlayers()) do
+                    if p ~= LocalPlayer and string.find(string.lower(p.Name), string.lower(_G.FlingTarget)) and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                        hrp.CFrame = p.Character.HumanoidRootPart.CFrame
+                        break
+                    end
+                end
+            elseif _G.FlingMode == "Fling All" then
+                local targets = {}
+                for _, p in pairs(Players:GetPlayers()) do
+                    if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
+                        table.insert(targets, p.Character.HumanoidRootPart)
+                    end
+                end
+                if #targets > 0 then
+                    hrp.CFrame = targets[math.random(1, #targets)].CFrame
+                end
+            end
+        end
+    end
+end)
+local CombatSec = CombatTab:Section({ Title = "Auto Attack & Farm", Icon = "crosshair", Opened = true, Box = true })
+
+_G.AntiSlow = false
+_G.NoCooldown = false
+
+CombatSec:Toggle({ Title = "Anti-Slow", Desc = "The Admin Ate Your Toes When you Slash but if you enable this admin can't", Value = false, Callback = function(v) 
+    _G.AntiSlow = v 
+end})
+
+CombatSec:Toggle({ Title = "THIS ASS DIDN'T WORK", Desc = "Vung dao tốc độ máy khâu", Value = false, Callback = function(v) 
+    _G.NoCooldown = v 
+end})
 
 CombatSec:Divider()
 
@@ -459,8 +549,17 @@ local function AttemptWeaponHit(TargetChar)
     end)
 end
 
+game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.UserInputType == Enum.UserInputType.MouseButton1 then
+        if _G.NoCooldown and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Tool") then
+            local t = getNearestTarget()
+            if t then AttemptWeaponHit(t) end
+        end
+    end
+end)
+
 _G.KillAll = false
-CombatSec:Toggle({ Title = "Kill All Players", Desc = "Instantly Kill All Players But More FPS Meaning More Faster", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Kill All Players", Desc = "More FPS = More faster", Value = false, Callback = function(v) 
     _G.KillAll = v 
 end})
 
@@ -478,21 +577,23 @@ CombatSec:Divider()
 
 _G.AutoHit = false
 _G.HitRange = 15
-CombatSec:Toggle({ Title = "Auto Hit", Desc = "Slash Per Frames", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Auto Hit(Distance)", Desc = "Chỉ chém kẻ thù lọt vào phạm vi", Value = false, Callback = function(v) 
     _G.AutoHit = v 
 end})
 
-CombatSec:Slider({ Title = "Range Hit", Value = {Min = 5, Max = 500, Default = 15}, Callback = function(v) 
+CombatSec:Slider({ Title = "Range Hit", Value = {Min = 5, Max = 100, Default = 15}, Callback = function(v) 
     _G.HitRange = v 
 end})
 
-RunService.Heartbeat:Connect(function()
-    if _G.AutoHit and not _G.KillAll and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        local target = getNearestTarget()
-        if target then
-            local dist = (target.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-            if dist <= _G.HitRange then 
-                AttemptWeaponHit(target) 
+task.spawn(function()
+    while task.wait(0.1) do
+        if _G.AutoHit and not _G.KillAll and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local target = getNearestTarget()
+            if target then
+                local dist = (target.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+                if dist <= _G.HitRange then 
+                    AttemptWeaponHit(target) 
+                end
             end
         end
     end
@@ -501,7 +602,7 @@ end)
 CombatSec:Divider()
 
 _G.AutoFarm = false
-CombatSec:Toggle({ Title = "Auto Farm (TP & Bay cao)", Desc = "Tự TP đến mục tiêu, chém rồi bay lên để né", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Auto Farm", Desc = "", Value = false, Callback = function(v) 
     _G.AutoFarm = v 
 end})
 
@@ -528,7 +629,7 @@ CombatSec:Divider()
 
 local AimSec = CombatTab:Section({ Title = "Aimbot Settings", Icon = "crosshair", Opened = true, Box = true })
 _G.AimbotMode = "None"
-AimSec:Dropdown({ Title = "Aimbot Mode", Values = {"None", "Camera", "Character", "Both"}, Value = "None", Callback = function(v) 
+AimSec:Dropdown({ Title = "Aimbot Mode", Values = {"None", "Camera", "Character", "Camera & Character"}, Value = "None", Callback = function(v) 
     _G.AimbotMode = v 
 end})
 
@@ -538,20 +639,102 @@ RunService.RenderStepped:Connect(function()
         if target and target:FindFirstChild("HumanoidRootPart") then
             local myHrp = LocalPlayer.Character.HumanoidRootPart
             local tPos = target.HumanoidRootPart.Position
-            if _G.AimbotMode == "Camera" or _G.AimbotMode == "Both" then
+            if _G.AimbotMode == "Camera" or _G.AimbotMode == "Camera & Character" then
                 Camera.CFrame = CFrame.lookAt(Camera.CFrame.Position, tPos)
             end
-            if _G.AimbotMode == "Character" or _G.AimbotMode == "Both" then
+            if _G.AimbotMode == "Character" or _G.AimbotMode == "Camera & Character" then
                 myHrp.CFrame = CFrame.lookAt(myHrp.Position, Vector3.new(tPos.X, myHrp.Position.Y, tPos.Z))
             end
         end
     end
 end)
 
-local VisSec = VisTab:Section({ Title = "Player Visuals", Icon = "eye", Opened = true, Box = true })
+local VisSec = VisTab:Section({ Title = "Player ESP", Icon = "eye", Opened = true, Box = true })
+local espElements = {}
+local espConn = nil
+
+local function cleanEsp(player)
+    if espElements[player] then 
+        pcall(function() 
+            espElements[player].Name:Remove()
+            espElements[player].Highlight:Destroy() 
+        end) 
+        espElements[player] = nil 
+    end
+end
+
+local function updatePlayerEsp()
+    local activePlayers = {}
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            activePlayers[player] = true
+            local char = player.Character
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            local hum = char and char:FindFirstChild("Humanoid")
+            
+            if char and hrp and hum and hum.Health > 0 then
+                if not espElements[player] then
+                    local d = { Name = Drawing.new("Text"), Highlight = Instance.new("Highlight") }
+                    d.Name.Size = 16
+                    d.Name.Center = true
+                    d.Name.Outline = true
+                    d.Name.Font = 2
+                    d.Highlight.FillTransparency = 0.5
+                    d.Highlight.OutlineTransparency = 0
+                    d.Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                    d.Highlight.Parent = char
+                    espElements[player] = d
+                end
+                
+                local d = espElements[player]
+                local rootPos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
+                
+                if onScreen then
+                    local dist = (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")) and (LocalPlayer.Character.HumanoidRootPart.Position - hrp.Position).Magnitude or 0
+                    local teamColor = player.TeamColor and player.TeamColor.Color or Color3.fromRGB(255, 50, 50)
+                    
+                    d.Name.Color = teamColor
+                    d.Name.Text = player.Name .. " ["..math.floor(dist).."m]"
+                    d.Name.Position = Vector2.new(rootPos.X, rootPos.Y - 40)
+                    d.Name.Visible = true
+                    
+                    d.Highlight.FillColor = teamColor
+                    d.Highlight.Parent = char
+                else 
+                    d.Name.Visible = false 
+                end
+            else 
+                cleanEsp(player) 
+            end
+        end
+    end
+    for player, _ in pairs(espElements) do 
+        if not activePlayers[player] then 
+            cleanEsp(player) 
+        end 
+    end
+end
+
+VisSec:Toggle({ Title = "Enable ESP", Value = false, Callback = function(v)
+    if v then 
+        if not espConn then 
+            espConn = RunService.RenderStepped:Connect(updatePlayerEsp) 
+        end 
+    else 
+        if espConn then 
+            espConn:Disconnect()
+            espConn = nil 
+        end 
+        for p, _ in pairs(espElements) do 
+            cleanEsp(p) 
+        end 
+    end
+end})
+
+VisSec:Divider()
 
 local antiInvisLoop
-VisSec:Toggle({ Title = "Show all players", Desc = "Make you can see other without esp", Value = false, Callback = function(v)
+VisSec:Toggle({ Title = "Show Players", Desc = "Disable Game Invisible", Value = false, Callback = function(v)
     if v then
         antiInvisLoop = RunService.RenderStepped:Connect(function()
             for _, p in ipairs(Players:GetPlayers()) do
@@ -570,169 +753,6 @@ VisSec:Toggle({ Title = "Show all players", Desc = "Make you can see other witho
         if antiInvisLoop then
             antiInvisLoop:Disconnect()
             antiInvisLoop = nil
-        end
-    end
-end})
-
-VisSec:Divider()
-
-local espElements = {}
-local espConn = nil
-
-local function cleanEsp(player)
-    if espElements[player] then 
-        pcall(function() 
-            espElements[player].Name:Remove()
-            espElements[player].Tracer:Remove()
-            espElements[player].Highlight:Destroy() 
-        end) 
-        espElements[player] = nil 
-    end
-end
-
-local function updatePlayerEsp()
-    local activePlayers = {}
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer then
-            activePlayers[player] = true
-            local char = player.Character
-            local hrp = char and char:FindFirstChild("HumanoidRootPart")
-            local hum = char and char:FindFirstChild("Humanoid")
-            
-            if char and hrp and hum and hum.Health > 0 then
-                if not espElements[player] then
-                    local d = { 
-                        Name = Drawing.new("Text"), 
-                        Tracer = Drawing.new("Line"), 
-                        Highlight = Instance.new("Highlight") 
-                    }
-                    d.Name.Size = 16
-                    d.Name.Center = true
-                    d.Name.Outline = true
-                    d.Name.Font = 2
-                    
-                    d.Tracer.Thickness = 1.5
-                    d.Tracer.Transparency = 0.8
-                    
-                    d.Highlight.FillTransparency = 0.5
-                    d.Highlight.OutlineTransparency = 0
-                    d.Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-                    d.Highlight.Parent = char
-                    espElements[player] = d
-                end
-                
-                local d = espElements[player]
-                local rootPos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
-                
-                if onScreen then
-                    local dist = (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")) and (LocalPlayer.Character.HumanoidRootPart.Position - hrp.Position).Magnitude or 0
-                    local teamColor = player.TeamColor and player.TeamColor.Color or Color3.fromRGB(255, 50, 50)
-                    
-                    d.Name.Color = teamColor
-                    d.Name.Text = player.Name .. " ["..math.floor(dist).."m]"
-                    d.Name.Position = Vector2.new(rootPos.X, rootPos.Y - 40)
-                    d.Name.Visible = _G.ShowNameESP
-                    
-                    d.Tracer.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
-                    d.Tracer.To = Vector2.new(rootPos.X, rootPos.Y)
-                    d.Tracer.Color = teamColor
-                    d.Tracer.Visible = _G.ShowTracers
-                    
-                    d.Highlight.FillColor = teamColor
-                    d.Highlight.Parent = char
-                else 
-                    d.Name.Visible = false
-                    d.Tracer.Visible = false
-                end
-            else 
-                cleanEsp(player) 
-            end
-        end
-    end
-    for player, _ in pairs(espElements) do 
-        if not activePlayers[player] then 
-            cleanEsp(player) 
-        end 
-    end
-end
-
-_G.ShowNameESP = false
-VisSec:Toggle({ Title = "Enable ESP (Chams & Name)", Value = false, Callback = function(v)
-    _G.ShowNameESP = v
-    if v or _G.ShowTracers then 
-        if not espConn then espConn = RunService.RenderStepped:Connect(updatePlayerEsp) end 
-    else 
-        if espConn and not _G.ShowTracers then 
-            espConn:Disconnect()
-            espConn = nil 
-            for p, _ in pairs(espElements) do cleanEsp(p) end 
-        end 
-    end
-end})
-
-_G.ShowTracers = false
-VisSec:Toggle({ Title = "Show Tracers & Esp", Desc = "Vẽ đường thẳng từ màn hình đến mọi người", Value = false, Callback = function(v)
-    _G.ShowTracers = v
-    if v or _G.ShowNameESP then 
-        if not espConn then espConn = RunService.RenderStepped:Connect(updatePlayerEsp) end 
-    else 
-        if espConn and not _G.ShowNameESP then 
-            espConn:Disconnect()
-            espConn = nil 
-            for p, _ in pairs(espElements) do cleanEsp(p) end 
-        end 
-    end
-end})
-
-local HitboxSec = MiscTab:Section({ Title = "Hitbox Expander", Icon = "maximize", Opened = true, Box = true })
-
-_G.HitboxStatus = false
-_G.HitboxSize = 25
-
-HitboxSec:Toggle({ Title = "Enable Hitbox", Desc = "Make Others Hitbox Bigger", Value = false, Callback = function(v) 
-    _G.HitboxStatus = v 
-end})
-
-HitboxSec:Slider({ Title = "Hitbox Size", Value = {Min = 5, Max = 100, Default = 25}, Callback = function(v) 
-    _G.HitboxSize = v 
-end})
-
-RunService.RenderStepped:Connect(function()
-    for _, p in pairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-            local hrp = p.Character.HumanoidRootPart
-            if _G.HitboxStatus then
-                hrp.Size = Vector3.new(_G.HitboxSize, _G.HitboxSize, _G.HitboxSize)
-                hrp.Transparency = 0.8
-                hrp.BrickColor = BrickColor.new("Really red")
-                hrp.CanCollide = false
-            else
-                hrp.Size = Vector3.new(2, 2, 1)
-                hrp.Transparency = 1
-            end
-        end
-    end
-end)
-
-HitboxSec:Divider()
-
-local FlingSec = MiscTab:Section({ Title = "Fling Exploit (Lỗi Vật Lý)", Icon = "wind", Opened = true, Box = true })
-
-_G.Fling = false
-local flingLoop
-
-FlingSec:Toggle({ Title = "Enable Fling", Desc = "Send Your Enemies To The Void", Value = false, Callback = function(v) 
-    _G.Fling = v 
-    if v then
-        flingLoop = RunService.Stepped:Connect(function()
-            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                LocalPlayer.Character.HumanoidRootPart.RotVelocity = Vector3.new(50000, 50000, 50000)
-            end
-        end)
-    else
-        if flingLoop then 
-            flingLoop:Disconnect()
-            flingLoop = nil 
         end
     end
 end})
@@ -871,7 +891,7 @@ end)
 
 local ConsoleSec = SettingTab:Section({ Title = "Console Manager", Icon = "code", Opened = true, Box = true })
 local VIM = game:GetService("VirtualInputManager")
-ConsoleSec:Button({ Title = "Open Roblox Console (F9)", Icon = "square-terminal", Callback = function() pcall(function() VIM:SendKeyEvent(true, Enum.KeyCode.F9, false, game); task.wait(0.05); VIM:SendKeyEvent(false, Enum.KeyCode.F9, false, game) end) end })
+ConsoleSec:Button({ Title = "Open Console", Icon = "square-terminal", Callback = function() pcall(function() VIM:SendKeyEvent(true, Enum.KeyCode.F9, false, game); task.wait(0.05); VIM:SendKeyEvent(false, Enum.KeyCode.F9, false, game) end) end })
 
 ConsoleSec:Divider()
 
@@ -1069,9 +1089,9 @@ pcall(function()
     end) 
 end)
 
-ConsoleSec:Button({ Title = "Open Custom Console", Icon = "terminal", Callback = function() openConsole() end })
+ConsoleSec:Button({ Title = "Open Custome Console", Icon = "terminal", Callback = function() openConsole() end })
 ConsoleSec:Button({ 
-    Title = "Test All Logs Colors", 
+    Title = "Check Console", 
     Icon = "flask-conical", 
     Callback = function() 
         print("This is a normal LOG message.")
@@ -1091,7 +1111,7 @@ ConsoleSec:Button({
             end 
         end 
         logCount = 0
-        pcall(function() WindUI:Notify({Title = "Console", Content = "Clear All Custom Console!!"}) end) 
+        pcall(function() WindUI:Notify({Title = "Console", Content = "Clear All Logs Custome Console!"}) end) 
     end 
 })
 

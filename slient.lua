@@ -277,20 +277,38 @@ WindUI:AddTheme({
 
 Window:Tag({ Title = "v1.6.6", Icon = "github", Color = Color3.fromRGB(48, 255, 106), Radius = 10 })
 
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Workspace = game:GetService("Workspace")
-local UserInputService = game:GetService("UserInputService")
-local Camera = Workspace.CurrentCamera
-local LocalPlayer = Players.LocalPlayer
-local GameRemote = ReplicatedStorage:WaitForChild("Events"):WaitForChild("GameRemoteFunction")
+_G.AntiSlow = false
+
+local oldNamecall
+oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
+    local method = getnamecallmethod()
+    local args = {...}
+    if not checkcaller() and (method == "FireServer" or method == "InvokeServer") then
+        if _G.AntiSlow and args[1] == "AttemptWeaponHit" and type(args[2]) == "table" then
+            args[2].shouldSlow = false
+            args[2].slowMult = 1
+            args[2].slowTime = 0
+            if args[2].attackCycleData then 
+                args[2].attackCycleData.slowMult = 1 
+                args[2].attackCycleData.slowTime = 0 
+            end
+            if args[2].weaponDefinition and args[2].weaponDefinition.attackCycle then
+                for k, v in pairs(args[2].weaponDefinition.attackCycle) do 
+                    v.slowMult = 1
+                    v.slowTime = 0
+                end
+            end
+            return oldNamecall(self, unpack(args))
+        end
+    end
+    return oldNamecall(self, ...)
+end)
 
 local CombatTab = Window:Tab({ Title = "Combat & Farm", Icon = "swords" })
 local MoveTab = Window:Tab({ Title = "Movement", Icon = "move" })
 local VisTab = Window:Tab({ Title = "Visuals (ESP)", Icon = "eye" })
-local PlayerTab = Window:Tab({ Title = "Players List", Icon = "users" })
 local BypassTab = Window:Tab({ Title = "Server Modification", Icon = "shield-alert" })
+local PlayerTab = Window:Tab({ Title = "Players List", Icon = "users" })
 local SettingTab = Window:Tab({ Title = "Settings", Icon = "settings" })
 
 local function getNearestTarget()
@@ -310,9 +328,7 @@ local function getNearestTarget()
     end
     return nearest
 end
-
-local MoveSec = MoveTab:Section({ Title = "Character", Icon = "user", Opened = true, Box = true })
-
+local MoveSec = MoveTab:Section({ Title = "Character Modification", Icon = "user", Opened = true, Box = true })
 local noclipLoop
 MoveSec:Toggle({ Title = "Noclip", Value = false, Callback = function(v)
     if v then 
@@ -377,7 +393,7 @@ local HitboxSec = BypassTab:Section({ Title = "Hitbox Expander", Icon = "maximiz
 
 _G.HitboxStatus = false
 _G.HitboxSize = 25
-_G.HitboxStyle = "Red (Default)"
+_G.HitboxStyle = "Red"
 
 HitboxSec:Toggle({ Title = "Enable Hitbox", Value = false, Callback = function(v) 
     _G.HitboxStatus = v 
@@ -387,7 +403,7 @@ HitboxSec:Slider({ Title = "Hitbox Size", Value = {Min = 5, Max = 100, Default =
     _G.HitboxSize = v 
 end})
 
-HitboxSec:Dropdown({ Title = "Hitbox Color & Style", Values = {"Red (Default)", "White", "Light Blue", "Black", "Transparent Outline"}, Value = "Red (Default)", Callback = function(v) 
+HitboxSec:Dropdown({ Title = "Hitbox Color", Values = {"Red", "White", "Light Blue", "Black", "Transparent Outline"}, Value = "Red", Callback = function(v) 
     _G.HitboxStyle = v 
 end})
 
@@ -457,7 +473,7 @@ end})
 
 RunService.Stepped:Connect(function()
     if _G.FlingActive and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        LocalPlayer.Character.HumanoidRootPart.RotVelocity = Vector3.new(50000, 50000, 50000)
+        LocalPlayer.Character.HumanoidRootPart.RotVelocity = Vector3.new(0, 50000, 0)
     end
 end)
 
@@ -488,15 +504,8 @@ task.spawn(function()
 end)
 local CombatSec = CombatTab:Section({ Title = "Auto Attack & Farm", Icon = "crosshair", Opened = true, Box = true })
 
-_G.AntiSlow = false
-_G.NoCooldown = false
-
-CombatSec:Toggle({ Title = "Anti-Slow", Desc = "The Admin Ate Your Toes When you Slash but if you enable this admin can't", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Anti-Slow", Desc = "Remove slowdown when attacking", Value = false, Callback = function(v) 
     _G.AntiSlow = v 
-end})
-
-CombatSec:Toggle({ Title = "THIS ASS DIDN'T WORK", Desc = "Vung dao tốc độ máy khâu", Value = false, Callback = function(v) 
-    _G.NoCooldown = v 
 end})
 
 CombatSec:Divider()
@@ -519,23 +528,21 @@ local function AttemptWeaponHit(TargetChar)
     local isSlow = _G.AntiSlow and false or true
     local slowMul = _G.AntiSlow and 1 or 0.2
     local slowTim = _G.AntiSlow and 0 or 1.5
-    local cdVal = _G.NoCooldown and 0 or 0.05
-    local atkTime = _G.NoCooldown and 0 or 0.65
     
     local Args = {
         "AttemptWeaponHit",
         {
-            attackCycleData = {knockbackMul=1,slowMult=slowMul,attackTime=atkTime,lungeMul=1,slowTime=slowTim},
+            attackCycleData = {knockbackMul=1,slowMult=slowMul,attackTime=0.65,lungeMul=1,slowTime=slowTim},
             knockback = 50, shouldLock = true, shouldLunge = true,
             hitboxOffset = Vector3.new(0, 0, -1.5), isCritical = false, shouldSlow = isSlow,
-            attackCooldown = cdVal, damage = 100, lungeKnockback = 55, cycleIndex = 1,
+            attackCooldown = 0.05, damage = 100, lungeKnockback = 55, cycleIndex = 1,
             slowMult = slowMul, hitboxSize = Vector3.new(9, 14, 8),
             weaponDefinition = { 
                 attackCycle = { 
-                    ["1"] = {knockbackMul=1, slowMult=slowMul, attackTime=atkTime, lungeMul=1, slowTime=slowTim}, 
-                    ["4"] = {lungeMult=2.25, attackTime=atkTime, slowMult=slowMul, hitboxOffsetAdd=Vector3.new(0,0,-1.5), hitboxSizeAdd=Vector3.new(0,0,3), knockbackMult=2.25, slowTime=slowTim}, 
-                    ["3"] = {lungeMult=0.75, slowMult=slowMul, attackTime=atkTime, knockbackMult=1.5, slowTime=slowTim}, 
-                    ["2"] = {lungeMult=1, slowMult=slowMul, attackTime=atkTime, knockbackMult=1, slowTime=slowTim} 
+                    ["1"] = {knockbackMul=1, slowMult=slowMul, attackTime=0.65, lungeMul=1, slowTime=slowTim}, 
+                    ["4"] = {lungeMult=2.25, attackTime=0.98, slowMult=slowMul, hitboxOffsetAdd=Vector3.new(0,0,-1.5), hitboxSizeAdd=Vector3.new(0,0,3), knockbackMult=2.25, slowTime=slowTim}, 
+                    ["3"] = {lungeMult=0.75, slowMult=slowMul, attackTime=0.71, knockbackMult=1.5, slowTime=slowTim}, 
+                    ["2"] = {lungeMult=1, slowMult=slowMul, attackTime=0.65, knockbackMult=1, slowTime=slowTim} 
                 }, 
                 attackOrder = {"1", "2", "3", "4"} 
             },
@@ -549,17 +556,8 @@ local function AttemptWeaponHit(TargetChar)
     end)
 end
 
-game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
-    if not gameProcessed and input.UserInputType == Enum.UserInputType.MouseButton1 then
-        if _G.NoCooldown and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Tool") then
-            local t = getNearestTarget()
-            if t then AttemptWeaponHit(t) end
-        end
-    end
-end)
-
 _G.KillAll = false
-CombatSec:Toggle({ Title = "Kill All Players", Desc = "More FPS = More faster", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Kill All Players", Desc = "Attack everyone everywhere", Value = false, Callback = function(v) 
     _G.KillAll = v 
 end})
 
@@ -577,23 +575,21 @@ CombatSec:Divider()
 
 _G.AutoHit = false
 _G.HitRange = 15
-CombatSec:Toggle({ Title = "Auto Hit(Distance)", Desc = "Chỉ chém kẻ thù lọt vào phạm vi", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Auto Hit", Desc = "Attack enemies near you", Value = false, Callback = function(v) 
     _G.AutoHit = v 
 end})
 
-CombatSec:Slider({ Title = "Range Hit", Value = {Min = 5, Max = 100, Default = 15}, Callback = function(v) 
+CombatSec:Slider({ Title = "Hit Range", Value = {Min = 5, Max = 100, Default = 15}, Callback = function(v) 
     _G.HitRange = v 
 end})
 
-task.spawn(function()
-    while task.wait(0.1) do
-        if _G.AutoHit and not _G.KillAll and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            local target = getNearestTarget()
-            if target then
-                local dist = (target.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-                if dist <= _G.HitRange then 
-                    AttemptWeaponHit(target) 
-                end
+RunService.Heartbeat:Connect(function()
+    if _G.AutoHit and not _G.KillAll and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local target = getNearestTarget()
+        if target then
+            local dist = (target.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+            if dist <= _G.HitRange then 
+                AttemptWeaponHit(target) 
             end
         end
     end
@@ -602,7 +598,7 @@ end)
 CombatSec:Divider()
 
 _G.AutoFarm = false
-CombatSec:Toggle({ Title = "Auto Farm", Desc = "", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Auto Farm", Desc = "Teleport behind target and kill", Value = false, Callback = function(v) 
     _G.AutoFarm = v 
 end})
 
@@ -625,11 +621,9 @@ task.spawn(function()
     end
 end)
 
-CombatSec:Divider()
-
 local AimSec = CombatTab:Section({ Title = "Aimbot Settings", Icon = "crosshair", Opened = true, Box = true })
 _G.AimbotMode = "None"
-AimSec:Dropdown({ Title = "Aimbot Mode", Values = {"None", "Camera", "Character", "Camera & Character"}, Value = "None", Callback = function(v) 
+AimSec:Dropdown({ Title = "Aimbot Mode", Values = {"None", "Camera", "Character", "Both"}, Value = "None", Callback = function(v) 
     _G.AimbotMode = v 
 end})
 
@@ -639,17 +633,51 @@ RunService.RenderStepped:Connect(function()
         if target and target:FindFirstChild("HumanoidRootPart") then
             local myHrp = LocalPlayer.Character.HumanoidRootPart
             local tPos = target.HumanoidRootPart.Position
-            if _G.AimbotMode == "Camera" or _G.AimbotMode == "Camera & Character" then
+            if _G.AimbotMode == "Camera" or _G.AimbotMode == "Both" then
                 Camera.CFrame = CFrame.lookAt(Camera.CFrame.Position, tPos)
             end
-            if _G.AimbotMode == "Character" or _G.AimbotMode == "Camera & Character" then
+            if _G.AimbotMode == "Character" or _G.AimbotMode == "Both" then
                 myHrp.CFrame = CFrame.lookAt(myHrp.Position, Vector3.new(tPos.X, myHrp.Position.Y, tPos.Z))
             end
         end
     end
 end)
+local VisSec = VisTab:Section({ Title = "Player Visuals", Icon = "eye", Opened = true, Box = true })
 
-local VisSec = VisTab:Section({ Title = "Player ESP", Icon = "eye", Opened = true, Box = true })
+local originalTrans = {}
+local antiInvisLoop
+VisSec:Toggle({ Title = "Show Hidden Players", Desc = "Force invisible players to be visible", Value = false, Callback = function(v)
+    if v then
+        antiInvisLoop = RunService.RenderStepped:Connect(function()
+            for _, p in ipairs(Players:GetPlayers()) do
+                if p ~= LocalPlayer and p.Character then
+                    for _, part in ipairs(p.Character:GetDescendants()) do
+                        if (part:IsA("BasePart") or part:IsA("Decal")) and part.Name ~= "HumanoidRootPart" then
+                            if part.Transparency > 0 and part.Transparency < 1 then
+                                if not originalTrans[part] then originalTrans[part] = part.Transparency end
+                                part.Transparency = 0
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    else
+        if antiInvisLoop then
+            antiInvisLoop:Disconnect()
+            antiInvisLoop = nil
+        end
+        for part, trans in pairs(originalTrans) do
+            if part and part.Parent then
+                pcall(function() part.Transparency = trans end)
+            end
+        end
+        originalTrans = {}
+    end
+end})
+
+VisSec:Divider()
+
 local espElements = {}
 local espConn = nil
 
@@ -657,6 +685,8 @@ local function cleanEsp(player)
     if espElements[player] then 
         pcall(function() 
             espElements[player].Name:Remove()
+            espElements[player].Tracer:Remove()
+            espElements[player].Box:Remove()
             espElements[player].Highlight:Destroy() 
         end) 
         espElements[player] = nil 
@@ -670,15 +700,25 @@ local function updatePlayerEsp()
             activePlayers[player] = true
             local char = player.Character
             local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            local head = char and char:FindFirstChild("Head")
             local hum = char and char:FindFirstChild("Humanoid")
             
-            if char and hrp and hum and hum.Health > 0 then
+            if char and hrp and head and hum and hum.Health > 0 then
                 if not espElements[player] then
-                    local d = { Name = Drawing.new("Text"), Highlight = Instance.new("Highlight") }
+                    local d = { 
+                        Name = Drawing.new("Text"), 
+                        Tracer = Drawing.new("Line"), 
+                        Box = Drawing.new("Square"),
+                        Highlight = Instance.new("Highlight") 
+                    }
                     d.Name.Size = 16
                     d.Name.Center = true
                     d.Name.Outline = true
                     d.Name.Font = 2
+                    d.Tracer.Thickness = 1.5
+                    d.Tracer.Transparency = 0.8
+                    d.Box.Thickness = 1.5
+                    d.Box.Filled = false
                     d.Highlight.FillTransparency = 0.5
                     d.Highlight.OutlineTransparency = 0
                     d.Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
@@ -690,18 +730,34 @@ local function updatePlayerEsp()
                 local rootPos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
                 
                 if onScreen then
+                    local headPos = Camera:WorldToViewportPoint(head.Position + Vector3.new(0, 0.5, 0))
+                    local legPos = Camera:WorldToViewportPoint(hrp.Position - Vector3.new(0, 3, 0))
+                    local height = math.abs(headPos.Y - legPos.Y)
+                    local width = height / 2
                     local dist = (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")) and (LocalPlayer.Character.HumanoidRootPart.Position - hrp.Position).Magnitude or 0
                     local teamColor = player.TeamColor and player.TeamColor.Color or Color3.fromRGB(255, 50, 50)
                     
                     d.Name.Color = teamColor
                     d.Name.Text = player.Name .. " ["..math.floor(dist).."m]"
-                    d.Name.Position = Vector2.new(rootPos.X, rootPos.Y - 40)
-                    d.Name.Visible = true
+                    d.Name.Position = Vector2.new(rootPos.X, headPos.Y - 20)
+                    d.Name.Visible = _G.ShowESP
+                    
+                    d.Tracer.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
+                    d.Tracer.To = Vector2.new(rootPos.X, rootPos.Y)
+                    d.Tracer.Color = teamColor
+                    d.Tracer.Visible = _G.ShowTracers
+                    
+                    d.Box.Size = Vector2.new(width, height)
+                    d.Box.Position = Vector2.new(rootPos.X - width / 2, headPos.Y)
+                    d.Box.Color = teamColor
+                    d.Box.Visible = _G.ShowESP
                     
                     d.Highlight.FillColor = teamColor
                     d.Highlight.Parent = char
                 else 
-                    d.Name.Visible = false 
+                    d.Name.Visible = false
+                    d.Tracer.Visible = false
+                    d.Box.Visible = false
                 end
             else 
                 cleanEsp(player) 
@@ -715,47 +771,34 @@ local function updatePlayerEsp()
     end
 end
 
-VisSec:Toggle({ Title = "Enable ESP", Value = false, Callback = function(v)
-    if v then 
-        if not espConn then 
-            espConn = RunService.RenderStepped:Connect(updatePlayerEsp) 
-        end 
+_G.ShowESP = false
+VisSec:Toggle({ Title = "Enable ESP (Box, Chams, Name)", Value = false, Callback = function(v)
+    _G.ShowESP = v
+    if v or _G.ShowTracers then 
+        if not espConn then espConn = RunService.RenderStepped:Connect(updatePlayerEsp) end 
     else 
-        if espConn then 
+        if espConn and not _G.ShowTracers then 
             espConn:Disconnect()
             espConn = nil 
-        end 
-        for p, _ in pairs(espElements) do 
-            cleanEsp(p) 
+            for p, _ in pairs(espElements) do cleanEsp(p) end 
         end 
     end
 end})
 
-VisSec:Divider()
-
-local antiInvisLoop
-VisSec:Toggle({ Title = "Show Players", Desc = "Disable Game Invisible", Value = false, Callback = function(v)
-    if v then
-        antiInvisLoop = RunService.RenderStepped:Connect(function()
-            for _, p in ipairs(Players:GetPlayers()) do
-                if p ~= LocalPlayer and p.Character then
-                    for _, part in ipairs(p.Character:GetDescendants()) do
-                        if (part:IsA("BasePart") or part:IsA("Decal")) and part.Name ~= "HumanoidRootPart" then
-                            if part.Transparency > 0 then
-                                part.Transparency = 0
-                            end
-                        end
-                    end
-                end
-            end
-        end)
-    else
-        if antiInvisLoop then
-            antiInvisLoop:Disconnect()
-            antiInvisLoop = nil
-        end
+_G.ShowTracers = false
+VisSec:Toggle({ Title = "Show Tracers", Desc = "Draw lines to all players", Value = false, Callback = function(v)
+    _G.ShowTracers = v
+    if v or _G.ShowESP then 
+        if not espConn then espConn = RunService.RenderStepped:Connect(updatePlayerEsp) end 
+    else 
+        if espConn and not _G.ShowESP then 
+            espConn:Disconnect()
+            espConn = nil 
+            for p, _ in pairs(espElements) do cleanEsp(p) end 
+        end 
     end
 end})
+
 local PlayerSec = PlayerTab:Section({ Title = "Server Players", Icon = "users", Opened = true, Box = true })
 local playerNames = {}
 local PlayerDropdown = PlayerSec:Dropdown({ Title = "Select Player", Values = {"None"}, Callback = function(sel) 
@@ -779,7 +822,7 @@ PlayerSec:Button({ Title = "Teleport To Player", Icon = "map-pin", Callback = fu
     local target = Players:FindFirstChild(_G.SelectedPlayer)
     if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character then
         LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame
-        WindUI:Notify({Title = "Teleport", Content = "Dịch chuyển đến " .. target.Name, Duration=2})
+        WindUI:Notify({Title = "Teleport", Content = "Teleported to " .. target.Name, Duration=2})
     end
 end})
 refreshPlayers()
@@ -891,7 +934,7 @@ end)
 
 local ConsoleSec = SettingTab:Section({ Title = "Console Manager", Icon = "code", Opened = true, Box = true })
 local VIM = game:GetService("VirtualInputManager")
-ConsoleSec:Button({ Title = "Open Console", Icon = "square-terminal", Callback = function() pcall(function() VIM:SendKeyEvent(true, Enum.KeyCode.F9, false, game); task.wait(0.05); VIM:SendKeyEvent(false, Enum.KeyCode.F9, false, game) end) end })
+ConsoleSec:Button({ Title = "Open Roblox Console (F9)", Icon = "square-terminal", Callback = function() pcall(function() VIM:SendKeyEvent(true, Enum.KeyCode.F9, false, game); task.wait(0.05); VIM:SendKeyEvent(false, Enum.KeyCode.F9, false, game) end) end })
 
 ConsoleSec:Divider()
 
@@ -1089,9 +1132,9 @@ pcall(function()
     end) 
 end)
 
-ConsoleSec:Button({ Title = "Open Custome Console", Icon = "terminal", Callback = function() openConsole() end })
+ConsoleSec:Button({ Title = "Open Custom Console", Icon = "terminal", Callback = function() openConsole() end })
 ConsoleSec:Button({ 
-    Title = "Check Console", 
+    Title = "Test Console", 
     Icon = "flask-conical", 
     Callback = function() 
         print("This is a normal LOG message.")
@@ -1111,7 +1154,7 @@ ConsoleSec:Button({
             end 
         end 
         logCount = 0
-        pcall(function() WindUI:Notify({Title = "Console", Content = "Clear All Logs Custome Console!"}) end) 
+        pcall(function() WindUI:Notify({Title = "Console", Content = "Clear All Logs In Custom Console!"}) end) 
     end 
 })
 

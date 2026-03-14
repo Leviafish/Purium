@@ -285,16 +285,19 @@ local LocalPlayer = Players.LocalPlayer
 local GameRemote = ReplicatedStorage:WaitForChild("Events"):WaitForChild("GameRemoteFunction")
 
 _G.CustomHpEnabled = false
-_G.CustomHpValue = 2000
 
 local oldNamecall
 oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
     local method = getnamecallmethod()
     local args = {...}
+    
     if not checkcaller() and (method == "FireServer" or method == "InvokeServer") then
-        if _G.CustomHpEnabled and tostring(self) == "GameRemoteFunction" then
-            if args[1] == "Damage" or args[1] == "TakeDamage" then
-                return nil
+        if _G.CustomHpEnabled then
+            if type(args[1]) == "string" then
+                local act = string.lower(args[1])
+                if string.find(act, "damage") or string.find(act, "kill") or string.find(act, "death") or string.find(act, "hit") then
+                    return nil
+                end
             end
         end
     end
@@ -304,6 +307,7 @@ end)
 local CombatTab = Window:Tab({ Title = "Combat & Farm", Icon = "swords" })
 local MoveTab = Window:Tab({ Title = "Movement", Icon = "move" })
 local VisTab = Window:Tab({ Title = "Visuals (ESP)", Icon = "eye" })
+local MiscTab = Window:Tab({ Title = "Misc & Skins", Icon = "box" })
 local PlayerTab = Window:Tab({ Title = "Players List", Icon = "users" })
 local SettingTab = Window:Tab({ Title = "Settings", Icon = "settings" })
 
@@ -348,25 +352,23 @@ end})
 
 MoveSec:Divider()
 
-MoveSec:Toggle({ Title = "Enable Custom Health", Desc = "Tăng giới hạn máu để có lợi thế (Tắt sẽ về 100)", Value = false, Callback = function(v) 
+MoveSec:Toggle({ Title = "True God Mode (Bất Tử)", Desc = "Vô hiệu 1-Shot, chặn gửi Damage & bơm 1 tỷ máu", Value = false, Callback = function(v) 
     _G.CustomHpEnabled = v 
     if not v then
         pcall(function()
+            local resetVal = 100
             if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-                LocalPlayer.Character.Humanoid.MaxHealth = 100
-                if LocalPlayer.Character.Humanoid.Health > 100 then LocalPlayer.Character.Humanoid.Health = 100 end
+                LocalPlayer.Character.Humanoid.MaxHealth = resetVal
+                LocalPlayer.Character.Humanoid.Health = resetVal
             end
             local pHealth = LocalPlayer:FindFirstChild("Health") or LocalPlayer:FindFirstChild("health") or LocalPlayer:FindFirstChild("HP")
-            if pHealth and pHealth:IsA("ValueBase") then pHealth.Value = 100 end
+            if pHealth and pHealth:IsA("ValueBase") then pHealth.Value = resetVal end
             if LocalPlayer.Character then
                 local cHealth = LocalPlayer.Character:FindFirstChild("Health") or LocalPlayer.Character:FindFirstChild("health") or LocalPlayer.Character:FindFirstChild("HP")
-                if cHealth and cHealth:IsA("ValueBase") then cHealth.Value = 100 end
+                if cHealth and cHealth:IsA("ValueBase") then cHealth.Value = resetVal end
             end
         end)
     end
-end})
-MoveSec:Slider({ Title = "Health Amount", Value = {Min = 100, Max = 2000, Default = 2000}, Callback = function(v) 
-    _G.CustomHpValue = v 
 end})
 
 MoveSec:Divider()
@@ -377,6 +379,7 @@ MoveSec:Toggle({ Title = "Enable WalkSpeed", Value = false, Callback = function(
     _G.WsEnabled = v
     if not v then pcall(function() LocalPlayer.Character.Humanoid.WalkSpeed = 16 end) end 
 end})
+
 MoveSec:Slider({ Title = "WalkSpeed Amount", Value = {Min = 16, Max = 150, Default = 25}, Callback = function(v) 
     _G.WsValue = v 
 end})
@@ -389,61 +392,57 @@ MoveSec:Toggle({ Title = "Enable JumpPower", Value = false, Callback = function(
     _G.JpEnabled = v
     if not v then pcall(function() LocalPlayer.Character.Humanoid.JumpPower = 50 end) end 
 end})
+
 MoveSec:Slider({ Title = "JumpPower Amount", Value = {Min = 50, Max = 250, Default = 100}, Callback = function(v) 
     _G.JpValue = v 
 end})
 
 RunService.Heartbeat:Connect(function()
     pcall(function()
-        local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-        if hum then
-            if _G.WsEnabled then hum.WalkSpeed = _G.WsValue end
-            if _G.JpEnabled then hum.JumpPower = _G.JpValue end
+        if LocalPlayer.Character then
+            local hum = LocalPlayer.Character:FindFirstChild("Humanoid")
+            if hum then
+                if _G.WsEnabled then hum.WalkSpeed = _G.WsValue end
+                if _G.JpEnabled then hum.JumpPower = _G.JpValue end
+            end
+            
             if _G.CustomHpEnabled then 
-                hum.MaxHealth = _G.CustomHpValue
-                if hum.Health < _G.CustomHpValue then hum.Health = _G.CustomHpValue end
-            end
-        end
-        if _G.CustomHpEnabled then
-            local pHealth = LocalPlayer:FindFirstChild("Health") or LocalPlayer:FindFirstChild("health") or LocalPlayer:FindFirstChild("HP")
-            if pHealth and pHealth:IsA("ValueBase") then pHealth.Value = _G.CustomHpValue end
-            if LocalPlayer.Character then
+                local godHp = 999999999
+                if hum then
+                    hum.MaxHealth = godHp
+                    if hum.Health < godHp then hum.Health = godHp end
+                end
+                
+                local pHealth = LocalPlayer:FindFirstChild("Health") or LocalPlayer:FindFirstChild("health") or LocalPlayer:FindFirstChild("HP")
+                if pHealth and pHealth:IsA("ValueBase") then pHealth.Value = godHp end
+                
                 local cHealth = LocalPlayer.Character:FindFirstChild("Health") or LocalPlayer.Character:FindFirstChild("health") or LocalPlayer.Character:FindFirstChild("HP")
-                if cHealth and cHealth:IsA("ValueBase") then cHealth.Value = _G.CustomHpValue end
+                if cHealth and cHealth:IsA("ValueBase") then cHealth.Value = godHp end
+                
+                if LocalPlayer:GetAttribute("Health") then LocalPlayer:SetAttribute("Health", godHp) end
+                if LocalPlayer.Character:GetAttribute("Health") then LocalPlayer.Character:SetAttribute("Health", godHp) end
             end
-            if LocalPlayer:GetAttribute("Health") then LocalPlayer:SetAttribute("Health", _G.CustomHpValue) end
-            if LocalPlayer.Character and LocalPlayer.Character:GetAttribute("Health") then LocalPlayer.Character:SetAttribute("Health", _G.CustomHpValue) end
         end
     end)
 end)
 local CombatSec = CombatTab:Section({ Title = "Auto Attack & Farm", Icon = "crosshair", Opened = true, Box = true })
 
-_G.AntiSlow = false
 _G.NoCooldown = false
-
-CombatSec:Toggle({ Title = "Anti-Slow", Desc = "Chống bị làm chậm khi tự vung dao", Value = false, Callback = function(v) 
-    _G.AntiSlow = v 
-end})
-
-CombatSec:Toggle({ Title = "No Cooldown", Desc = "Gỡ bỏ độ trễ vũ khí để click xả láng", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "No Cooldown & Anti-Slow", Desc = "Bạn tự tay chém siêu nhanh không cần chờ, không bị chậm", Value = false, Callback = function(v) 
     _G.NoCooldown = v 
 end})
 
 task.spawn(function()
-    while task.wait(1) do
-        if _G.NoCooldown or _G.AntiSlow then
+    while task.wait(0.5) do
+        if _G.NoCooldown then
             pcall(function()
                 for _, v in pairs(getgc(true)) do
                     if type(v) == "table" and rawget(v, "attackCooldown") ~= nil then
-                        if _G.NoCooldown then
-                            rawset(v, "attackCooldown", 0)
-                            if rawget(v, "attackTime") ~= nil then rawset(v, "attackTime", 0) end
-                        end
-                        if _G.AntiSlow then
-                            if rawget(v, "slowMult") ~= nil then rawset(v, "slowMult", 1) end
-                            if rawget(v, "slowTime") ~= nil then rawset(v, "slowTime", 0) end
-                            if rawget(v, "shouldSlow") ~= nil then rawset(v, "shouldSlow", false) end
-                        end
+                        rawset(v, "attackCooldown", 0)
+                        if rawget(v, "attackTime") ~= nil then rawset(v, "attackTime", 0) end
+                        if rawget(v, "slowTime") ~= nil then rawset(v, "slowTime", 0) end
+                        if rawget(v, "slowMult") ~= nil then rawset(v, "slowMult", 1) end
+                        if rawget(v, "shouldSlow") ~= nil then rawset(v, "shouldSlow", false) end
                     end
                 end
             end)
@@ -464,28 +463,34 @@ local function AttemptWeaponHit(TargetChar)
             pcall(function() LocalPlayer.Character.Humanoid:EquipTool(backpackTool) end)
             MyTool = backpackTool
         else
-            return 
+            return
         end
     end
+    
+    local isSlow = _G.AntiSlow and false or true
+    local slowMul = _G.AntiSlow and 1 or 0.2
+    local slowTim = _G.AntiSlow and 0 or 1.5
+    local cdVal = _G.NoCooldown and 0 or 0.05
+    local atkTime = _G.NoCooldown and 0 or 0.65
     
     local Args = {
         "AttemptWeaponHit",
         {
-            attackCycleData = {knockbackMul=1,slowMult=0.2,attackTime=0.65,lungeMul=1,slowTime=1.5},
+            attackCycleData = {knockbackMul=1,slowMult=slowMul,attackTime=atkTime,lungeMul=1,slowTime=slowTim},
             knockback = 50, shouldLock = true, shouldLunge = true,
-            hitboxOffset = Vector3.new(0, 0, -1.5), isCritical = false, shouldSlow = true,
-            attackCooldown = 0.05, damage = 100, lungeKnockback = 55, cycleIndex = 1,
-            slowMult = 0.2, hitboxSize = Vector3.new(9, 14, 8),
+            hitboxOffset = Vector3.new(0, 0, -1.5), isCritical = false, shouldSlow = isSlow,
+            attackCooldown = cdVal, damage = 100, lungeKnockback = 55, cycleIndex = 1,
+            slowMult = slowMul, hitboxSize = Vector3.new(9, 14, 8),
             weaponDefinition = { 
                 attackCycle = { 
-                    ["1"] = {knockbackMul=1, slowMult=0.2, attackTime=0.65, lungeMul=1, slowTime=1.5}, 
-                    ["4"] = {lungeMult=2.25, attackTime=0.98, slowMult=0.2, hitboxOffsetAdd=Vector3.new(0,0,-1.5), hitboxSizeAdd=Vector3.new(0,0,3), knockbackMult=2.25, slowTime=1.5}, 
-                    ["3"] = {lungeMult=0.75, slowMult=0.2, attackTime=0.71, knockbackMult=1.5, slowTime=1.5}, 
-                    ["2"] = {lungeMult=1, slowMult=0.2, attackTime=0.65, knockbackMult=1, slowTime=1.5} 
+                    ["1"] = {knockbackMul=1, slowMult=slowMul, attackTime=atkTime, lungeMul=1, slowTime=slowTim}, 
+                    ["4"] = {lungeMult=2.25, attackTime=atkTime, slowMult=slowMul, hitboxOffsetAdd=Vector3.new(0,0,-1.5), hitboxSizeAdd=Vector3.new(0,0,3), knockbackMult=2.25, slowTime=slowTim}, 
+                    ["3"] = {lungeMult=0.75, slowMult=slowMul, attackTime=atkTime, knockbackMult=1.5, slowTime=slowTim}, 
+                    ["2"] = {lungeMult=1, slowMult=slowMul, attackTime=atkTime, knockbackMult=1, slowTime=slowTim} 
                 }, 
                 attackOrder = {"1", "2", "3", "4"} 
             },
-            tool = MyTool, slowTime = 1.5
+            tool = MyTool, slowTime = slowTim
         },
         {{ knockback = 50, isClosestEnemy = true, origin = Char.HumanoidRootPart.Position, enemyModel = TargetChar, distance = 5, direction = (TargetChar.HumanoidRootPart.Position - Char.HumanoidRootPart.Position).Unit }}
     }
@@ -496,9 +501,10 @@ local function AttemptWeaponHit(TargetChar)
 end
 
 _G.KillAll = false
-CombatSec:Toggle({ Title = "Kill All Players", Desc = "More FPS = More faster", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Kill All Players (God Mode)", Desc = "Chém tốc độ khung hình không giới hạn khoảng cách", Value = false, Callback = function(v) 
     _G.KillAll = v 
 end})
+
 RunService.Heartbeat:Connect(function()
     if _G.KillAll and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
         for _, p in ipairs(Players:GetPlayers()) do
@@ -513,22 +519,21 @@ CombatSec:Divider()
 
 _G.AutoHit = false
 _G.HitRange = 15
-CombatSec:Toggle({ Title = "Auto Hit(Distance)", Desc = "Chỉ chém kẻ thù lọt vào phạm vi", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Auto Hit (Khi ở gần)", Desc = "Chém tốc độ khung hình trong phạm vi", Value = false, Callback = function(v) 
     _G.AutoHit = v 
 end})
-CombatSec:Slider({ Title = "Range Hit", Value = {Min = 5, Max = 100, Default = 15}, Callback = function(v) 
+
+CombatSec:Slider({ Title = "Khoảng cách Hit", Value = {Min = 5, Max = 100, Default = 15}, Callback = function(v) 
     _G.HitRange = v 
 end})
 
-task.spawn(function()
-    while task.wait(0.1) do
-        if _G.AutoHit and not _G.KillAll and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            local target = getNearestTarget()
-            if target then
-                local dist = (target.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-                if dist <= _G.HitRange then 
-                    AttemptWeaponHit(target) 
-                end
+RunService.Heartbeat:Connect(function()
+    if _G.AutoHit and not _G.KillAll and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local target = getNearestTarget()
+        if target then
+            local dist = (target.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+            if dist <= _G.HitRange then 
+                AttemptWeaponHit(target) 
             end
         end
     end
@@ -537,7 +542,7 @@ end)
 CombatSec:Divider()
 
 _G.AutoFarm = false
-CombatSec:Toggle({ Title = "Auto Farm", Desc = "", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Auto Farm (TP & Bay cao)", Desc = "Tự TP đến mục tiêu, chém rồi bay lên để né", Value = false, Callback = function(v) 
     _G.AutoFarm = v 
 end})
 
@@ -564,7 +569,7 @@ CombatSec:Divider()
 
 local AimSec = CombatTab:Section({ Title = "Aimbot Settings", Icon = "crosshair", Opened = true, Box = true })
 _G.AimbotMode = "None"
-AimSec:Dropdown({ Title = "Aimbot Mode", Values = {"None", "Camera", "Character", "Camera & Character"}, Value = "None", Callback = function(v) 
+AimSec:Dropdown({ Title = "Aimbot Mode", Values = {"None", "Camera", "Character", "Both"}, Value = "None", Callback = function(v) 
     _G.AimbotMode = v 
 end})
 
@@ -574,102 +579,20 @@ RunService.RenderStepped:Connect(function()
         if target and target:FindFirstChild("HumanoidRootPart") then
             local myHrp = LocalPlayer.Character.HumanoidRootPart
             local tPos = target.HumanoidRootPart.Position
-            if _G.AimbotMode == "Camera" or _G.AimbotMode == "Camera & Character" then
+            if _G.AimbotMode == "Camera" or _G.AimbotMode == "Both" then
                 Camera.CFrame = CFrame.lookAt(Camera.CFrame.Position, tPos)
             end
-            if _G.AimbotMode == "Character" or _G.AimbotMode == "Camera & Character" then
+            if _G.AimbotMode == "Character" or _G.AimbotMode == "Both" then
                 myHrp.CFrame = CFrame.lookAt(myHrp.Position, Vector3.new(tPos.X, myHrp.Position.Y, tPos.Z))
             end
         end
     end
 end)
 
-local VisSec = VisTab:Section({ Title = "Player ESP", Icon = "eye", Opened = true, Box = true })
-local espElements = {}
-local espConn = nil
-
-local function cleanEsp(player)
-    if espElements[player] then 
-        pcall(function() 
-            espElements[player].Name:Remove()
-            espElements[player].Highlight:Destroy() 
-        end) 
-        espElements[player] = nil 
-    end
-end
-
-local function updatePlayerEsp()
-    local activePlayers = {}
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer then
-            activePlayers[player] = true
-            local char = player.Character
-            local hrp = char and char:FindFirstChild("HumanoidRootPart")
-            local hum = char and char:FindFirstChild("Humanoid")
-            
-            if char and hrp and hum and hum.Health > 0 then
-                if not espElements[player] then
-                    local d = { Name = Drawing.new("Text"), Highlight = Instance.new("Highlight") }
-                    d.Name.Size = 16
-                    d.Name.Center = true
-                    d.Name.Outline = true
-                    d.Name.Font = 2
-                    d.Highlight.FillTransparency = 0.5
-                    d.Highlight.OutlineTransparency = 0
-                    d.Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-                    d.Highlight.Parent = char
-                    espElements[player] = d
-                end
-                
-                local d = espElements[player]
-                local rootPos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
-                
-                if onScreen then
-                    local dist = (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")) and (LocalPlayer.Character.HumanoidRootPart.Position - hrp.Position).Magnitude or 0
-                    local teamColor = player.TeamColor and player.TeamColor.Color or Color3.fromRGB(255, 50, 50)
-                    
-                    d.Name.Color = teamColor
-                    d.Name.Text = player.Name .. " ["..math.floor(dist).."m]"
-                    d.Name.Position = Vector2.new(rootPos.X, rootPos.Y - 40)
-                    d.Name.Visible = true
-                    
-                    d.Highlight.FillColor = teamColor
-                    d.Highlight.Parent = char
-                else 
-                    d.Name.Visible = false 
-                end
-            else 
-                cleanEsp(player) 
-            end
-        end
-    end
-    for player, _ in pairs(espElements) do 
-        if not activePlayers[player] then 
-            cleanEsp(player) 
-        end 
-    end
-end
-
-VisSec:Toggle({ Title = "Enable ESP", Value = false, Callback = function(v)
-    if v then 
-        if not espConn then 
-            espConn = RunService.RenderStepped:Connect(updatePlayerEsp) 
-        end 
-    else 
-        if espConn then 
-            espConn:Disconnect()
-            espConn = nil 
-        end 
-        for p, _ in pairs(espElements) do 
-            cleanEsp(p) 
-        end 
-    end
-end})
-
-VisSec:Divider()
+local VisSec = VisTab:Section({ Title = "Player Visuals", Icon = "eye", Opened = true, Box = true })
 
 local antiInvisLoop
-VisSec:Toggle({ Title = "Show Players", Desc = "Disable Game Invisible", Value = false, Callback = function(v)
+VisSec:Toggle({ Title = "Anti-Invisibility (Phá Tàng Hình)", Desc = "Ép mọi người chơi hiện nguyên hình, vô hiệu hoá tàng hình", Value = false, Callback = function(v)
     if v then
         antiInvisLoop = RunService.RenderStepped:Connect(function()
             for _, p in ipairs(Players:GetPlayers()) do
@@ -690,6 +613,153 @@ VisSec:Toggle({ Title = "Show Players", Desc = "Disable Game Invisible", Value =
             antiInvisLoop = nil
         end
     end
+end})
+
+VisSec:Divider()
+
+local espElements = {}
+local espConn = nil
+
+local function cleanEsp(player)
+    if espElements[player] then 
+        pcall(function() 
+            espElements[player].Name:Remove()
+            espElements[player].Tracer:Remove()
+            espElements[player].Highlight:Destroy() 
+        end) 
+        espElements[player] = nil 
+    end
+end
+
+local function updatePlayerEsp()
+    local activePlayers = {}
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            activePlayers[player] = true
+            local char = player.Character
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            local hum = char and char:FindFirstChild("Humanoid")
+            
+            if char and hrp and hum and hum.Health > 0 then
+                if not espElements[player] then
+                    local d = { 
+                        Name = Drawing.new("Text"), 
+                        Tracer = Drawing.new("Line"), 
+                        Highlight = Instance.new("Highlight") 
+                    }
+                    d.Name.Size = 16
+                    d.Name.Center = true
+                    d.Name.Outline = true
+                    d.Name.Font = 2
+                    
+                    d.Tracer.Thickness = 1.5
+                    d.Tracer.Transparency = 0.8
+                    
+                    d.Highlight.FillTransparency = 0.5
+                    d.Highlight.OutlineTransparency = 0
+                    d.Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                    d.Highlight.Parent = char
+                    espElements[player] = d
+                end
+                
+                local d = espElements[player]
+                local rootPos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
+                
+                if onScreen then
+                    local dist = (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")) and (LocalPlayer.Character.HumanoidRootPart.Position - hrp.Position).Magnitude or 0
+                    local teamColor = player.TeamColor and player.TeamColor.Color or Color3.fromRGB(255, 50, 50)
+                    
+                    d.Name.Color = teamColor
+                    d.Name.Text = player.Name .. " ["..math.floor(dist).."m]"
+                    d.Name.Position = Vector2.new(rootPos.X, rootPos.Y - 40)
+                    d.Name.Visible = _G.ShowNameESP
+                    
+                    d.Tracer.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
+                    d.Tracer.To = Vector2.new(rootPos.X, rootPos.Y)
+                    d.Tracer.Color = teamColor
+                    d.Tracer.Visible = _G.ShowTracers
+                    
+                    d.Highlight.FillColor = teamColor
+                    d.Highlight.Parent = char
+                else 
+                    d.Name.Visible = false
+                    d.Tracer.Visible = false
+                end
+            else 
+                cleanEsp(player) 
+            end
+        end
+    end
+    for player, _ in pairs(espElements) do 
+        if not activePlayers[player] then 
+            cleanEsp(player) 
+        end 
+    end
+end
+
+_G.ShowNameESP = false
+VisSec:Toggle({ Title = "Enable ESP (Chams & Name)", Value = false, Callback = function(v)
+    _G.ShowNameESP = v
+    if v or _G.ShowTracers then 
+        if not espConn then espConn = RunService.RenderStepped:Connect(updatePlayerEsp) end 
+    else 
+        if espConn and not _G.ShowTracers then 
+            espConn:Disconnect()
+            espConn = nil 
+            for p, _ in pairs(espElements) do cleanEsp(p) end 
+        end 
+    end
+end})
+
+_G.ShowTracers = false
+VisSec:Toggle({ Title = "Show Tracers (Đường kẻ đến người chơi)", Desc = "Vẽ đường thẳng từ màn hình đến mọi người", Value = false, Callback = function(v)
+    _G.ShowTracers = v
+    if v or _G.ShowNameESP then 
+        if not espConn then espConn = RunService.RenderStepped:Connect(updatePlayerEsp) end 
+    else 
+        if espConn and not _G.ShowNameESP then 
+            espConn:Disconnect()
+            espConn = nil 
+            for p, _ in pairs(espElements) do cleanEsp(p) end 
+        end 
+    end
+end})
+
+local MiscSec = MiscTab:Section({ Title = "Skins & Inventory", Icon = "box", Opened = true, Box = true })
+
+MiscSec:Button({ Title = "Unlock All Skins (Client-Side)", Icon = "unlock", Callback = function()
+    pcall(function()
+        local count = 0
+        for _, v in pairs(getgc(true)) do
+            if type(v) == "table" then
+                if rawget(v, "Owned") ~= nil and v.Owned == false then
+                    rawset(v, "Owned", true)
+                    count = count + 1
+                end
+                if rawget(v, "Unlocked") ~= nil and v.Unlocked == false then
+                    rawset(v, "Unlocked", true)
+                    count = count + 1
+                end
+                if rawget(v, "Price") ~= nil then
+                    rawset(v, "Price", 0)
+                end
+            end
+        end
+        WindUI:Notify({Title = "Skins Unlocked", Content = "Đã mở khóa " .. tostring(count) .. " skins và ép giá về 0!"})
+    end)
+end})
+
+MiscSec:Divider()
+
+MiscSec:Button({ Title = "Equip All Effects", Icon = "sparkles", Callback = function()
+    pcall(function()
+        for _, v in pairs(getgc(true)) do
+            if type(v) == "table" and rawget(v, "Equipped") ~= nil then
+                rawset(v, "Equipped", true)
+            end
+        end
+        WindUI:Notify({Title = "Effects", Content = "Đã trang bị toàn bộ hiệu ứng trong máy!"})
+    end)
 end})
 local PlayerSec = PlayerTab:Section({ Title = "Server Players", Icon = "users", Opened = true, Box = true })
 local playerNames = {}
@@ -725,7 +795,7 @@ local themes = {}
 for themeName, _ in pairs(validThemes) do table.insert(themes, themeName) end
 table.sort(themes)
 
-ThemeSection:Dropdown({ Title = "Theme", Desc = "Choose UI Style", Values = themes, Flag = "ThemeDropdown", Value = "Dark", Callback = function(Value) 
+ThemeSection:Dropdown({ Title = "Theme", Desc = "Choose UI Style", Values = themes, Flag = "ThemeDropdown", Value = "Night", Callback = function(Value) 
     if validThemes[Value] then 
         pcall(function() WindUI:SetTheme(Value) end) 
     end 
@@ -734,17 +804,6 @@ end})
 ThemeSection:Keybind({ Title = "Keybind", Desc = "Keybind to open ui", Value = "G", Callback = function(v) pcall(function() Window:SetToggleKey(Enum.KeyCode[v]) end) end })
 
 local ConfigSection = SettingTab:Section({ Title = "Config Manager", Icon = "save", Opened = true, Box = true })
-
-local autoLoadPath = "SA_Config/AutoLoad.txt"
-local function getAutoLoad()
-    local success, result = pcall(function() if isfile(autoLoadPath) then return readfile(autoLoadPath) end end)
-    return (success and result) and result or "none"
-end
-
-local function setAutoLoad(name)
-    pcall(function() if not isfolder("SA_Config") then makefolder("SA_Config") end writefile(autoLoadPath, name) end)
-end
-
 local ConfigManager = Window.ConfigManager
 local configName = "MainConfig"
 local configFile = ConfigManager:CreateConfig(configName)

@@ -504,7 +504,7 @@ task.spawn(function()
 end)
 local CombatSec = CombatTab:Section({ Title = "Auto Attack & Farm", Icon = "crosshair", Opened = true, Box = true })
 
-CombatSec:Toggle({ Title = "Anti-Slow", Desc = "Remove slowdown when attacking", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Anti-Slow", Desc = "Remove slowdown effects when attacking", Value = false, Callback = function(v) 
     _G.AntiSlow = v 
 end})
 
@@ -557,7 +557,7 @@ local function AttemptWeaponHit(TargetChar)
 end
 
 _G.KillAll = false
-CombatSec:Toggle({ Title = "Kill All Players", Desc = "Attack everyone everywhere", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Kill All Players", Desc = "Attack everyone globally (FPS Dependent)", Value = false, Callback = function(v) 
     _G.KillAll = v 
 end})
 
@@ -575,7 +575,7 @@ CombatSec:Divider()
 
 _G.AutoHit = false
 _G.HitRange = 15
-CombatSec:Toggle({ Title = "Auto Hit", Desc = "Attack enemies near you", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Auto Hit", Desc = "Automatically attack enemies within range", Value = false, Callback = function(v) 
     _G.AutoHit = v 
 end})
 
@@ -598,7 +598,7 @@ end)
 CombatSec:Divider()
 
 _G.AutoFarm = false
-CombatSec:Toggle({ Title = "Auto Farm", Desc = "Teleport behind target and kill", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Auto Farm", Desc = "Teleport behind target, kill, and float", Value = false, Callback = function(v) 
     _G.AutoFarm = v 
 end})
 
@@ -642,20 +642,26 @@ RunService.RenderStepped:Connect(function()
         end
     end
 end)
+
 local VisSec = VisTab:Section({ Title = "Player Visuals", Icon = "eye", Opened = true, Box = true })
 
 local originalTrans = {}
 local antiInvisLoop
+
 VisSec:Toggle({ Title = "Show Hidden Players", Desc = "Force invisible players to be visible", Value = false, Callback = function(v)
     if v then
         antiInvisLoop = RunService.RenderStepped:Connect(function()
             for _, p in ipairs(Players:GetPlayers()) do
                 if p ~= LocalPlayer and p.Character then
                     for _, part in ipairs(p.Character:GetDescendants()) do
-                        if (part:IsA("BasePart") or part:IsA("Decal")) and part.Name ~= "HumanoidRootPart" then
-                            if part.Transparency > 0 and part.Transparency < 1 then
-                                if not originalTrans[part] then originalTrans[part] = part.Transparency end
-                                part.Transparency = 0
+                        if (part:IsA("BasePart") or part:IsA("Decal")) then
+                            if part.Name ~= "HumanoidRootPart" and not string.find(string.lower(part.Name), "hitbox") then
+                                if part.Transparency > 0 and part.Transparency < 1 then
+                                    if originalTrans[part] == nil then 
+                                        originalTrans[part] = part.Transparency 
+                                    end
+                                    part.Transparency = 0
+                                end
                             end
                         end
                     end
@@ -668,9 +674,11 @@ VisSec:Toggle({ Title = "Show Hidden Players", Desc = "Force invisible players t
             antiInvisLoop = nil
         end
         for part, trans in pairs(originalTrans) do
-            if part and part.Parent then
-                pcall(function() part.Transparency = trans end)
-            end
+            pcall(function() 
+                if part and part.Parent then 
+                    part.Transparency = trans 
+                end 
+            end)
         end
         originalTrans = {}
     end
@@ -715,14 +723,19 @@ local function updatePlayerEsp()
                     d.Name.Center = true
                     d.Name.Outline = true
                     d.Name.Font = 2
+                    
                     d.Tracer.Thickness = 1.5
                     d.Tracer.Transparency = 0.8
+                    
                     d.Box.Thickness = 1.5
                     d.Box.Filled = false
+                    d.Box.Transparency = 1
+                    
                     d.Highlight.FillTransparency = 0.5
                     d.Highlight.OutlineTransparency = 0
                     d.Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
                     d.Highlight.Parent = char
+                    
                     espElements[player] = d
                 end
                 
@@ -742,22 +755,24 @@ local function updatePlayerEsp()
                     d.Name.Position = Vector2.new(rootPos.X, headPos.Y - 20)
                     d.Name.Visible = _G.ShowESP
                     
-                    d.Tracer.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
-                    d.Tracer.To = Vector2.new(rootPos.X, rootPos.Y)
-                    d.Tracer.Color = teamColor
-                    d.Tracer.Visible = _G.ShowTracers
-                    
                     d.Box.Size = Vector2.new(width, height)
                     d.Box.Position = Vector2.new(rootPos.X - width / 2, headPos.Y)
                     d.Box.Color = teamColor
                     d.Box.Visible = _G.ShowESP
                     
+                    d.Tracer.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
+                    d.Tracer.To = Vector2.new(rootPos.X, rootPos.Y)
+                    d.Tracer.Color = teamColor
+                    d.Tracer.Visible = _G.ShowESP
+                    
                     d.Highlight.FillColor = teamColor
                     d.Highlight.Parent = char
+                    d.Highlight.Enabled = _G.ShowESP
                 else 
                     d.Name.Visible = false
                     d.Tracer.Visible = false
                     d.Box.Visible = false
+                    d.Highlight.Enabled = false
                 end
             else 
                 cleanEsp(player) 
@@ -772,26 +787,12 @@ local function updatePlayerEsp()
 end
 
 _G.ShowESP = false
-VisSec:Toggle({ Title = "Enable ESP (Box, Chams, Name)", Value = false, Callback = function(v)
+VisSec:Toggle({ Title = "Enable ESP (Box, Chams, Tracers, Name)", Desc = "Draws full ESP around players", Value = false, Callback = function(v)
     _G.ShowESP = v
-    if v or _G.ShowTracers then 
+    if v then 
         if not espConn then espConn = RunService.RenderStepped:Connect(updatePlayerEsp) end 
     else 
-        if espConn and not _G.ShowTracers then 
-            espConn:Disconnect()
-            espConn = nil 
-            for p, _ in pairs(espElements) do cleanEsp(p) end 
-        end 
-    end
-end})
-
-_G.ShowTracers = false
-VisSec:Toggle({ Title = "Show Tracers", Desc = "Draw lines to all players", Value = false, Callback = function(v)
-    _G.ShowTracers = v
-    if v or _G.ShowESP then 
-        if not espConn then espConn = RunService.RenderStepped:Connect(updatePlayerEsp) end 
-    else 
-        if espConn and not _G.ShowESP then 
+        if espConn then 
             espConn:Disconnect()
             espConn = nil 
             for p, _ in pairs(espElements) do cleanEsp(p) end 

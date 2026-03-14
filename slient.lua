@@ -314,15 +314,19 @@ local SettingTab = Window:Tab({ Title = "Settings", Icon = "settings" })
 local function getNearestTarget()
     local nearest = nil
     local minDist = math.huge
-    if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then 
-        return nil 
-    end
+    local char = LocalPlayer.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return nil end
+    
     for _, p in ipairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
-            local dist = (p.Character.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-            if dist < minDist then
-                minDist = dist
-                nearest = p.Character
+        if p ~= LocalPlayer and p.Character then
+            local hrp = p.Character:FindFirstChild("HumanoidRootPart")
+            local hum = p.Character:FindFirstChild("Humanoid")
+            if hrp and hum and hum.Health > 0 then
+                local dist = (hrp.Position - char.HumanoidRootPart.Position).Magnitude
+                if dist < minDist then
+                    minDist = dist
+                    nearest = p.Character
+                end
             end
         end
     end
@@ -521,64 +525,81 @@ end})
 CombatSec:Divider()
 
 local function AttemptWeaponHit(TargetChar)
-    local Char = LocalPlayer.Character
-    if not Char then return end
-    
-    local MyTool = Char:FindFirstChildOfClass("Tool")
-    if not MyTool then 
-        local backpackTool = LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
-        if backpackTool then
-            pcall(function() LocalPlayer.Character.Humanoid:EquipTool(backpackTool) end)
-            MyTool = backpackTool
-        else
-            return
+    pcall(function() -- Bọc pcall chống mọi lỗi đứt gãy luồng
+        local Char = LocalPlayer.Character
+        if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
+        if not TargetChar or not TargetChar:FindFirstChild("HumanoidRootPart") then return end
+        
+        local MyTool = Char:FindFirstChildOfClass("Tool")
+        if not MyTool then 
+            local backpack = LocalPlayer:FindFirstChild("Backpack")
+            local backpackTool = backpack and backpack:FindFirstChildOfClass("Tool")
+            local hum = Char:FindFirstChild("Humanoid")
+            if backpackTool and hum then
+                hum:EquipTool(backpackTool)
+                MyTool = backpackTool
+            else
+                return
+            end
         end
-    end
-    
-    local isSlow = _G.AntiSlow and false or true
-    local slowMul = _G.AntiSlow and 1 or 0.2
-    local slowTim = _G.AntiSlow and 0 or 1.5
-    
-    local Args = {
-        "AttemptWeaponHit",
-        {
-            attackCycleData = {knockbackMul=1,slowMult=slowMul,attackTime=0.65,lungeMul=1,slowTime=slowTim},
-            knockback = 50, shouldLock = true, shouldLunge = true,
-            hitboxOffset = Vector3.new(0, 0, -1.5), isCritical = false, shouldSlow = isSlow,
-            attackCooldown = 0.05, damage = 100, lungeKnockback = 55, cycleIndex = 1,
-            slowMult = slowMul, hitboxSize = Vector3.new(9, 14, 8),
-            weaponDefinition = { 
-                attackCycle = { 
-                    ["1"] = {knockbackMul=1, slowMult=slowMul, attackTime=0.65, lungeMul=1, slowTime=slowTim}, 
-                    ["4"] = {lungeMult=2.25, attackTime=0.98, slowMult=slowMul, hitboxOffsetAdd=Vector3.new(0,0,-1.5), hitboxSizeAdd=Vector3.new(0,0,3), knockbackMult=2.25, slowTime=slowTim}, 
-                    ["3"] = {lungeMult=0.75, slowMult=slowMul, attackTime=0.71, knockbackMult=1.5, slowTime=slowTim}, 
-                    ["2"] = {lungeMult=1, slowMult=slowMul, attackTime=0.65, knockbackMult=1, slowTime=slowTim} 
-                }, 
-                attackOrder = {"1", "2", "3", "4"} 
+        
+        local isSlow = _G.AntiSlow and false or true
+        local slowMul = _G.AntiSlow and 1 or 0.2
+        local slowTim = _G.AntiSlow and 0 or 1.5
+        
+        local direction = (TargetChar.HumanoidRootPart.Position - Char.HumanoidRootPart.Position).Unit
+        -- Sửa lỗi sập Heartbeat khi đứng trùng tọa độ (Vector NaN)
+        if direction.X ~= direction.X then direction = Vector3.new(0, 0, 1) end 
+        
+        local Args = {
+            "AttemptWeaponHit",
+            {
+                attackCycleData = {knockbackMul=1,slowMult=slowMul,attackTime=0.65,lungeMul=1,slowTime=slowTim},
+                knockback = 50, shouldLock = true, shouldLunge = true,
+                hitboxOffset = Vector3.new(0, 0, -1.5), isCritical = false, shouldSlow = isSlow,
+                attackCooldown = 0.05, damage = 100, lungeKnockback = 55, cycleIndex = 1,
+                slowMult = slowMul, hitboxSize = Vector3.new(9, 14, 8),
+                weaponDefinition = { 
+                    attackCycle = { 
+                        ["1"] = {knockbackMul=1, slowMult=slowMul, attackTime=0.65, lungeMul=1, slowTime=slowTim}, 
+                        ["4"] = {lungeMult=2.25, attackTime=0.98, slowMult=slowMul, hitboxOffsetAdd=Vector3.new(0,0,-1.5), hitboxSizeAdd=Vector3.new(0,0,3), knockbackMult=2.25, slowTime=slowTim}, 
+                        ["3"] = {lungeMult=0.75, slowMult=slowMul, attackTime=0.71, knockbackMult=1.5, slowTime=slowTim}, 
+                        ["2"] = {lungeMult=1, slowMult=slowMul, attackTime=0.65, knockbackMult=1, slowTime=slowTim} 
+                    }, 
+                    attackOrder = {"1", "2", "3", "4"} 
+                },
+                tool = MyTool, slowTime = slowTim
             },
-            tool = MyTool, slowTime = slowTim
-        },
-        {{ knockback = 50, isClosestEnemy = true, origin = Char.HumanoidRootPart.Position, enemyModel = TargetChar, distance = 5, direction = (TargetChar.HumanoidRootPart.Position - Char.HumanoidRootPart.Position).Unit }}
-    }
-    
-    task.spawn(function()
-        pcall(function() GameRemote:InvokeServer(unpack(Args)) end)
+            {{ knockback = 50, isClosestEnemy = true, origin = Char.HumanoidRootPart.Position, enemyModel = TargetChar, distance = 5, direction = direction }}
+        }
+        
+        task.spawn(function()
+            pcall(function() GameRemote:InvokeServer(unpack(Args)) end)
+        end)
     end)
 end
 
 _G.KillAll = false
-CombatSec:Toggle({ Title = "Kill All Players", Desc = "Attack everyone globally (FPS Dependent)", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Kill All Players", Desc = "Attack everyone everywhere (Depends on FPS)", Value = false, Callback = function(v) 
     _G.KillAll = v 
 end})
 
 RunService.Heartbeat:Connect(function()
-    if _G.KillAll and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        for _, p in ipairs(Players:GetPlayers()) do
-            if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
-                AttemptWeaponHit(p.Character)
+    pcall(function() -- Bọc pcall để bắt mọi lỗi phát sinh, chống sập Heartbeat
+        if _G.KillAll and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            for _, p in ipairs(Players:GetPlayers()) do
+                if p ~= LocalPlayer and p.Character then
+                    -- Kiểm tra an toàn: Đảm bảo mục tiêu có đủ bộ phận và còn sống mới chém
+                    local hrp = p.Character:FindFirstChild("HumanoidRootPart")
+                    local hum = p.Character:FindFirstChild("Humanoid")
+                    
+                    if hrp and hum and hum.Health > 0 then
+                        AttemptWeaponHit(p.Character)
+                    end
+                end
             end
         end
-    end
+    end)
 end)
 
 CombatSec:Divider()
@@ -594,15 +615,17 @@ CombatSec:Slider({ Title = "Hit Range", Value = {Min = 5, Max = 100, Default = 1
 end})
 
 RunService.Heartbeat:Connect(function()
-    if _G.AutoHit and not _G.KillAll and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        local target = getNearestTarget()
-        if target then
-            local dist = (target.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-            if dist <= _G.HitRange then 
-                AttemptWeaponHit(target) 
+    pcall(function()
+        if _G.AutoHit and not _G.KillAll and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local target = getNearestTarget()
+            if target and target:FindFirstChild("HumanoidRootPart") then
+                local dist = (target.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+                if dist <= _G.HitRange then 
+                    AttemptWeaponHit(target) 
+                end
             end
         end
-    end
+    end)
 end)
 
 CombatSec:Divider()

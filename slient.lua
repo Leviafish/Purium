@@ -2,7 +2,7 @@ print("Loading script maybe take a few seconds to complete")
 game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Purium On Top!", Text = "Loading Script...", Duration = 3 })
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 local Window = WindUI:CreateWindow({
-    Title = "Purium Hub [By @hlck49] | Silent assassin |", Icon = "door-open", Author = "Version : 0.0.3", Folder = "Purium_SBSD",
+    Title = "Purium Hub [By @hlck49] | Silent assassin |", Icon = "door-open", Author = "Version : 0.0.1", Folder = "Purium_SBSD",
     Size = UDim2.fromOffset(580, 460), MinSize = Vector2.new(560, 350), MaxSize = Vector2.new(850, 560),
     Transparent = true, Theme = "Dark", Resizable = true, SideBarWidth = 200, BackgroundImageTransparency = 0.42,
     HideSearchBar = true, ScrollBarEnabled = false,
@@ -376,15 +376,17 @@ local function AttemptWeaponHit(TargetChar)
     local Char = LocalPlayer.Character
     if not Char then return end
     
-    local MyTool = nil
-    for _, v in ipairs(Char:GetChildren()) do 
-        if v:IsA("Tool") then 
-            MyTool = v 
-            break 
-        end 
+    local MyTool = Char:FindFirstChildOfClass("Tool")
+    if not MyTool then 
+        -- Tự động lấy vũ khí từ Backpack nếu chưa cầm trên tay
+        local backpackTool = LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
+        if backpackTool then
+            pcall(function() LocalPlayer.Character.Humanoid:EquipTool(backpackTool) end)
+            MyTool = backpackTool
+        else
+            return -- Hết vũ khí
+        end
     end
-    
-    if not MyTool then return end
     
     local Args = {
         "AttemptWeaponHit",
@@ -407,28 +409,19 @@ local function AttemptWeaponHit(TargetChar)
         },
         {{ knockback = 50, isClosestEnemy = true, origin = Char.HumanoidRootPart.Position, enemyModel = TargetChar, distance = 5, direction = (TargetChar.HumanoidRootPart.Position - Char.HumanoidRootPart.Position).Unit }}
     }
-    pcall(function() GameRemote:InvokeServer(unpack(Args)) end)
+    
+    task.spawn(function()
+        pcall(function() GameRemote:InvokeServer(unpack(Args)) end)
+    end)
 end
 
-_G.AutoHit = false
-_G.HitRange = 15
-CombatSec:Toggle({ Title = "Auto Hit (distance)", Value = false, Callback = function(v) 
-    _G.AutoHit = v 
-end})
-
-CombatSec:Slider({ Title = "Distance Hit", Value = {Min = 5, Max = 500, Default = 15}, Callback = function(v) 
-    _G.HitRange = v 
-end})
-
-CombatSec:Divider()
-
 _G.KillAll = false
-CombatSec:Toggle({ Title = "Kill All Players", Desc = "Instantly Kill All Players When Round Start ( Ban Risk )", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Kill All Players", Desc = "Instantly Kill All Players When The Round Start ( Ban Risk )", Value = false, Callback = function(v) 
     _G.KillAll = v 
 end})
 
 task.spawn(function()
-    while task.wait(0.1) do
+    while task.wait(0.05) do -- Tốc độ cực nhanh
         if _G.KillAll and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
             for _, p in ipairs(Players:GetPlayers()) do
                 if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
@@ -441,14 +434,18 @@ end)
 
 CombatSec:Divider()
 
-_G.AutoFarm = false
-CombatSec:Toggle({ Title = "Auto Farm", Desc = "", Value = false, Callback = function(v) 
-    _G.AutoFarm = v 
+_G.AutoHit = false
+_G.HitRange = 15
+CombatSec:Toggle({ Title = "Auto Hit(Distance)", Desc = "Chỉ chém kẻ thù lọt vào phạm vi", Value = false, Callback = function(v) 
+    _G.AutoHit = v 
+end})
+CombatSec:Slider({ Title = "Range Hit", Value = {Min = 5, Max = 100, Default = 15}, Callback = function(v) 
+    _G.HitRange = v 
 end})
 
 task.spawn(function()
     while task.wait(0.1) do
-        if _G.AutoHit and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        if _G.AutoHit and not _G.KillAll and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
             local target = getNearestTarget()
             if target then
                 local dist = (target.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
@@ -459,6 +456,13 @@ task.spawn(function()
         end
     end
 end)
+
+CombatSec:Divider()
+
+_G.AutoFarm = false
+CombatSec:Toggle({ Title = "Auto Farm (TP & Bay cao)", Desc = "Tự TP đến mục tiêu, chém rồi bay lên để né", Value = false, Callback = function(v) 
+    _G.AutoFarm = v 
+end})
 
 task.spawn(function()
     while task.wait(0.1) do

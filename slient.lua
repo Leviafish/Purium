@@ -342,6 +342,54 @@ RunService.RenderStepped:Connect(function()
     end)
 end)
 
+_G.FixCamera = false
+local fakeCamPart
+
+MoveSec:Toggle({ Title = "Fix Camera (For God Mode)", Desc = "Prevents camera shaking by locking it to a fake part", Value = false, Callback = function(v) 
+    _G.FixCamera = v 
+    pcall(function()
+        if v then
+            if not fakeCamPart then
+                fakeCamPart = Instance.new("Part")
+                fakeCamPart.Transparency = 1
+                fakeCamPart.CanCollide = false
+                fakeCamPart.Anchored = true
+                fakeCamPart.Size = Vector3.new(1, 1, 1)
+                fakeCamPart.Parent = Workspace
+            end
+            Camera.CameraSubject = fakeCamPart
+        else
+            if fakeCamPart then
+                fakeCamPart:Destroy()
+                fakeCamPart = nil
+            end
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+                Camera.CameraSubject = LocalPlayer.Character.Humanoid
+            end
+        end
+    end)
+end})
+
+LocalPlayer.CharacterAdded:Connect(function()
+    if _G.FixCamera then
+        task.wait(1)
+        pcall(function()
+            if fakeCamPart then
+                Camera.CameraSubject = fakeCamPart
+            end
+        end)
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    pcall(function()
+        if _G.FixCamera and fakeCamPart and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            fakeCamPart.Position = LocalPlayer.Character.HumanoidRootPart.Position
+        end
+    end)
+end)
+
+
 HitboxSec:Divider()
 
 local FlingSec = BypassTab:Section({ Title = "Physics Fling Exploit", Icon = "wind", Opened = true, Box = true })

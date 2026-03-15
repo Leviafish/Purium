@@ -303,6 +303,39 @@ end)
 
 HitboxSec:Divider()
 
+_G.ZeroHitbox = false
+HitboxSec:Toggle({ Title = "Dodge", Desc = "Make Your Hitbox Into 0.05", Value = false, Callback = function(v) 
+    _G.ZeroHitbox = v 
+end})
+
+RunService.Heartbeat:Connect(function()
+    pcall(function()
+        local char = LocalPlayer.Character
+        if char then
+            local hum = char:FindFirstChild("Humanoid")
+            if hum then
+                if _G.WsEnabled then 
+                    hum.WalkSpeed = _G.WsValue 
+                elseif _G.AntiSlow and hum.WalkSpeed < 16 then
+                    hum.WalkSpeed = 16
+                end
+                if _G.JpEnabled then 
+                    hum.JumpPower = _G.JpValue 
+                end
+            end
+            if _G.ZeroHitbox then
+                for _, part in ipairs(char:GetChildren()) do
+                    if part:IsA("BasePart") then
+                        part.Size = Vector3.new(0.05, 0.05, 0.05)
+                    end
+                end
+            end
+        end
+    end)
+end)
+
+HitboxSec:Divider()
+
 local FlingSec = BypassTab:Section({ Title = "Physics Fling Exploit", Icon = "wind", Opened = true, Box = true })
 
 _G.FlingActive = false

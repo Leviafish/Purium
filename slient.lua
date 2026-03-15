@@ -306,9 +306,7 @@ HitboxSec:Divider()
 _G.DesyncGodMode = false
 _G.LastSafeCFrame = nil
 
-MoveSec:Divider()
-
-MoveSec:Toggle({ Title = "God Mode (Ultimate Desync)", Desc = "Perfect movement, invincible, no camera lag", Value = false, Callback = function(v) 
+MoveSec:Toggle({ Title = "God Mode (Ultimate Desync)", Desc = "Perfect movement, teleport fix, auto-resync on hit", Value = false, Callback = function(v) 
     _G.DesyncGodMode = v 
     pcall(function()
         if not v then
@@ -342,7 +340,14 @@ RunService.Stepped:Connect(function()
         if _G.DesyncGodMode and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
             local hrp = LocalPlayer.Character.HumanoidRootPart
             if _G.LastSafeCFrame then
-                hrp.CFrame = _G.LastSafeCFrame
+                local dist = (hrp.Position - _G.LastSafeCFrame.Position).Magnitude
+                if dist > 50 then
+                    _G.LastSafeCFrame = hrp.CFrame
+                else
+                    hrp.CFrame = _G.LastSafeCFrame
+                end
+            else
+                _G.LastSafeCFrame = hrp.CFrame
             end
         end
     end)
@@ -352,16 +357,17 @@ RunService.Heartbeat:Connect(function()
     pcall(function()
         if _G.DesyncGodMode and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
             local hrp = LocalPlayer.Character.HumanoidRootPart
-            local currentPos = hrp.CFrame
+            if not _G.LastSafeCFrame then return end
             
-            _G.LastSafeCFrame = currentPos
+            _G.LastSafeCFrame = hrp.CFrame
             
-            local vel = hrp.AssemblyLinearVelocity
-            local rot = hrp.AssemblyAngularVelocity
-            
-            hrp.CFrame = _G.LastSafeCFrame + Vector3.new(0, 50000, 0)
-            hrp.AssemblyLinearVelocity = vel
-            hrp.AssemblyAngularVelocity = rot
+            if tick() - _G.LastAttackTime > 0.2 then
+                local vel = hrp.AssemblyLinearVelocity
+                local rot = hrp.AssemblyAngularVelocity
+                hrp.CFrame = _G.LastSafeCFrame + Vector3.new(0, 50000, 0)
+                hrp.AssemblyLinearVelocity = vel
+                hrp.AssemblyAngularVelocity = rot
+            end
         end
     end)
 end)
@@ -371,7 +377,6 @@ RunService.RenderStepped:Connect(function()
         if _G.DesyncGodMode and _G.LastSafeCFrame and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
             local hrp = LocalPlayer.Character.HumanoidRootPart
             local cp = getFakeCamPart()
-            
             cp.CFrame = _G.LastSafeCFrame
             hrp.CFrame = _G.LastSafeCFrame
             Camera.CameraSubject = cp
@@ -384,6 +389,25 @@ LocalPlayer.CharacterAdded:Connect(function()
     pcall(function()
         local cp = Workspace:FindFirstChild("PuriumCamPart")
         if cp then cp:Destroy() end
+    end)
+end)
+
+RunService.Heartbeat:Connect(function()
+    pcall(function()
+        local char = LocalPlayer.Character
+        if char then
+            local hum = char:FindFirstChild("Humanoid")
+            if hum then
+                if _G.WsEnabled then 
+                    hum.WalkSpeed = _G.WsValue 
+                elseif _G.AntiSlow and hum.WalkSpeed < 16 then
+                    hum.WalkSpeed = 16
+                end
+                if _G.JpEnabled then 
+                    hum.JumpPower = _G.JpValue 
+                end
+            end
+        end
     end)
 end)
 

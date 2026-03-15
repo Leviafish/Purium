@@ -72,7 +72,7 @@ oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
     return oldNamecall(self, ...)
 end)
 
-local BypassTab = Window:Tab({ Title = "Server Bypass", Icon = "shield-alert" })
+local BypassTab = Window:Tab({ Title = "Server Modification", Icon = "shield-alert" })
 local CombatTab = Window:Tab({ Title = "Combat & Farm", Icon = "swords" })
 local MoveTab = Window:Tab({ Title = "Movement", Icon = "move" })
 local VisTab = Window:Tab({ Title = "Visuals (ESP)", Icon = "eye" })
@@ -306,7 +306,7 @@ HitboxSec:Divider()
 
 _G.DesyncGodMode = false
 
-MoveSec:Toggle({ Title = "God Mode (Ultimate Desync)", Desc = "Perfect movement, teleport fix, auto-resync on hit", Value = false, Callback = function(v) 
+MoveSec:Toggle({ Title = "God Mode", Desc = "Make You Invincible But Didn't Work With Other Hackers", Value = false, Callback = function(v) 
     _G.DesyncGodMode = v 
     pcall(function()
         if not v then
@@ -412,7 +412,7 @@ end)
 
 HitboxSec:Divider()
 
-local FlingSec = BypassTab:Section({ Title = "Physics Fling Exploit", Icon = "wind", Opened = true, Box = true })
+local FlingSec = BypassTab:Section({ Title = "Physics Fling Exploit(Didn't Work)", Icon = "wind", Opened = true, Box = true })
 
 _G.FlingActive = false
 _G.FlingMode = "Touch Fling"
@@ -492,14 +492,14 @@ end)
 local CombatSec = CombatTab:Section({ Title = "Attack Settings", Icon = "crosshair", Opened = true, Box = true })
 
 _G.AntiSlow = false
-CombatSec:Toggle({ Title = "Enable Anti-Slow", Desc = "Remove movement penalty while swinging weapon", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Enable Anti-Slow", Desc = "Remove Slow while swinging weapon", Value = false, Callback = function(v) 
     _G.AntiSlow = v 
 end})
 
 CombatSec:Divider()
 
 _G.AttackDelay = 0
-CombatSec:Slider({ Title = "Attack Delay (Seconds)", Desc = "0 = Max safe speed (Ignores low FPS, no ping lag)", Value = {Min = 0, Max = 10, Default = 0}, Callback = function(v) 
+CombatSec:Slider({ Title = "Attack Delay (Seconds)", Desc = "You Mad Cuz You Have Cheat But Still Lose With Others Cheat? Don't Worry Change The speed From 5 To 0", Value = {Min = 0, Max = 20, Default = 5}, Callback = function(v) 
     _G.AttackDelay = v 
 end})
 
@@ -584,7 +584,7 @@ local function AttemptWeaponHit(TargetChar)
 end
 
 _G.KillAll = false
-CombatSec:Toggle({ Title = "Kill All Players", Desc = "100% Hit bypass. Unblockable.", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Kill All Players", Desc = "After The Rewrite It Now Is Better And More Win Chance", Value = false, Callback = function(v) 
     _G.KillAll = v 
 end})
 

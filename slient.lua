@@ -45,6 +45,7 @@ local LocalPlayer = Players.LocalPlayer
 local GameRemote = ReplicatedStorage:WaitForChild("Events"):WaitForChild("GameRemoteFunction")
 
 _G.AntiSlow = false
+_G.LastAttackTime = 0
 
 local oldNamecall
 oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
@@ -304,24 +305,21 @@ end)
 HitboxSec:Divider()
 
 _G.DesyncGodMode = false
-local desyncOffset = Vector3.new(0, 50000, 0)
-local isDesynced = false
 
 MoveSec:Toggle({ Title = "God Mode (Ultimate Desync)", Desc = "Perfect movement, teleport fix, auto-resync on hit", Value = false, Callback = function(v) 
     _G.DesyncGodMode = v 
     pcall(function()
         if not v then
-            if isDesynced and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                local hrp = LocalPlayer.Character.HumanoidRootPart
-                if hrp.Position.Y > 20000 then
-                    hrp.CFrame = hrp.CFrame - desyncOffset
-                end
-            end
-            isDesynced = false
             local cp = Workspace:FindFirstChild("PuriumCamPart")
             if cp then cp:Destroy() end
             if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
                 Camera.CameraSubject = LocalPlayer.Character.Humanoid
+            end
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                local hrp = LocalPlayer.Character.HumanoidRootPart
+                if hrp.Position.Y > 20000 then
+                    hrp.CFrame = hrp.CFrame - Vector3.new(0, 50000, 0)
+                end
             end
         end
     end)
@@ -347,24 +345,20 @@ RunService.Heartbeat:Connect(function()
         if _G.DesyncGodMode and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
             local hrp = LocalPlayer.Character.HumanoidRootPart
             if tick() - _G.LastAttackTime > 0.2 then
-                if not isDesynced then
+                if hrp.Position.Y < 20000 then
                     local vel = hrp.AssemblyLinearVelocity
                     local rot = hrp.AssemblyAngularVelocity
-                    hrp.CFrame = hrp.CFrame + desyncOffset
+                    hrp.CFrame = hrp.CFrame + Vector3.new(0, 50000, 0)
                     hrp.AssemblyLinearVelocity = vel
                     hrp.AssemblyAngularVelocity = rot
-                    isDesynced = true
                 end
             else
-                if isDesynced then
-                    if hrp.Position.Y > 20000 then
-                        local vel = hrp.AssemblyLinearVelocity
-                        local rot = hrp.AssemblyAngularVelocity
-                        hrp.CFrame = hrp.CFrame - desyncOffset
-                        hrp.AssemblyLinearVelocity = vel
-                        hrp.AssemblyAngularVelocity = rot
-                    end
-                    isDesynced = false
+                if hrp.Position.Y > 20000 then
+                    local vel = hrp.AssemblyLinearVelocity
+                    local rot = hrp.AssemblyAngularVelocity
+                    hrp.CFrame = hrp.CFrame - Vector3.new(0, 50000, 0)
+                    hrp.AssemblyLinearVelocity = vel
+                    hrp.AssemblyAngularVelocity = rot
                 end
             end
         end
@@ -375,16 +369,14 @@ RunService.RenderStepped:Connect(function()
     pcall(function()
         if _G.DesyncGodMode and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
             local hrp = LocalPlayer.Character.HumanoidRootPart
-            if isDesynced then
-                if hrp.Position.Y > 20000 then
-                    local vel = hrp.AssemblyLinearVelocity
-                    local rot = hrp.AssemblyAngularVelocity
-                    hrp.CFrame = hrp.CFrame - desyncOffset
-                    hrp.AssemblyLinearVelocity = vel
-                    hrp.AssemblyAngularVelocity = rot
-                end
-                isDesynced = false
+            if hrp.Position.Y > 20000 then
+                local vel = hrp.AssemblyLinearVelocity
+                local rot = hrp.AssemblyAngularVelocity
+                hrp.CFrame = hrp.CFrame - Vector3.new(0, 50000, 0)
+                hrp.AssemblyLinearVelocity = vel
+                hrp.AssemblyAngularVelocity = rot
             end
+            
             local cp = getFakeCamPart()
             cp.CFrame = hrp.CFrame
             Camera.CameraSubject = cp
@@ -393,7 +385,6 @@ RunService.RenderStepped:Connect(function()
 end)
 
 LocalPlayer.CharacterAdded:Connect(function()
-    isDesynced = false
     pcall(function()
         local cp = Workspace:FindFirstChild("PuriumCamPart")
         if cp then cp:Destroy() end

@@ -307,40 +307,35 @@ _G.DesyncGodMode = false
 
 MoveSec:Divider()
 
-MoveSec:Toggle({ Title = "God Mode (Smart Desync)", Desc = "Avoid hits, move freely, perfect camera sync", Value = false, Callback = function(v) 
+MoveSec:Toggle({ Title = "God Mode (Perfect Desync)", Desc = "Invincible + Smooth Camera + Walk freely", Value = false, Callback = function(v) 
     _G.DesyncGodMode = v 
 end})
 
-local isDesynced = false
-local desyncOffset = Vector3.new(0, 50000, 0)
+local realCFrame = nil
 
 RunService.Heartbeat:Connect(function()
     pcall(function()
         if _G.DesyncGodMode and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
             local hrp = LocalPlayer.Character.HumanoidRootPart
-            local vel = hrp.AssemblyLinearVelocity
-            local rot = hrp.AssemblyAngularVelocity
-            hrp.CFrame = hrp.CFrame + desyncOffset
-            hrp.AssemblyLinearVelocity = vel
-            hrp.AssemblyAngularVelocity = rot
-            isDesynced = true
+            realCFrame = hrp.CFrame
+            hrp.CFrame = realCFrame * CFrame.new(0, 50000, 0)
         end
     end)
 end)
 
-RunService.RenderStepped:Connect(function()
+RunService:BindToRenderStep("PerfectDesyncFix", 199, function()
     pcall(function()
-        if isDesynced and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        if _G.DesyncGodMode and realCFrame and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
             local hrp = LocalPlayer.Character.HumanoidRootPart
             local vel = hrp.AssemblyLinearVelocity
             local rot = hrp.AssemblyAngularVelocity
-            hrp.CFrame = hrp.CFrame - desyncOffset
+            hrp.CFrame = realCFrame
             hrp.AssemblyLinearVelocity = vel
             hrp.AssemblyAngularVelocity = rot
-            isDesynced = false
         end
     end)
 end)
+
 
 _G.FixCamera = false
 local fakeCamPart

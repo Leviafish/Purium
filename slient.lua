@@ -881,13 +881,13 @@ FinderSec:Input({ Title = "Target Username", Value = "", Callback = function(v)
     _G.PlayerToFind = v 
 end})
 
-FinderSec:Button({ Title = "Find Player & Join", Icon = "radar", Callback = function() 
+FinderSec:Button({ Title = "Find Player & Auto-Join", Icon = "radar", Callback = function() 
     if _G.PlayerToFind == "" then
         WindUI:Notify({Title = "Error", Content = "Please input a username!", Duration = 3})
         return
     end
     
-    WindUI:Notify({Title = "Searching", Content = "Scanning all servers... Please wait.", Duration = 3})
+    WindUI:Notify({Title = "Searching", Content = "Fast scanning all servers... Please wait.", Duration = 4})
     
     task.spawn(function()
         local HttpService = game:GetService("HttpService")
@@ -901,7 +901,7 @@ FinderSec:Button({ Title = "Find Player & Join", Icon = "radar", Callback = func
         end
         
         if Players:GetPlayerByUserId(targetId) then
-            WindUI:Notify({Title = "Found players", Content = "Player is in your current server!", Duration = 5})
+            WindUI:Notify({Title = "Found", Content = "Player is already in your current server!", Duration = 5})
             return
         end
         
@@ -910,18 +910,20 @@ FinderSec:Button({ Title = "Find Player & Join", Icon = "radar", Callback = func
             local res = game:HttpGet("https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds="..targetId.."&size=150x150&format=Png&isCircular=false")
             return HttpService:JSONDecode(res).data[1].imageUrl
         end)
+        
         if successImg and resultImg then 
             targetImageUrl = resultImg 
         else
-            WindUI:Notify({Title = "Error", Content = "Failed to fetch avatar.", Duration = 3})
+            WindUI:Notify({Title = "Error", Content = "Failed to fetch avatar data.", Duration = 3})
             return
         end
 
         local cursor = ""
         local foundServer = nil
+        local serverData = nil
         local attempts = 0
 
-        while cursor ~= nil and not foundServer and attempts < 50 do
+        while cursor ~= nil and not foundServer and attempts < 30 do
             attempts = attempts + 1
             local apiUrl = "https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"
             if cursor ~= "" then apiUrl = apiUrl .. "&cursor=" .. cursor end
@@ -930,9 +932,41 @@ FinderSec:Button({ Title = "Find Player & Join", Icon = "radar", Callback = func
             if successReq and res then
                 local data = HttpService:JSONDecode(res)
                 if data and data.data then
+                    local postData = {}
+                    local tokenToServer = {}
+                    
+                    local function flushBatch()
+                        if #postData == 0 then return end
+                        local successPost, resultPost = pcall(function()
+                            local reqFunc = request or http_request or (syn and syn.request) or (fluxus and fluxus.request)
+                            if reqFunc then
+                                local req = reqFunc({
+                                    Url = "https://thumbnails.roblox.com/v1/batch",
+                                    Method = "POST",
+                                    Headers = { ["Content-Type"] = "application/json", ["Accept"] = "application/json" },
+                                    Body = HttpService:JSONEncode(postData)
+                                })
+                                return HttpService:JSONDecode(req.Body)
+                            end
+                        end)
+                        if successPost and resultPost and resultPost.data then
+                            for _, avatar in pairs(resultPost.data) do
+                                if avatar.imageUrl == targetImageUrl then
+                                    local sData = tokenToServer[avatar.requestId]
+                                    if sData then
+                                        foundServer = sData.id
+                                        serverData = sData
+                                        break
+                                    end
+                                end
+                            end
+                        end
+                        postData = {}
+                        tokenToServer = {}
+                    end
+
                     for _, server in pairs(data.data) do
                         if server.playing and server.playerTokens and server.id ~= game.JobId then
-                            local postData = {}
                             for _, token in ipairs(server.playerTokens) do
                                 table.insert(postData, {
                                     requestId = token,
@@ -942,35 +976,21 @@ FinderSec:Button({ Title = "Find Player & Join", Icon = "radar", Callback = func
                                     format = "png",
                                     size = "150x150"
                                 })
-                            end
-                            
-                            local successPost, resultPost = pcall(function()
-                                local reqFunc = request or http_request or (syn and syn.request) or (fluxus and fluxus.request)
-                                if reqFunc then
-                                    local req = reqFunc({
-                                        Url = "https://thumbnails.roblox.com/v1/batch",
-                                        Method = "POST",
-                                        Headers = {
-                                            ["Content-Type"] = "application/json",
-                                            ["Accept"] = "application/json"
-                                        },
-                                        Body = HttpService:JSONEncode(postData)
-                                    })
-                                    return HttpService:JSONDecode(req.Body)
-                                end
-                            end)
-                            
-                            if successPost and resultPost and resultPost.data then
-                                for _, avatar in pairs(resultPost.data) do
-                                    if avatar.imageUrl == targetImageUrl then
-                                        foundServer = server.id
-                                        break
-                                    end
+                                tokenToServer[token] = { id = server.id, playing = server.playing, maxPlayers = server.maxPlayers }
+                                
+                                if #postData >= 100 then
+                                    flushBatch()
+                                    if foundServer then break end
                                 end
                             end
                         end
                         if foundServer then break end
                     end
+                    
+                    if not foundServer then
+                        flushBatch()
+                    end
+                    
                     cursor = data.nextPageCursor
                 else
                     break
@@ -980,15 +1000,39 @@ FinderSec:Button({ Title = "Find Player & Join", Icon = "radar", Callback = func
             end
         end
 
-        if foundServer then
-            WindUI:Notify({Title = "Success", Content = "Found players! Teleporting...", Duration = 5})
-            TeleportService:TeleportToPlaceInstance(game.PlaceId, foundServer, LocalPlayer)
+        if foundServer and serverData then
+            pcall(function() setclipboard(tostring(foundServer)) end)
+            
+            if serverData.playing >= serverData.maxPlayers then
+                WindUI:Notify({Title = "Server Full", Content = "Found player but server is full! JobId copied to clipboard.", Duration = 7})
+            else
+                WindUI:Notify({Title = "Success", Content = "Found player! JobId copied. Teleporting...", Duration = 5})
+                task.wait(1)
+                TeleportService:TeleportToPlaceInstance(game.PlaceId, foundServer, LocalPlayer)
+            end
         else
-            WindUI:Notify({Title = "Failed", Content = "this player is not current in place", Duration = 5})
+            WindUI:Notify({Title = "Not Found", Content = "This player is not currently in place.", Duration = 5})
         end
     end)
 end})
 
+FinderSec:Divider()
+
+_G.JobIdToJoin = ""
+FinderSec:Input({ Title = "Target JobId", Value = "", Callback = function(v) 
+    _G.JobIdToJoin = v 
+end})
+
+FinderSec:Button({ Title = "Join Server By JobId", Icon = "log-in", Callback = function() 
+    if _G.JobIdToJoin ~= "" then
+        WindUI:Notify({Title = "Teleporting", Content = "Joining server using provided JobId...", Duration = 3})
+        pcall(function() 
+            game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, _G.JobIdToJoin, LocalPlayer) 
+        end)
+    else
+        WindUI:Notify({Title = "Error", Content = "Please input a valid JobId first!", Duration = 3})
+    end
+end})
 
 local ThemeSection = SettingTab:Section({ Title = "Themes", Icon = "palette", Opened = true, Box = true })
 local validThemes = WindUI:GetThemes()

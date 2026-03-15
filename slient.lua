@@ -241,14 +241,14 @@ HitboxSec:Divider()
 local FlingSec = BypassTab:Section({ Title = "Physics Fling Exploit", Icon = "wind", Opened = true, Box = true })
 
 _G.FlingActive = false
-_G.FlingMode = "Touch Fling"
+_G.FlingMode = "Aura Fling"
 _G.FlingTarget = ""
 
-FlingSec:Toggle({ Title = "Enable Fling", Desc = "Use high velocity to fling players out of map", Value = false, Callback = function(v) 
+FlingSec:Toggle({ Title = "Enable Fling", Desc = "", Value = false, Callback = function(v) 
     _G.FlingActive = v 
 end})
 
-FlingSec:Dropdown({ Title = "Fling Mode", Values = {"Touch Fling", "Fling Target", "Fling All"}, Value = "Touch Fling", Callback = function(v) 
+FlingSec:Dropdown({ Title = "Fling Mode", Values = {"Touch Fling", "Fling Target", "Fling All"}, Value = "Aura Fling", Callback = function(v) 
     _G.FlingMode = v 
 end})
 
@@ -256,41 +256,65 @@ FlingSec:Input({ Title = "Target Username (For Target Mode)", Value = "", Callba
     _G.FlingTarget = v 
 end})
 
-RunService.Stepped:Connect(function()
+RunService.Heartbeat:Connect(function()
     pcall(function()
         if _G.FlingActive and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            LocalPlayer.Character.HumanoidRootPart.RotVelocity = Vector3.new(0, 50000, 0)
+            local myHrp = LocalPlayer.Character.HumanoidRootPart
+            
+            -- Vô hiệu hóa va chạm và khối lượng để không bao giờ bị văng ngược
+            for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
+                if part:IsA("BasePart") then 
+                    part.CanCollide = false 
+                    part.Massless = true 
+                end
+            end
+
+            -- Hàm tông vật lý không cần xoay
+            local function executeFling(targetHrp)
+                local oldPos = myHrp.CFrame
+                myHrp.CFrame = targetHrp.CFrame
+                myHrp.Velocity = Vector3.new(50000, 50000, 50000)
+                
+                -- Nếu dùng Aura Fling, trả nhân vật về vị trí cũ lập tức để đi lại bình thường
+                if _G.FlingMode == "Touch Fling" then
+                    task.wait()
+                    myHrp.CFrame = oldPos
+                    myHrp.Velocity = Vector3.new(0, 0, 0)
+                end
+            end
+
+            -- Các chế độ Fling
+            if _G.FlingMode == "Touch Fling" then
+                for _, p in ipairs(Players:GetPlayers()) do
+                    if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                        local tHrp = p.Character.HumanoidRootPart
+                        if (tHrp.Position - myHrp.Position).Magnitude < 10 then
+                            executeFling(tHrp)
+                        end
+                    end
+                end
+            elseif _G.FlingMode == "Fling Target" and _G.FlingTarget ~= "" then
+                for _, p in ipairs(Players:GetPlayers()) do
+                    if p ~= LocalPlayer and string.find(string.lower(p.Name), string.lower(_G.FlingTarget)) and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                        executeFling(p.Character.HumanoidRootPart)
+                        break
+                    end
+                end
+            elseif _G.FlingMode == "Fling All" then
+                local targets = {}
+                for _, p in ipairs(Players:GetPlayers()) do
+                    if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
+                        table.insert(targets, p.Character.HumanoidRootPart)
+                    end
+                end
+                if #targets > 0 then
+                    executeFling(targets[math.random(1, #targets)])
+                end
+            end
         end
     end)
 end)
 
-task.spawn(function()
-    while task.wait(0.1) do
-        pcall(function()
-            if _G.FlingActive and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                local hrp = LocalPlayer.Character.HumanoidRootPart
-                if _G.FlingMode == "Fling Target" and _G.FlingTarget ~= "" then
-                    for _, p in pairs(Players:GetPlayers()) do
-                        if p ~= LocalPlayer and string.find(string.lower(p.Name), string.lower(_G.FlingTarget)) and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                            hrp.CFrame = p.Character.HumanoidRootPart.CFrame
-                            break
-                        end
-                    end
-                elseif _G.FlingMode == "Fling All" then
-                    local targets = {}
-                    for _, p in pairs(Players:GetPlayers()) do
-                        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
-                            table.insert(targets, p.Character.HumanoidRootPart)
-                        end
-                    end
-                    if #targets > 0 then
-                        hrp.CFrame = targets[math.random(1, #targets)].CFrame
-                    end
-                end
-            end
-        end)
-    end
-end)
 local CombatSec = CombatTab:Section({ Title = "Attack Settings", Icon = "crosshair", Opened = true, Box = true })
 
 _G.AntiSlow = false
@@ -500,7 +524,7 @@ VisSec:Toggle({ Title = "Show Invisible Players", Desc = "Force hidden players t
                         for _, part in ipairs(p.Character:GetDescendants()) do
                             if (part:IsA("BasePart") or part:IsA("Decal")) then
                                 if part.Name ~= "HumanoidRootPart" and not string.find(string.lower(part.Name), "hitbox") then
-                                    if part.Transparency > 0 and part.Transparency < 1 then
+                                    if part.Transparency > 0 then
                                         if originalTrans[part] == nil then 
                                             originalTrans[part] = part.Transparency 
                                         end

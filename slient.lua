@@ -304,69 +304,40 @@ end)
 HitboxSec:Divider()
 
 _G.DesyncGodMode = false
-_G.FixCamera = false
 
 MoveSec:Divider()
 
-MoveSec:Toggle({ Title = "God Mode (Position Desync)", Desc = "Move your hitbox high into the sky to avoid getting hit", Value = false, Callback = function(v) 
+MoveSec:Toggle({ Title = "God Mode (Smart Desync)", Desc = "Avoid hits, move freely, perfect camera sync", Value = false, Callback = function(v) 
     _G.DesyncGodMode = v 
 end})
 
-local fakeCamPart
-MoveSec:Toggle({ Title = "Fix Camera (For God Mode)", Desc = "Prevents camera shaking by locking it to a fake part", Value = false, Callback = function(v) 
-    _G.FixCamera = v 
-    pcall(function()
-        if v then
-            if not fakeCamPart then
-                fakeCamPart = Instance.new("Part")
-                fakeCamPart.Transparency = 1
-                fakeCamPart.CanCollide = false
-                fakeCamPart.Anchored = true
-                fakeCamPart.Size = Vector3.new(1, 1, 1)
-                fakeCamPart.Parent = Workspace
-            end
-            Camera.CameraSubject = fakeCamPart
-        else
-            if fakeCamPart then
-                fakeCamPart:Destroy()
-                fakeCamPart = nil
-            end
-            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-                Camera.CameraSubject = LocalPlayer.Character.Humanoid
-            end
-        end
-    end)
-end})
+local isDesynced = false
+local desyncOffset = Vector3.new(0, 50000, 0)
 
-LocalPlayer.CharacterAdded:Connect(function()
-    if _G.FixCamera then
-        task.wait(1)
-        pcall(function()
-            if fakeCamPart then
-                Camera.CameraSubject = fakeCamPart
-            end
-        end)
-    end
-end)
-
-local savedCFrame
-RunService.Stepped:Connect(function()
+RunService.Heartbeat:Connect(function()
     pcall(function()
         if _G.DesyncGodMode and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
             local hrp = LocalPlayer.Character.HumanoidRootPart
-            savedCFrame = hrp.CFrame
-            hrp.CFrame = savedCFrame + Vector3.new(0, 50000, 0)
+            local vel = hrp.AssemblyLinearVelocity
+            local rot = hrp.AssemblyAngularVelocity
+            hrp.CFrame = hrp.CFrame + desyncOffset
+            hrp.AssemblyLinearVelocity = vel
+            hrp.AssemblyAngularVelocity = rot
+            isDesynced = true
         end
     end)
 end)
 
 RunService.RenderStepped:Connect(function()
     pcall(function()
-        if _G.DesyncGodMode and savedCFrame and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            LocalPlayer.Character.HumanoidRootPart.CFrame = savedCFrame
-        end
-        if _G.FixCamera and fakeCamPart and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            fakeCamPart.Position = LocalPlayer.Character.HumanoidRootPart.Position
+        if isDesynced and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local hrp = LocalPlayer.Character.HumanoidRootPart
+            local vel = hrp.AssemblyLinearVelocity
+            local rot = hrp.AssemblyAngularVelocity
+            hrp.CFrame = hrp.CFrame - desyncOffset
+            hrp.AssemblyLinearVelocity = vel
+            hrp.AssemblyAngularVelocity = rot
+            isDesynced = false
         end
     end)
 end)

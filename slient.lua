@@ -380,34 +380,6 @@ RunService.Heartbeat:Connect(function()
     end)
 end)
 
-FlingSec:Divider()
-
-local MapSec = BypassTab:Section({ Title = "Map Bypasses", Icon = "map", Opened = true, Box = true })
-
-_G.RemoveZone = false
--- Danh sách tóm gọn mọi loại tên mà Admin có thể đặt cho vòng bo
-local zoneKeywords = {"zone", "infection", "gas", "storm", "radiation", "circle", "damage", "ring", "boundary"}
-
-MapSec:Toggle({ Title = "Remove Map Zone", Desc = "Automatically deletes the shrinking damage zone", Value = false, Callback = function(v) 
-    _G.RemoveZone = v 
-end})
-
-RunService.Heartbeat:Connect(function()
-    pcall(function()
-        if _G.RemoveZone then
-            for _, v in ipairs(Workspace:GetChildren()) do
-                local name = string.lower(v.Name)
-                for _, keyword in ipairs(zoneKeywords) do
-                    if string.find(name, keyword) then
-                        v:Destroy()
-                        break
-                    end
-                end
-            end
-        end
-    end)
-end)
-
 local CombatSec = CombatTab:Section({ Title = "Attack Settings", Icon = "crosshair", Opened = true, Box = true })
 
 _G.AntiSlow = false
@@ -424,9 +396,12 @@ end})
 
 CombatSec:Divider()
 
-_G.AutoDodge = false
-CombatSec:Toggle({ Title = "Auto Dodge", Desc = "Automatically step back if an armed enemy gets too close", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Auto Dodge (Smart)", Desc = "Dodge backwards ONLY when enemy actually attacks", Value = false, Callback = function(v) 
     _G.AutoDodge = v 
+end})
+
+CombatSec:Slider({ Title = "Dodge Trigger Distance", Value = {Min = 5, Max = 30, Default = 10}, Callback = function(v) 
+    _G.DodgeRange = v 
 end})
 
 local function getNearestTarget()
@@ -455,18 +430,32 @@ local lastDodge = 0
 RunService.Heartbeat:Connect(function()
     pcall(function()
         if _G.AutoDodge and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            if tick() - lastDodge > 0.5 then
+            if tick() - lastDodge > 0.8 then
                 local myHrp = LocalPlayer.Character.HumanoidRootPart
                 local target = getNearestTarget()
                 if target and target:FindFirstChild("HumanoidRootPart") and target:FindFirstChildOfClass("Tool") then
                     local tHrp = target.HumanoidRootPart
                     local dist = (tHrp.Position - myHrp.Position).Magnitude
-                    if dist < 12 then
-                        local dodgeDir = (myHrp.Position - tHrp.Position).Unit
-                        dodgeDir = Vector3.new(dodgeDir.X, 0, dodgeDir.Z).Unit
-                        if dodgeDir.X ~= dodgeDir.X then dodgeDir = Vector3.new(0, 0, 1) end
-                        myHrp.CFrame = myHrp.CFrame + (dodgeDir * 8)
-                        lastDodge = tick()
+                    if dist <= _G.DodgeRange then
+                        local targetHum = target:FindFirstChild("Humanoid")
+                        local isAttacking = false
+                        if targetHum then
+                            local animator = targetHum:FindFirstChildOfClass("Animator") or targetHum
+                            for _, anim in ipairs(animator:GetPlayingAnimationTracks()) do
+                                local prio = anim.Priority
+                                if prio == Enum.AnimationPriority.Action or prio == Enum.AnimationPriority.Action2 or prio == Enum.AnimationPriority.Action3 or prio == Enum.AnimationPriority.Action4 then
+                                    isAttacking = true
+                                    break
+                                end
+                            end
+                        end
+                        if isAttacking then
+                            local dodgeDir = (myHrp.Position - tHrp.Position).Unit
+                            dodgeDir = Vector3.new(dodgeDir.X, 0, dodgeDir.Z).Unit
+                            if dodgeDir.X ~= dodgeDir.X then dodgeDir = Vector3.new(0, 0, 1) end
+                            myHrp.CFrame = myHrp.CFrame + (dodgeDir * 12)
+                            lastDodge = tick()
+                        end
                     end
                 end
             end

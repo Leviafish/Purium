@@ -918,7 +918,7 @@ FinderSec:Button({ Title = "Check Player Status", Icon = "info", Callback = func
         
         local successReq, res = pcall(function()
             return reqFunc({
-                Url = "https://presence.roblox.com/v1/presence/users",
+                Url = "https://presence.roproxy.com/v1/presence/users",
                 Method = "POST",
                 Headers = { ["Content-Type"] = "application/json", ["Accept"] = "application/json" },
                 Body = HttpService:JSONEncode({ userIds = { targetId } })
@@ -946,7 +946,7 @@ FinderSec:Button({ Title = "Check Player Status", Icon = "info", Callback = func
                 StatusParagraph:Set({Title = "Error", Desc = "Failed to parse presence data."})
             end
         else
-            StatusParagraph:Set({Title = "Error", Desc = "API request failed."})
+            StatusParagraph:Set({Title = "Error", Desc = "Proxy API request failed. Try again later."})
         end
     end)
 end})
@@ -1006,7 +1006,7 @@ FinderSec:Button({ Title = "Find Player & Auto-Join", Icon = "radar", Callback =
                 WindUI:Notify({Title = "Error", Content = "Please input a Game Name!", Duration = 3})
                 return
             end
-            local successReq, reqRes = pcall(function() return game:HttpGet("https://games.roblox.com/v1/games/list?model.keyword=" .. HttpService:UrlEncode(_G.GameInfoInput) .. "&model.maxRows=10") end)
+            local successReq, reqRes = pcall(function() return game:HttpGet("https://games.roproxy.com/v1/games/list?model.keyword=" .. HttpService:UrlEncode(_G.GameInfoInput) .. "&model.maxRows=10") end)
             if successReq and reqRes then
                 local data = HttpService:JSONDecode(reqRes)
                 if data and data.games and #data.games > 0 then
@@ -1019,14 +1019,14 @@ FinderSec:Button({ Title = "Find Player & Auto-Join", Icon = "radar", Callback =
                     return
                 end
             else
-                WindUI:Notify({Title = "Error", Content = "API blocked by executor. Use Game ID mode.", Duration = 3})
+                WindUI:Notify({Title = "Error", Content = "API request failed. Try Game ID mode.", Duration = 3})
                 return
             end
         end
         
         local targetImageUrl = ""
         local successImg, resultImg = pcall(function()
-            local res = game:HttpGet("https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds="..targetId.."&size=150x150&format=Png&isCircular=false")
+            local res = game:HttpGet("https://thumbnails.roproxy.com/v1/users/avatar-headshot?userIds="..targetId.."&size=150x150&format=Png&isCircular=false")
             return HttpService:JSONDecode(res).data[1].imageUrl
         end)
         
@@ -1048,7 +1048,7 @@ FinderSec:Button({ Title = "Find Player & Auto-Join", Icon = "radar", Callback =
             
             while cursor ~= nil and not foundServer and attempts < 100 do
                 attempts = attempts + 1
-                local apiUrl = "https://games.roblox.com/v1/games/"..scanPlaceId.."/servers/Public?sortOrder=Asc&limit=100"
+                local apiUrl = "https://games.roproxy.com/v1/games/"..scanPlaceId.."/servers/Public?sortOrder=Asc&limit=100"
                 if cursor ~= "" then apiUrl = apiUrl .. "&cursor=" .. cursor end
                 
                 local successReq, res = pcall(function() return game:HttpGet(apiUrl) end)
@@ -1084,7 +1084,7 @@ FinderSec:Button({ Title = "Find Player & Auto-Join", Icon = "radar", Callback =
                                 local reqFunc = request or http_request or (syn and syn.request) or (fluxus and fluxus.request)
                                 if reqFunc then
                                     local req = reqFunc({
-                                        Url = "https://thumbnails.roblox.com/v1/batch",
+                                        Url = "https://thumbnails.roproxy.com/v1/batch",
                                         Method = "POST",
                                         Headers = { ["Content-Type"] = "application/json", ["Accept"] = "application/json" },
                                         Body = HttpService:JSONEncode(postData)

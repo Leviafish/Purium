@@ -499,7 +499,7 @@ end})
 CombatSec:Divider()
 
 _G.AttackDelay = 0
-CombatSec:Slider({ Title = "Attack Delay (Seconds)", Desc = "0 is instant frame spam, 10 is slow", Value = {Min = 0, Max = 10, Default = 0}, Callback = function(v) 
+CombatSec:Slider({ Title = "Attack Delay (Seconds)", Desc = "0 triggers INSANE multi-thread spam to bypass Delay", Value = {Min = 0, Max = 10, Default = 0}, Callback = function(v) 
     _G.AttackDelay = v 
 end})
 
@@ -511,12 +511,14 @@ local function getNearestTarget()
     local char = LocalPlayer.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") then return nil end
     
+    local myPos = (_G.DesyncGodMode and _G.LastSafeCFrame) and _G.LastSafeCFrame.Position or char.HumanoidRootPart.Position
+    
     for _, p in ipairs(Players:GetPlayers()) do
         if p ~= LocalPlayer and p.Character then
             local hrp = p.Character:FindFirstChild("HumanoidRootPart")
             local hum = p.Character:FindFirstChild("Humanoid")
             if hrp and hum and hum.Health > 0 then
-                local dist = (hrp.Position - char.HumanoidRootPart.Position).Magnitude
+                local dist = (hrp.Position - myPos).Magnitude
                 if dist < minDist then
                     minDist = dist
                     nearest = p.Character
@@ -544,11 +546,14 @@ local function AttemptWeaponHit(TargetChar)
             end
         end
         
+        _G.LastAttackTime = tick()
+        
         local isSlow = _G.AntiSlow and false or true
         local slowMul = _G.AntiSlow and 1 or 0.2
         local slowTim = _G.AntiSlow and 0 or 1.5
         
-        local direction = (TargetChar.HumanoidRootPart.Position - Char.HumanoidRootPart.Position).Unit
+        local myPos = (_G.DesyncGodMode and _G.LastSafeCFrame) and _G.LastSafeCFrame.Position or Char.HumanoidRootPart.Position
+        local direction = (TargetChar.HumanoidRootPart.Position - myPos).Unit
         if direction.X ~= direction.X then direction = Vector3.new(0, 0, 1) end 
         
         local Args = {
@@ -570,7 +575,7 @@ local function AttemptWeaponHit(TargetChar)
                 },
                 tool = MyTool, slowTime = slowTim
             },
-            {{ knockback = 50, isClosestEnemy = true, origin = Char.HumanoidRootPart.Position, enemyModel = TargetChar, distance = 5, direction = direction }}
+            {{ knockback = 50, isClosestEnemy = true, origin = myPos, enemyModel = TargetChar, distance = 5, direction = direction }}
         }
         
         task.spawn(function()
@@ -580,87 +585,108 @@ local function AttemptWeaponHit(TargetChar)
 end
 
 _G.KillAll = false
-CombatSec:Toggle({ Title = "Kill All Players", Desc = "Attack everyone everywhere", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Kill All Players", Desc = "Extreme multi-thread spam, ignores low FPS", Value = false, Callback = function(v) 
     _G.KillAll = v 
-end})
-
-local lastKillAll = 0
-RunService.Heartbeat:Connect(function()
-    pcall(function()
-        if _G.KillAll and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            if tick() - lastKillAll >= _G.AttackDelay then
-                local attacked = false
-                for _, p in ipairs(Players:GetPlayers()) do
-                    if p ~= LocalPlayer and p.Character then
-                        local hrp = p.Character:FindFirstChild("HumanoidRootPart")
-                        local hum = p.Character:FindFirstChild("Humanoid")
-                        if hrp and hum and hum.Health > 0 then
-                            AttemptWeaponHit(p.Character)
-                            attacked = true
+    if v then
+        task.spawn(function()
+            while _G.KillAll do
+                pcall(function()
+                    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                        local loopCount = _G.AttackDelay <= 0 and 5 or 1
+                        for _ = 1, loopCount do
+                            for _, p in ipairs(Players:GetPlayers()) do
+                                if p ~= LocalPlayer and p.Character then
+                                    local hrp = p.Character:FindFirstChild("HumanoidRootPart")
+                                    local hum = p.Character:FindFirstChild("Humanoid")
+                                    if hrp and hum and hum.Health > 0 then
+                                        task.spawn(AttemptWeaponHit, p.Character)
+                                    end
+                                end
+                            end
                         end
                     end
-                end
-                if attacked then lastKillAll = tick() end
+                end)
+                task.wait(math.max(_G.AttackDelay, 0.01))
             end
-        end
-    end)
-end)
+        end)
+    end
+end})
 
 CombatSec:Divider()
 
 _G.AutoHit = false
 _G.HitRange = 15
-CombatSec:Toggle({ Title = "Auto Hit By Distance", Desc = "Automatically attack enemies in the range hit", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Auto Hit By Distance", Desc = "Automatically attack enemies near you", Value = false, Callback = function(v) 
     _G.AutoHit = v 
+    if v then
+        task.spawn(function()
+            while _G.AutoHit do
+                pcall(function()
+                    if not _G.KillAll and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                        local loopCount = _G.AttackDelay <= 0 and 5 or 1
+                        for _ = 1, loopCount do
+                            local target = getNearestTarget()
+                            if target and target:FindFirstChild("HumanoidRootPart") then
+                                local myPos = (_G.DesyncGodMode and _G.LastSafeCFrame) and _G.LastSafeCFrame.Position or LocalPlayer.Character.HumanoidRootPart.Position
+                                local dist = (target.HumanoidRootPart.Position - myPos).Magnitude
+                                if dist <= _G.HitRange then 
+                                    task.spawn(AttemptWeaponHit, target)
+                                end
+                            end
+                        end
+                    end
+                end)
+                task.wait(math.max(_G.AttackDelay, 0.01))
+            end
+        end)
+    end
 end})
 
 CombatSec:Slider({ Title = "Auto Hit Range", Value = {Min = 5, Max = 100, Default = 15}, Callback = function(v) 
     _G.HitRange = v 
 end})
 
-local lastAutoHit = 0
-RunService.Heartbeat:Connect(function()
-    pcall(function()
-        if _G.AutoHit and not _G.KillAll and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            if tick() - lastAutoHit >= _G.AttackDelay then
-                local target = getNearestTarget()
-                if target and target:FindFirstChild("HumanoidRootPart") then
-                    local dist = (target.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-                    if dist <= _G.HitRange then 
-                        AttemptWeaponHit(target) 
-                        lastAutoHit = tick()
-                    end
-                end
-            end
-        end
-    end)
-end)
-
 CombatSec:Divider()
 
 _G.AutoFarm = false
-CombatSec:Toggle({ Title = "Auto Farm", Desc = "Teleport above random players and eliminate them", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Auto Farm", Desc = "Teleport behind targets and eliminate them", Value = false, Callback = function(v) 
     _G.AutoFarm = v 
-end})
-
-task.spawn(function()
-    while task.wait() do
-        pcall(function()
-            if _G.AutoFarm and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                local target = getNearestTarget()
-                if target and target:FindFirstChild("HumanoidRootPart") then
-                    local hrp = LocalPlayer.Character.HumanoidRootPart
-                    local tHrp = target.HumanoidRootPart
-                    hrp.CFrame = tHrp.CFrame * CFrame.new(0, 0, 3)
-                    AttemptWeaponHit(target) 
-                    hrp.CFrame = tHrp.CFrame * CFrame.new(0, 25, 0)
-                    hrp.Velocity = Vector3.new(0, 0, 0)
-                    task.wait(math.max(_G.AttackDelay, 0.1))
-                end
+    if v then
+        task.spawn(function()
+            while _G.AutoFarm do
+                pcall(function()
+                    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                        local target = getNearestTarget()
+                        if target and target:FindFirstChild("HumanoidRootPart") then
+                            local hrp = LocalPlayer.Character.HumanoidRootPart
+                            local tHrp = target.HumanoidRootPart
+                            
+                            if _G.DesyncGodMode and _G.LastSafeCFrame then
+                                _G.LastSafeCFrame = tHrp.CFrame * CFrame.new(0, 0, 3)
+                            else
+                                hrp.CFrame = tHrp.CFrame * CFrame.new(0, 0, 3)
+                            end
+                            
+                            local loopCount = _G.AttackDelay <= 0 and 5 or 1
+                            for _ = 1, loopCount do
+                                task.spawn(AttemptWeaponHit, target)
+                            end
+                            
+                            if _G.DesyncGodMode and _G.LastSafeCFrame then
+                                _G.LastSafeCFrame = tHrp.CFrame * CFrame.new(0, 25, 0)
+                            else
+                                hrp.CFrame = tHrp.CFrame * CFrame.new(0, 25, 0)
+                            end
+                            
+                            hrp.Velocity = Vector3.new(0, 0, 0)
+                        end
+                    end
+                end)
+                task.wait(math.max(_G.AttackDelay, 0.05))
             end
         end)
     end
-end)
+end})
 
 local AimSec = CombatTab:Section({ Title = "Aimbot Configuration", Icon = "crosshair", Opened = true, Box = true })
 _G.AimbotMode = "None"
@@ -679,7 +705,11 @@ RunService.RenderStepped:Connect(function()
                     Camera.CFrame = CFrame.lookAt(Camera.CFrame.Position, tPos)
                 end
                 if _G.AimbotMode == "Character" or _G.AimbotMode == "Camera & Character" then
-                    myHrp.CFrame = CFrame.lookAt(myHrp.Position, Vector3.new(tPos.X, myHrp.Position.Y, tPos.Z))
+                    if _G.DesyncGodMode and _G.LastSafeCFrame then
+                        _G.LastSafeCFrame = CFrame.lookAt(_G.LastSafeCFrame.Position, Vector3.new(tPos.X, _G.LastSafeCFrame.Position.Y, tPos.Z))
+                    else
+                        myHrp.CFrame = CFrame.lookAt(myHrp.Position, Vector3.new(tPos.X, myHrp.Position.Y, tPos.Z))
+                    end
                 end
             end
         end

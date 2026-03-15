@@ -304,42 +304,45 @@ end)
 HitboxSec:Divider()
 
 _G.DesyncGodMode = false
+_G.LastSafeCFrame = nil
 
 MoveSec:Divider()
 
-MoveSec:Toggle({ Title = "God Mode (Perfect Desync)", Desc = "Invincible + Smooth Camera + Walk freely", Value = false, Callback = function(v) 
+MoveSec:Toggle({ Title = "God Mode (Ultimate Desync)", Desc = "Perfect movement, invincible, no camera lag", Value = false, Callback = function(v) 
     _G.DesyncGodMode = v 
     pcall(function()
-        if v then
-            if not Workspace:FindFirstChild("PuriumCamPart") then
-                local fakeCamPart = Instance.new("Part")
-                fakeCamPart.Name = "PuriumCamPart"
-                fakeCamPart.Transparency = 1
-                fakeCamPart.CanCollide = false
-                fakeCamPart.Anchored = true
-                fakeCamPart.Size = Vector3.new(1, 1, 1)
-                fakeCamPart.Parent = Workspace
-            end
-            Camera.CameraSubject = Workspace:FindFirstChild("PuriumCamPart")
-        else
+        if not v then
             local cp = Workspace:FindFirstChild("PuriumCamPart")
             if cp then cp:Destroy() end
             if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
                 Camera.CameraSubject = LocalPlayer.Character.Humanoid
             end
+            _G.LastSafeCFrame = nil
         end
     end)
 end})
 
-local groundCFrame = nil
+local function getFakeCamPart()
+    local cp = Workspace:FindFirstChild("PuriumCamPart")
+    if not cp then
+        cp = Instance.new("Part")
+        cp.Name = "PuriumCamPart"
+        cp.Transparency = 1
+        cp.CanCollide = false
+        cp.Anchored = true
+        cp.Massless = true
+        cp.Size = Vector3.new(1, 1, 1)
+        cp.Parent = Workspace
+    end
+    return cp
+end
 
 RunService.Stepped:Connect(function()
     pcall(function()
         if _G.DesyncGodMode and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            groundCFrame = LocalPlayer.Character.HumanoidRootPart.CFrame
-            local cp = Workspace:FindFirstChild("PuriumCamPart")
-            if cp then
-                cp.CFrame = groundCFrame
+            local hrp = LocalPlayer.Character.HumanoidRootPart
+            if _G.LastSafeCFrame then
+                hrp.CFrame = _G.LastSafeCFrame
             end
         end
     end)
@@ -347,30 +350,41 @@ end)
 
 RunService.Heartbeat:Connect(function()
     pcall(function()
-        if _G.DesyncGodMode and groundCFrame and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            LocalPlayer.Character.HumanoidRootPart.CFrame = groundCFrame + Vector3.new(0, 50000, 0)
+        if _G.DesyncGodMode and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local hrp = LocalPlayer.Character.HumanoidRootPart
+            local currentPos = hrp.CFrame
+            
+            _G.LastSafeCFrame = currentPos
+            
+            local vel = hrp.AssemblyLinearVelocity
+            local rot = hrp.AssemblyAngularVelocity
+            
+            hrp.CFrame = _G.LastSafeCFrame + Vector3.new(0, 50000, 0)
+            hrp.AssemblyLinearVelocity = vel
+            hrp.AssemblyAngularVelocity = rot
         end
     end)
 end)
 
 RunService.RenderStepped:Connect(function()
     pcall(function()
-        if _G.DesyncGodMode and groundCFrame and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            LocalPlayer.Character.HumanoidRootPart.CFrame = groundCFrame
+        if _G.DesyncGodMode and _G.LastSafeCFrame and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local hrp = LocalPlayer.Character.HumanoidRootPart
+            local cp = getFakeCamPart()
+            
+            cp.CFrame = _G.LastSafeCFrame
+            hrp.CFrame = _G.LastSafeCFrame
+            Camera.CameraSubject = cp
         end
     end)
 end)
 
 LocalPlayer.CharacterAdded:Connect(function()
-    if _G.DesyncGodMode then
-        task.wait(1)
-        pcall(function()
-            local cp = Workspace:FindFirstChild("PuriumCamPart")
-            if cp then
-                Camera.CameraSubject = cp
-            end
-        end)
-    end
+    _G.LastSafeCFrame = nil
+    pcall(function()
+        local cp = Workspace:FindFirstChild("PuriumCamPart")
+        if cp then cp:Destroy() end
+    end)
 end)
 
 HitboxSec:Divider()

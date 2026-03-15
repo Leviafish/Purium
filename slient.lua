@@ -380,6 +380,34 @@ RunService.Heartbeat:Connect(function()
     end)
 end)
 
+FlingSec:Divider()
+
+local MapSec = BypassTab:Section({ Title = "Map Bypasses", Icon = "map", Opened = true, Box = true })
+
+_G.RemoveZone = false
+-- Danh sách tóm gọn mọi loại tên mà Admin có thể đặt cho vòng bo
+local zoneKeywords = {"zone", "infection", "gas", "storm", "radiation", "circle", "damage", "ring", "boundary"}
+
+MapSec:Toggle({ Title = "Remove Map Zone", Desc = "Automatically deletes the shrinking damage zone", Value = false, Callback = function(v) 
+    _G.RemoveZone = v 
+end})
+
+RunService.Heartbeat:Connect(function()
+    pcall(function()
+        if _G.RemoveZone then
+            for _, v in ipairs(Workspace:GetChildren()) do
+                local name = string.lower(v.Name)
+                for _, keyword in ipairs(zoneKeywords) do
+                    if string.find(name, keyword) then
+                        v:Destroy()
+                        break
+                    end
+                end
+            end
+        end
+    end)
+end)
+
 local CombatSec = CombatTab:Section({ Title = "Attack Settings", Icon = "crosshair", Opened = true, Box = true })
 
 _G.AntiSlow = false

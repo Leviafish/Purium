@@ -890,7 +890,7 @@ local StatusParagraph = FinderSec:Paragraph({
 
 FinderSec:Button({ Title = "Check Player Status", Icon = "info", Callback = function()
     if _G.PlayerToFind == "" then
-        StatusParagraph:Set({Title = "Error", Desc = "Please input a username!"})
+        pcall(function() StatusParagraph:Set({Title = "Error", Desc = "Please input a username!", Content = "Please input a username!", Text = "Please input a username!"}) end)
         return
     end
     
@@ -899,20 +899,20 @@ FinderSec:Button({ Title = "Check Player Status", Icon = "info", Callback = func
     if not extractedName then extractedName = targetUser end
     extractedName = string.gsub(extractedName, "%s+", "")
     
-    StatusParagraph:Set({Title = "Checking...", Desc = "Fetching data for " .. extractedName})
+    pcall(function() StatusParagraph:Set({Title = "Checking...", Desc = "Fetching data for " .. extractedName, Content = "Fetching data for " .. extractedName}) end)
     
     task.spawn(function()
         local HttpService = game:GetService("HttpService")
         local successId, targetId = pcall(function() return Players:GetUserIdFromNameAsync(extractedName) end)
         
         if not successId or not targetId then
-            StatusParagraph:Set({Title = "Error", Desc = "Invalid username: " .. extractedName})
+            pcall(function() StatusParagraph:Set({Title = "Error", Desc = "Invalid username: " .. extractedName, Content = "Invalid username: " .. extractedName}) end)
             return
         end
         
         local reqFunc = request or http_request or (syn and syn.request) or (fluxus and fluxus.request)
         if not reqFunc then
-            StatusParagraph:Set({Title = "Error", Desc = "Executor does not support HTTP requests."})
+            pcall(function() StatusParagraph:Set({Title = "Error", Desc = "Executor does not support HTTP requests.", Content = "Executor does not support HTTP requests."}) end)
             return
         end
         
@@ -941,19 +941,19 @@ FinderSec:Button({ Title = "Check Player Status", Icon = "info", Callback = func
                 elseif pType == 3 then statusMsg = "In Studio"
                 else statusMsg = "Unknown Status" end
                 
-                StatusParagraph:Set({Title = "Target: " .. extractedName, Desc = "Status: " .. statusMsg})
+                pcall(function() StatusParagraph:Set({Title = "Target: " .. extractedName, Desc = "Status: " .. statusMsg, Content = "Status: " .. statusMsg}) end)
             else
-                StatusParagraph:Set({Title = "Error", Desc = "Failed to parse presence data."})
+                pcall(function() StatusParagraph:Set({Title = "Error", Desc = "Failed to parse presence data.", Content = "Failed to parse presence data."}) end)
             end
         else
-            StatusParagraph:Set({Title = "Error", Desc = "Proxy API request failed. Try again later."})
+            pcall(function() StatusParagraph:Set({Title = "Error", Desc = "Proxy API request failed.", Content = "Proxy API request failed."}) end)
         end
     end)
 end})
 
 FinderSec:Divider()
 
-local FriendDropdown = FinderSec:Dropdown({ Title = "Friend List", Values = {"None"}, Value = "None", Callback = function(v) 
+local FriendDropdown = FinderSec:Dropdown({ Title = "Online Friend List", Values = {"None"}, Value = "None", Callback = function(v) 
     if v ~= "None" then
         _G.PlayerToFind = v
         pcall(function() TargetInput:Set(v) end)
@@ -961,7 +961,7 @@ local FriendDropdown = FinderSec:Dropdown({ Title = "Friend List", Values = {"No
     end
 end})
 
-FinderSec:Button({ Title = "Fetch Friend List", Icon = "users", Callback = function()
+FinderSec:Button({ Title = "Fetch ONLINE Friends Only", Icon = "users", Callback = function()
     if _G.PlayerToFind == "" then
         WindUI:Notify({Title = "Error", Content = "Input a username to fetch friends from!", Duration = 3})
         return
@@ -972,7 +972,7 @@ FinderSec:Button({ Title = "Fetch Friend List", Icon = "users", Callback = funct
     if not extractedName then extractedName = targetUser end
     extractedName = string.gsub(extractedName, "%s+", "")
     
-    WindUI:Notify({Title = "Fetching", Content = "Extracting friends for " .. extractedName .. "...", Duration = 3})
+    WindUI:Notify({Title = "Fetching", Content = "Extracting friends... This may take a few seconds.", Duration = 4})
     
     task.spawn(function()
         local HttpService = game:GetService("HttpService")
@@ -988,19 +988,57 @@ FinderSec:Button({ Title = "Fetch Friend List", Icon = "users", Callback = funct
         
         if successReq and res then
             local data = HttpService:JSONDecode(res)
-            if data and data.data then
-                local fList = {}
+            if data and data.data and #data.data > 0 then
+                local friendIds = {}
+                local idToName = {}
+                
                 for _, friend in ipairs(data.data) do
-                    table.insert(fList, friend.name)
+                    table.insert(friendIds, friend.id)
+                    idToName[tostring(friend.id)] = friend.name
                 end
-                if #fList > 0 then
-                    pcall(function() FriendDropdown:Refresh(fList) end)
-                    WindUI:Notify({Title = "Success", Content = "Loaded " .. #fList .. " friends!", Duration = 3})
+                
+                local onlineFriends = {}
+                local reqFunc = request or http_request or (syn and syn.request) or (fluxus and fluxus.request)
+                
+                if reqFunc then
+                    for i = 1, #friendIds, 100 do
+                        local chunk = {}
+                        for j = i, math.min(i + 99, #friendIds) do
+                            table.insert(chunk, friendIds[j])
+                        end
+                        
+                        local successPres, presRes = pcall(function()
+                            return reqFunc({
+                                Url = "https://presence.roproxy.com/v1/presence/users",
+                                Method = "POST",
+                                Headers = { ["Content-Type"] = "application/json", ["Accept"] = "application/json" },
+                                Body = HttpService:JSONEncode({ userIds = chunk })
+                            })
+                        end)
+                        
+                        if successPres and presRes and presRes.Body then
+                            local pData = HttpService:JSONDecode(presRes.Body)
+                            if pData and pData.userPresences then
+                                for _, p in ipairs(pData.userPresences) do
+                                    if p.userPresenceType > 0 then
+                                        local fName = idToName[tostring(p.userId)]
+                                        if fName then table.insert(onlineFriends, fName) end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+                
+                if #onlineFriends > 0 then
+                    pcall(function() FriendDropdown:Refresh(onlineFriends) end)
+                    WindUI:Notify({Title = "Success", Content = "Found " .. #onlineFriends .. " online friends!", Duration = 4})
                 else
-                    WindUI:Notify({Title = "Info", Content = "This user has no friends.", Duration = 3})
+                    pcall(function() FriendDropdown:Refresh({"None"}) end)
+                    WindUI:Notify({Title = "Info", Content = "This user has no friends online right now.", Duration = 4})
                 end
             else
-                WindUI:Notify({Title = "Error", Content = "Failed to parse friend list.", Duration = 3})
+                WindUI:Notify({Title = "Info", Content = "This user has no friends.", Duration = 3})
             end
         else
             WindUI:Notify({Title = "Error", Content = "Failed to fetch friend API.", Duration = 3})
@@ -1214,6 +1252,7 @@ FinderSec:Button({ Title = "Join Server By JobId", Icon = "log-in", Callback = f
         WindUI:Notify({Title = "Error", Content = "Please input a valid JobId first!", Duration = 3})
     end
 end})
+
 
 local ThemeSection = SettingTab:Section({ Title = "Themes", Icon = "palette", Opened = true, Box = true })
 local validThemes = WindUI:GetThemes()

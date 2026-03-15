@@ -306,7 +306,7 @@ HitboxSec:Divider()
 _G.DesyncGodMode = false
 _G.LastSafeCFrame = nil
 
-MoveSec:Toggle({ Title = "God Mode (Ultimate Desync)", Desc = "Perfect movement, teleport fix, auto-resync on hit", Value = false, Callback = function(v) 
+MoveSec:Toggle({ Title = "God Mode", Desc = "Might Working", Value = false, Callback = function(v) 
     _G.DesyncGodMode = v 
     pcall(function()
         if not v then
@@ -361,7 +361,7 @@ RunService.Heartbeat:Connect(function()
             
             _G.LastSafeCFrame = hrp.CFrame
             
-            if tick() - _G.LastAttackTime > 0.2 then
+            if tick() - _G.LastAttackTime > 0.05 then
                 local vel = hrp.AssemblyLinearVelocity
                 local rot = hrp.AssemblyAngularVelocity
                 hrp.CFrame = _G.LastSafeCFrame + Vector3.new(0, 50000, 0)

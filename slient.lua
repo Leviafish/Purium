@@ -876,92 +876,35 @@ refreshPlayers()
 
 local FinderSec = PlayerTab:Section({ Title = "Blox Finder (Server Sniper)", Icon = "search", Opened = true, Box = true })
 
-_G.PlayerToFind = ""
-local TargetInput = FinderSec:Input({ Title = "Target Username (e.g. Name @user)", Value = "", Callback = function(v) 
-    _G.PlayerToFind = v 
-end})
-
-local StatusParagraph = nil
-local function UpdateStatus(titleTxt, descTxt)
-    pcall(function()
-        if StatusParagraph then
-            StatusParagraph:Destroy()
-        end
-    end)
-    StatusParagraph = FinderSec:Paragraph({
-        Title = titleTxt, 
-        Desc = descTxt,
-        Image = "user", 
-        ImageSize = 20
-    })
-end
-
-UpdateStatus("Player Status: Waiting...", "Input a username and click check.")
-
-FinderSec:Button({ Title = "Check Player Status", Icon = "info", Callback = function()
-    if _G.PlayerToFind == "" then
-        UpdateStatus("Error", "Please input a username!")
-        return
-    end
+-- [THUẬT TOÁN VƯỢT TƯỜNG LỬA API TỰ ĐỘNG]
+local function ProxiedFetch(subdomain, path, method, body)
+    local HttpService = game:GetService("HttpService")
+    local reqFunc = request or http_request or (syn and syn.request) or (fluxus and fluxus.request)
+    local domains = { "roproxy.com", "roblox.com" }
     
-    local targetUser = _G.PlayerToFind
-    local extractedName = string.match(targetUser, "@([%w_]+)")
-    if not extractedName then extractedName = targetUser end
-    extractedName = string.gsub(extractedName, "%s+", "")
-    
-    UpdateStatus("Checking...", "Fetching data for " .. extractedName)
-    
-    task.spawn(function()
-        local HttpService = game:GetService("HttpService")
-        local successId, targetId = pcall(function() return Players:GetUserIdFromNameAsync(extractedName) end)
-        
-        if not successId or not targetId then
-            UpdateStatus("Error", "Invalid username: " .. extractedName)
-            return
-        end
-        
-        local reqFunc = request or http_request or (syn and syn.request) or (fluxus and fluxus.request)
-        if not reqFunc then
-            UpdateStatus("Error", "Executor does not support HTTP requests.")
-            return
-        end
-        
-        local successReq, res = pcall(function()
-            return reqFunc({
-                Url = "https://presence.roproxy.com/v1/presence/users",
-                Method = "POST",
-                Headers = { ["Content-Type"] = "application/json", ["Accept"] = "application/json" },
-                Body = HttpService:JSONEncode({ userIds = { targetId } })
-            })
-        end)
-        
-        if successReq and res and res.Body then
-            local data = HttpService:JSONDecode(res.Body)
-            if data and data.userPresences and data.userPresences[1] then
-                local p = data.userPresences[1]
-                local pType = p.userPresenceType
-                local statusMsg = ""
-                
-                if pType == 0 then statusMsg = "Offline"
-                elseif pType == 1 then statusMsg = "Online (No-Game)"
-                elseif pType == 2 then 
-                    local gameName = p.lastLocation
-                    if gameName == "" then gameName = "Hidden Game" end
-                    statusMsg = "In-Game: " .. gameName
-                elseif pType == 3 then statusMsg = "In Studio"
-                else statusMsg = "Unknown Status" end
-                
-                UpdateStatus("Target: " .. extractedName, "Status: " .. statusMsg)
-            else
-                UpdateStatus("Error", "Failed to parse presence data.")
+    for _, domain in ipairs(domains) do
+        local fullUrl = "https://" .. subdomain .. "." .. domain .. path
+        if reqFunc then
+            local options = {
+                Url = fullUrl,
+                Method = method or "GET",
+                Headers = { ["Content-Type"] = "application/json", ["Accept"] = "application/json" }
+            }
+            if body then options.Body = HttpService:JSONEncode(body) end
+            local success, res = pcall(function() return reqFunc(options) end)
+            if success and res and type(res) == "table" and res.Body and string.find(res.Body, "{") then
+                return true, res.Body
             end
-        else
-            UpdateStatus("Error", "Proxy API request blocked or failed.")
         end
-    end)
-end})
-
-FinderSec:Divider()
+        if not body and (method == "GET" or not method) then
+            local success, res = pcall(function() return game:HttpGet(fullUrl) end)
+            if success and res and type(res) == "string" and string.find(res, "{") then
+                return true, res
+            end
+        end
+    end
+    return false, nil
+end
 
 local FriendDropdown = FinderSec:Dropdown({ Title = "Friend List", Values = {"None"}, Value = "None", Callback = function(v) 
     if v ~= "None" then
@@ -992,12 +935,10 @@ FinderSec:Button({ Title = "Fetch Friends (Smart Online)", Icon = "users", Callb
             return
         end
         
-        local successReq, res = pcall(function()
-            return game:HttpGet("https://friends.roproxy.com/v1/users/"..targetId.."/friends")
-        end)
+        local successReq, resBody = ProxiedFetch("friends", "/v1/users/"..targetId.."/friends", "GET")
         
-        if successReq and res then
-            local data = HttpService:JSONDecode(res)
+        if successReq and resBody then
+            local data = HttpService:JSONDecode(resBody)
             if data and data.data and #data.data > 0 then
                 local friendIds = {}
                 local idToName = {}
@@ -1010,35 +951,27 @@ FinderSec:Button({ Title = "Fetch Friends (Smart Online)", Icon = "users", Callb
                 end
                 
                 local onlineFriends = {}
-                local reqFunc = request or http_request or (syn and syn.request) or (fluxus and fluxus.request)
+                local apiBlocked = false
                 
-                if reqFunc then
-                    for i = 1, #friendIds, 100 do
-                        local chunk = {}
-                        for j = i, math.min(i + 99, #friendIds) do
-                            table.insert(chunk, friendIds[j])
-                        end
-                        
-                        local successPres, presRes = pcall(function()
-                            return reqFunc({
-                                Url = "https://presence.roproxy.com/v1/presence/users",
-                                Method = "POST",
-                                Headers = { ["Content-Type"] = "application/json", ["Accept"] = "application/json" },
-                                Body = HttpService:JSONEncode({ userIds = chunk })
-                            })
-                        end)
-                        
-                        if successPres and presRes and presRes.Body then
-                            local pData = HttpService:JSONDecode(presRes.Body)
-                            if pData and pData.userPresences then
-                                for _, p in ipairs(pData.userPresences) do
-                                    if p.userPresenceType > 0 then
-                                        local fName = idToName[tostring(p.userId)]
-                                        if fName then table.insert(onlineFriends, fName) end
-                                    end
+                for i = 1, #friendIds, 100 do
+                    local chunk = {}
+                    for j = i, math.min(i + 99, #friendIds) do
+                        table.insert(chunk, friendIds[j])
+                    end
+                    
+                    local successPres, presBody = ProxiedFetch("presence", "/v1/presence/users", "POST", { userIds = chunk })
+                    if successPres and presBody then
+                        local pData = HttpService:JSONDecode(presBody)
+                        if pData and pData.userPresences then
+                            for _, p in ipairs(pData.userPresences) do
+                                if p.userPresenceType > 0 then
+                                    local fName = idToName[tostring(p.userId)]
+                                    if fName then table.insert(onlineFriends, fName) end
                                 end
                             end
                         end
+                    else
+                        apiBlocked = true
                     end
                 end
                 
@@ -1047,13 +980,17 @@ FinderSec:Button({ Title = "Fetch Friends (Smart Online)", Icon = "users", Callb
                     WindUI:Notify({Title = "Success", Content = "Found " .. #onlineFriends .. " online friends!", Duration = 4})
                 else
                     pcall(function() FriendDropdown:Refresh(allFriends) end)
-                    WindUI:Notify({Title = "Fallback Active", Content = "API Blocked or 0 online. Loaded ALL friends instead!", Duration = 5})
+                    if apiBlocked then
+                        WindUI:Notify({Title = "Fallback Active", Content = "API Blocked. Loaded ALL friends instead!", Duration = 5})
+                    else
+                        WindUI:Notify({Title = "Fallback Active", Content = "0 online. Loaded ALL friends instead!", Duration = 5})
+                    end
                 end
             else
                 WindUI:Notify({Title = "Info", Content = "This user has no friends.", Duration = 3})
             end
         else
-            WindUI:Notify({Title = "Error", Content = "Failed to fetch friend API.", Duration = 3})
+            WindUI:Notify({Title = "Error", Content = "API Blocked by executor.", Duration = 3})
         end
     end)
 end})
@@ -1113,9 +1050,10 @@ FinderSec:Button({ Title = "Find Target & Auto-Join", Icon = "radar", Callback =
                 WindUI:Notify({Title = "Error", Content = "Please input a Game Name!", Duration = 3})
                 return
             end
-            local successReq, reqRes = pcall(function() return game:HttpGet("https://games.roproxy.com/v1/games/list?model.keyword=" .. HttpService:UrlEncode(_G.GameInfoInput) .. "&model.maxRows=50") end)
-            if successReq and reqRes then
-                local data = HttpService:JSONDecode(reqRes)
+            
+            local successReq, resBody = ProxiedFetch("games", "/v1/games/list?model.keyword=" .. HttpService:UrlEncode(_G.GameInfoInput) .. "&model.maxRows=50", "GET")
+            if successReq and resBody then
+                local data = HttpService:JSONDecode(resBody)
                 if data and data.games and #data.games > 0 then
                     table.sort(data.games, function(a, b) return (a.playerCount or 0) > (b.playerCount or 0) end)
                     for i = 1, math.min(#data.games, 15) do
@@ -1133,13 +1071,9 @@ FinderSec:Button({ Title = "Find Target & Auto-Join", Icon = "radar", Callback =
         end
         
         local targetImageUrl = ""
-        local successImg, resultImg = pcall(function()
-            local res = game:HttpGet("https://thumbnails.roproxy.com/v1/users/avatar-headshot?userIds="..targetId.."&size=150x150&format=Png&isCircular=false")
-            return HttpService:JSONDecode(res).data[1].imageUrl
-        end)
-        
-        if successImg and resultImg then 
-            targetImageUrl = resultImg 
+        local successImg, resBody = ProxiedFetch("thumbnails", "/v1/users/avatar-headshot?userIds="..targetId.."&size=150x150&format=Png&isCircular=false", "GET")
+        if successImg and resBody then 
+            targetImageUrl = HttpService:JSONDecode(resBody).data[1].imageUrl
         else
             WindUI:Notify({Title = "Error", Content = "Failed to fetch avatar data.", Duration = 3})
             return
@@ -1156,12 +1090,12 @@ FinderSec:Button({ Title = "Find Target & Auto-Join", Icon = "radar", Callback =
             
             while cursor ~= nil and not foundServer and attempts < 100 do
                 attempts = attempts + 1
-                local apiUrl = "https://games.roblox.com/v1/games/"..scanPlaceId.."/servers/Public?sortOrder=Asc&limit=100"
-                if cursor ~= "" then apiUrl = apiUrl .. "&cursor=" .. cursor end
+                local path = "/v1/games/"..scanPlaceId.."/servers/Public?sortOrder=Asc&limit=100"
+                if cursor ~= "" then path = path .. "&cursor=" .. cursor end
                 
-                local successReq, res = pcall(function() return game:HttpGet(apiUrl) end)
-                if successReq and res then
-                    local data = HttpService:JSONDecode(res)
+                local successReq, resBody = ProxiedFetch("games", path, "GET")
+                if successReq and resBody then
+                    local data = HttpService:JSONDecode(resBody)
                     if data and data.data then
                         local allTokens = {}
                         local tokenToServer = {}
@@ -1188,28 +1122,19 @@ FinderSec:Button({ Title = "Find Target & Auto-Join", Icon = "radar", Callback =
                                 })
                             end
                             
-                            local successPost, resultPost = pcall(function()
-                                local reqFunc = request or http_request or (syn and syn.request) or (fluxus and fluxus.request)
-                                if reqFunc then
-                                    local req = reqFunc({
-                                        Url = "https://thumbnails.roblox.com/v1/batch",
-                                        Method = "POST",
-                                        Headers = { ["Content-Type"] = "application/json", ["Accept"] = "application/json" },
-                                        Body = HttpService:JSONEncode(postData)
-                                    })
-                                    return HttpService:JSONDecode(req.Body)
-                                end
-                            end)
-                            
-                            if successPost and resultPost and resultPost.data then
-                                for _, avatar in pairs(resultPost.data) do
-                                    if avatar.imageUrl == targetImageUrl then
-                                        local sData = tokenToServer[avatar.requestId]
-                                        if sData then
-                                            foundServer = sData.id
-                                            serverData = sData
-                                            successPlaceId = scanPlaceId
-                                            break
+                            local successPost, postResBody = ProxiedFetch("thumbnails", "/v1/batch", "POST", postData)
+                            if successPost and postResBody then
+                                local resultPost = HttpService:JSONDecode(postResBody)
+                                if resultPost and resultPost.data then
+                                    for _, avatar in pairs(resultPost.data) do
+                                        if avatar.imageUrl == targetImageUrl then
+                                            local sData = tokenToServer[avatar.requestId]
+                                            if sData then
+                                                foundServer = sData.id
+                                                serverData = sData
+                                                successPlaceId = scanPlaceId
+                                                break
+                                            end
                                         end
                                     end
                                 end
@@ -1263,6 +1188,81 @@ FinderSec:Button({ Title = "Join Server By JobId", Icon = "log-in", Callback = f
     else
         WindUI:Notify({Title = "Error", Content = "Please input a valid JobId first!", Duration = 3})
     end
+end})
+
+
+FinderSec:Divider()
+
+_G.PlayerToFind = ""
+local TargetInput = FinderSec:Input({ Title = "Target Username (e.g. Name @user)", Value = "", Callback = function(v) 
+    _G.PlayerToFind = v 
+end})
+
+local StatusParagraph = nil
+local function UpdateStatus(titleTxt, descTxt)
+    pcall(function()
+        if StatusParagraph then
+            StatusParagraph:Destroy()
+        end
+    end)
+    StatusParagraph = FinderSec:Paragraph({
+        Title = titleTxt, 
+        Desc = descTxt,
+        Image = "user", 
+        ImageSize = 20
+    })
+end
+
+UpdateStatus("Player Status: Waiting...", "Input a username and click check.")
+
+FinderSec:Button({ Title = "Check Player Status", Icon = "info", Callback = function()
+    if _G.PlayerToFind == "" then
+        UpdateStatus("Error", "Please input a username!")
+        return
+    end
+    
+    local targetUser = _G.PlayerToFind
+    local extractedName = string.match(targetUser, "@([%w_]+)")
+    if not extractedName then extractedName = targetUser end
+    extractedName = string.gsub(extractedName, "%s+", "")
+    
+    UpdateStatus("Checking...", "Fetching data for " .. extractedName)
+    
+    task.spawn(function()
+        local HttpService = game:GetService("HttpService")
+        local successId, targetId = pcall(function() return Players:GetUserIdFromNameAsync(extractedName) end)
+        
+        if not successId or not targetId then
+            UpdateStatus("Error", "Invalid username: " .. extractedName)
+            return
+        end
+        
+        local successReq, resBody = ProxiedFetch("presence", "/v1/presence/users", "POST", { userIds = { targetId } })
+        
+        if successReq and resBody then
+            local data = HttpService:JSONDecode(resBody)
+            if data and data.userPresences and data.userPresences[1] then
+                local p = data.userPresences[1]
+                local pType = p.userPresenceType
+                local statusMsg = ""
+                
+                if pType == 0 then statusMsg = "Offline"
+                elseif pType == 1 then statusMsg = "Online (No-Game)"
+                elseif pType == 2 then 
+                    local gameName = p.lastLocation
+                    if gameName == "" then gameName = "Hidden Game" end
+                    statusMsg = "In-Game: " .. gameName
+                elseif pType == 3 then statusMsg = "In Studio"
+                else statusMsg = "Unknown Status" end
+                
+                UpdateStatus("Target: " .. extractedName, "Status: " .. statusMsg)
+            else
+                UpdateStatus("Error", "Failed to parse presence data.")
+            end
+        else
+            UpdateStatus("Error", "API Blocked! Executor preventing connection.")
+        end
+    end)
 end})
 
 local ThemeSection = SettingTab:Section({ Title = "Themes", Icon = "palette", Opened = true, Box = true })

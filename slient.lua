@@ -874,11 +874,21 @@ PlayerSec:Button({ Title = "Teleport To Player", Icon = "map-pin", Callback = fu
 end})
 refreshPlayers()
 
-local FinderSec = PlayerTab:Section({ Title = "Server Sniper", Icon = "search", Opened = true, Box = true })
+local FinderSec = PlayerTab:Section({ Title = "Blox Finder (Server Sniper)", Icon = "search", Opened = true, Box = true })
 
 _G.PlayerToFind = ""
-FinderSec:Input({ Title = "Target Username", Value = "", Callback = function(v) 
+FinderSec:Input({ Title = "Target Username (e.g. Name @user)", Value = "", Callback = function(v) 
     _G.PlayerToFind = v 
+end})
+
+_G.TargetGameMode = "Current Game"
+FinderSec:Dropdown({ Title = "Search Game", Values = {"Current Game", "Game ID", "Game Name"}, Value = "Current Game", Callback = function(v) 
+    _G.TargetGameMode = v 
+end})
+
+_G.GameInfoInput = ""
+FinderSec:Input({ Title = "Game Info (ID or Name)", Value = "", Callback = function(v) 
+    _G.GameInfoInput = v 
 end})
 
 FinderSec:Button({ Title = "Find Player & Auto-Join", Icon = "radar", Callback = function() 
@@ -887,20 +897,52 @@ FinderSec:Button({ Title = "Find Player & Auto-Join", Icon = "radar", Callback =
         return
     end
     
-    WindUI:Notify({Title = "Searching", Content = "Fast scanning all servers... Please wait.", Duration = 4})
+    local targetUser = _G.PlayerToFind
+    local extractedName = string.match(targetUser, "@([%w_]+)")
+    if not extractedName then extractedName = targetUser end
+    extractedName = string.gsub(extractedName, "%s+", "")
+    
+    WindUI:Notify({Title = "Searching", Content = "Target: " .. extractedName .. ". Scanning servers...", Duration = 4})
     
     task.spawn(function()
         local HttpService = game:GetService("HttpService")
         local TeleportService = game:GetService("TeleportService")
-        local targetName = _G.PlayerToFind
         
-        local successId, targetId = pcall(function() return Players:GetUserIdFromNameAsync(targetName) end)
+        local successId, targetId = pcall(function() return Players:GetUserIdFromNameAsync(extractedName) end)
         if not successId or not targetId then
-            WindUI:Notify({Title = "Error", Content = "Invalid username!", Duration = 3})
+            WindUI:Notify({Title = "Error", Content = "Invalid username: " .. extractedName, Duration = 3})
             return
         end
         
-        if Players:GetPlayerByUserId(targetId) then
+        local targetPlaceId = game.PlaceId
+        if _G.TargetGameMode == "Game ID" then
+            targetPlaceId = tonumber(_G.GameInfoInput)
+            if not targetPlaceId then 
+                WindUI:Notify({Title = "Error", Content = "Invalid Game ID!", Duration = 3})
+                return 
+            end
+        elseif _G.TargetGameMode == "Game Name" then
+            if _G.GameInfoInput == "" then
+                WindUI:Notify({Title = "Error", Content = "Please input a Game Name!", Duration = 3})
+                return
+            end
+            local successReq, reqRes = pcall(function() return game:HttpGet("https://games.roblox.com/v1/games/list?model.keyword=" .. HttpService:UrlEncode(_G.GameInfoInput) .. "&model.maxRows=10") end)
+            if successReq and reqRes then
+                local data = HttpService:JSONDecode(reqRes)
+                if data and data.games and #data.games > 0 then
+                    targetPlaceId = data.games[1].placeId
+                    WindUI:Notify({Title = "Found Game", Content = "Searching in: " .. data.games[1].name, Duration = 3})
+                else
+                    WindUI:Notify({Title = "Error", Content = "Game not found!", Duration = 3})
+                    return
+                end
+            else
+                WindUI:Notify({Title = "Error", Content = "API blocked by executor. Use Game ID mode.", Duration = 3})
+                return
+            end
+        end
+        
+        if targetPlaceId == game.PlaceId and Players:GetPlayerByUserId(targetId) then
             WindUI:Notify({Title = "Found", Content = "Player is already in your current server!", Duration = 5})
             return
         end
@@ -923,20 +965,40 @@ FinderSec:Button({ Title = "Find Player & Auto-Join", Icon = "radar", Callback =
         local serverData = nil
         local attempts = 0
 
-        while cursor ~= nil and not foundServer and attempts < 30 do
+        while cursor ~= nil and not foundServer and attempts < 200 do
             attempts = attempts + 1
-            local apiUrl = "https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"
+            local apiUrl = "https://games.roblox.com/v1/games/"..targetPlaceId.."/servers/Public?sortOrder=Asc&limit=100"
             if cursor ~= "" then apiUrl = apiUrl .. "&cursor=" .. cursor end
             
             local successReq, res = pcall(function() return game:HttpGet(apiUrl) end)
             if successReq and res then
                 local data = HttpService:JSONDecode(res)
                 if data and data.data then
-                    local postData = {}
+                    local allTokens = {}
                     local tokenToServer = {}
                     
-                    local function flushBatch()
-                        if #postData == 0 then return end
+                    for _, server in pairs(data.data) do
+                        if server.playing and server.playerTokens and server.id ~= game.JobId then
+                            for _, token in ipairs(server.playerTokens) do
+                                table.insert(allTokens, token)
+                                tokenToServer[token] = { id = server.id, playing = server.playing, maxPlayers = server.maxPlayers }
+                            end
+                        end
+                    end
+                    
+                    for i = 1, #allTokens, 100 do
+                        local postData = {}
+                        for j = i, math.min(i + 99, #allTokens) do
+                            table.insert(postData, {
+                                requestId = allTokens[j],
+                                type = "AvatarHeadShot",
+                                targetId = 0,
+                                token = allTokens[j],
+                                format = "png",
+                                size = "150x150"
+                            })
+                        end
+                        
                         local successPost, resultPost = pcall(function()
                             local reqFunc = request or http_request or (syn and syn.request) or (fluxus and fluxus.request)
                             if reqFunc then
@@ -949,6 +1011,7 @@ FinderSec:Button({ Title = "Find Player & Auto-Join", Icon = "radar", Callback =
                                 return HttpService:JSONDecode(req.Body)
                             end
                         end)
+                        
                         if successPost and resultPost and resultPost.data then
                             for _, avatar in pairs(resultPost.data) do
                                 if avatar.imageUrl == targetImageUrl then
@@ -961,36 +1024,8 @@ FinderSec:Button({ Title = "Find Player & Auto-Join", Icon = "radar", Callback =
                                 end
                             end
                         end
-                        postData = {}
-                        tokenToServer = {}
-                    end
-
-                    for _, server in pairs(data.data) do
-                        if server.playing and server.playerTokens and server.id ~= game.JobId then
-                            for _, token in ipairs(server.playerTokens) do
-                                table.insert(postData, {
-                                    requestId = token,
-                                    type = "AvatarHeadShot",
-                                    targetId = 0,
-                                    token = token,
-                                    format = "png",
-                                    size = "150x150"
-                                })
-                                tokenToServer[token] = { id = server.id, playing = server.playing, maxPlayers = server.maxPlayers }
-                                
-                                if #postData >= 100 then
-                                    flushBatch()
-                                    if foundServer then break end
-                                end
-                            end
-                        end
                         if foundServer then break end
                     end
-                    
-                    if not foundServer then
-                        flushBatch()
-                    end
-                    
                     cursor = data.nextPageCursor
                 else
                     break
@@ -1004,14 +1039,14 @@ FinderSec:Button({ Title = "Find Player & Auto-Join", Icon = "radar", Callback =
             pcall(function() setclipboard(tostring(foundServer)) end)
             
             if serverData.playing >= serverData.maxPlayers then
-                WindUI:Notify({Title = "Server Full", Content = "Found player but server is full! JobId copied to clipboard.", Duration = 7})
+                WindUI:Notify({Title = "Server Full", Content = "Target found but server is full. JobId copied!", Duration = 7})
             else
                 WindUI:Notify({Title = "Success", Content = "Found player! JobId copied. Teleporting...", Duration = 5})
                 task.wait(1)
-                TeleportService:TeleportToPlaceInstance(game.PlaceId, foundServer, LocalPlayer)
+                TeleportService:TeleportToPlaceInstance(targetPlaceId, foundServer, LocalPlayer)
             end
         else
-            WindUI:Notify({Title = "Not Found", Content = "This player is not currently in place.", Duration = 5})
+            WindUI:Notify({Title = "Not Found", Content = "Player is not currently in this game.", Duration = 5})
         end
     end)
 end})
@@ -1027,7 +1062,11 @@ FinderSec:Button({ Title = "Join Server By JobId", Icon = "log-in", Callback = f
     if _G.JobIdToJoin ~= "" then
         WindUI:Notify({Title = "Teleporting", Content = "Joining server using provided JobId...", Duration = 3})
         pcall(function() 
-            game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, _G.JobIdToJoin, LocalPlayer) 
+            local targetPlaceId = game.PlaceId
+            if _G.TargetGameMode == "Game ID" and tonumber(_G.GameInfoInput) then
+                targetPlaceId = tonumber(_G.GameInfoInput)
+            end
+            game:GetService("TeleportService"):TeleportToPlaceInstance(targetPlaceId, _G.JobIdToJoin, LocalPlayer) 
         end)
     else
         WindUI:Notify({Title = "Error", Content = "Please input a valid JobId first!", Duration = 3})

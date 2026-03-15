@@ -499,7 +499,7 @@ end})
 CombatSec:Divider()
 
 _G.AttackDelay = 0
-CombatSec:Slider({ Title = "Attack Delay (Seconds)", Desc = "You Mad Cuz You Have Cheat But Still Lose With Others Cheat? Don't Worry Change The speed From 5 To 0", Value = {Min = 0, Max = 20, Default = 5}, Callback = function(v) 
+CombatSec:Slider({ Title = "Attack Delay (Seconds)", Desc = "Choose your kill speed less mean more faster", Value = {Min = 0, Max = 20, Default = 5}, Callback = function(v) 
     _G.AttackDelay = v 
 end})
 
@@ -873,6 +873,122 @@ PlayerSec:Button({ Title = "Teleport To Player", Icon = "map-pin", Callback = fu
     end)
 end})
 refreshPlayers()
+
+local FinderSec = PlayerTab:Section({ Title = "Server Sniper", Icon = "search", Opened = true, Box = true })
+
+_G.PlayerToFind = ""
+FinderSec:Input({ Title = "Target Username", Value = "", Callback = function(v) 
+    _G.PlayerToFind = v 
+end})
+
+FinderSec:Button({ Title = "Find Player & Join", Icon = "radar", Callback = function() 
+    if _G.PlayerToFind == "" then
+        WindUI:Notify({Title = "Error", Content = "Please input a username!", Duration = 3})
+        return
+    end
+    
+    WindUI:Notify({Title = "Searching", Content = "Scanning all servers... Please wait.", Duration = 3})
+    
+    task.spawn(function()
+        local HttpService = game:GetService("HttpService")
+        local TeleportService = game:GetService("TeleportService")
+        local targetName = _G.PlayerToFind
+        
+        local successId, targetId = pcall(function() return Players:GetUserIdFromNameAsync(targetName) end)
+        if not successId or not targetId then
+            WindUI:Notify({Title = "Error", Content = "Invalid username!", Duration = 3})
+            return
+        end
+        
+        if Players:GetPlayerByUserId(targetId) then
+            WindUI:Notify({Title = "Found players", Content = "Player is in your current server!", Duration = 5})
+            return
+        end
+        
+        local targetImageUrl = ""
+        local successImg, resultImg = pcall(function()
+            local res = game:HttpGet("https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds="..targetId.."&size=150x150&format=Png&isCircular=false")
+            return HttpService:JSONDecode(res).data[1].imageUrl
+        end)
+        if successImg and resultImg then 
+            targetImageUrl = resultImg 
+        else
+            WindUI:Notify({Title = "Error", Content = "Failed to fetch avatar.", Duration = 3})
+            return
+        end
+
+        local cursor = ""
+        local foundServer = nil
+        local attempts = 0
+
+        while cursor ~= nil and not foundServer and attempts < 50 do
+            attempts = attempts + 1
+            local apiUrl = "https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"
+            if cursor ~= "" then apiUrl = apiUrl .. "&cursor=" .. cursor end
+            
+            local successReq, res = pcall(function() return game:HttpGet(apiUrl) end)
+            if successReq and res then
+                local data = HttpService:JSONDecode(res)
+                if data and data.data then
+                    for _, server in pairs(data.data) do
+                        if server.playing and server.playerTokens and server.id ~= game.JobId then
+                            local postData = {}
+                            for _, token in ipairs(server.playerTokens) do
+                                table.insert(postData, {
+                                    requestId = token,
+                                    type = "AvatarHeadShot",
+                                    targetId = 0,
+                                    token = token,
+                                    format = "png",
+                                    size = "150x150"
+                                })
+                            end
+                            
+                            local successPost, resultPost = pcall(function()
+                                local reqFunc = request or http_request or (syn and syn.request) or (fluxus and fluxus.request)
+                                if reqFunc then
+                                    local req = reqFunc({
+                                        Url = "https://thumbnails.roblox.com/v1/batch",
+                                        Method = "POST",
+                                        Headers = {
+                                            ["Content-Type"] = "application/json",
+                                            ["Accept"] = "application/json"
+                                        },
+                                        Body = HttpService:JSONEncode(postData)
+                                    })
+                                    return HttpService:JSONDecode(req.Body)
+                                end
+                            end)
+                            
+                            if successPost and resultPost and resultPost.data then
+                                for _, avatar in pairs(resultPost.data) do
+                                    if avatar.imageUrl == targetImageUrl then
+                                        foundServer = server.id
+                                        break
+                                    end
+                                end
+                            end
+                        end
+                        if foundServer then break end
+                    end
+                    cursor = data.nextPageCursor
+                else
+                    break
+                end
+            else
+                break
+            end
+        end
+
+        if foundServer then
+            WindUI:Notify({Title = "Success", Content = "Found players! Teleporting...", Duration = 5})
+            TeleportService:TeleportToPlaceInstance(game.PlaceId, foundServer, LocalPlayer)
+        else
+            WindUI:Notify({Title = "Failed", Content = "this player is not current in place", Duration = 5})
+        end
+    end)
+end})
+
 
 local ThemeSection = SettingTab:Section({ Title = "Themes", Icon = "palette", Opened = true, Box = true })
 local validThemes = WindUI:GetThemes()

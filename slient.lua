@@ -877,7 +877,7 @@ refreshPlayers()
 local FinderSec = PlayerTab:Section({ Title = "Blox Finder (Server Sniper)", Icon = "search", Opened = true, Box = true })
 
 _G.PlayerToFind = ""
-FinderSec:Input({ Title = "Target Username (e.g. Name @user)", Value = "", Callback = function(v) 
+local TargetInput = FinderSec:Input({ Title = "Target Username (e.g. Name @user)", Value = "", Callback = function(v) 
     _G.PlayerToFind = v 
 end})
 
@@ -941,12 +941,69 @@ FinderSec:Button({ Title = "Check Player Status", Icon = "info", Callback = func
                 elseif pType == 3 then statusMsg = "In Studio"
                 else statusMsg = "Unknown Status" end
                 
-                StatusParagraph:Set({Title = extractedName .. " Status", Desc = statusMsg})
+                StatusParagraph:Set({Title = "Target: " .. extractedName, Desc = "Status: " .. statusMsg})
             else
                 StatusParagraph:Set({Title = "Error", Desc = "Failed to parse presence data."})
             end
         else
             StatusParagraph:Set({Title = "Error", Desc = "Proxy API request failed. Try again later."})
+        end
+    end)
+end})
+
+FinderSec:Divider()
+
+local FriendDropdown = FinderSec:Dropdown({ Title = "Friend List", Values = {"None"}, Value = "None", Callback = function(v) 
+    if v ~= "None" then
+        _G.PlayerToFind = v
+        pcall(function() TargetInput:Set(v) end)
+        WindUI:Notify({Title = "Target Updated", Content = "Target set to: " .. v, Duration = 3})
+    end
+end})
+
+FinderSec:Button({ Title = "Fetch Friend List", Icon = "users", Callback = function()
+    if _G.PlayerToFind == "" then
+        WindUI:Notify({Title = "Error", Content = "Input a username to fetch friends from!", Duration = 3})
+        return
+    end
+    
+    local targetUser = _G.PlayerToFind
+    local extractedName = string.match(targetUser, "@([%w_]+)")
+    if not extractedName then extractedName = targetUser end
+    extractedName = string.gsub(extractedName, "%s+", "")
+    
+    WindUI:Notify({Title = "Fetching", Content = "Extracting friends for " .. extractedName .. "...", Duration = 3})
+    
+    task.spawn(function()
+        local HttpService = game:GetService("HttpService")
+        local successId, targetId = pcall(function() return Players:GetUserIdFromNameAsync(extractedName) end)
+        if not successId or not targetId then
+            WindUI:Notify({Title = "Error", Content = "Invalid username!", Duration = 3})
+            return
+        end
+        
+        local successReq, res = pcall(function()
+            return game:HttpGet("https://friends.roproxy.com/v1/users/"..targetId.."/friends")
+        end)
+        
+        if successReq and res then
+            local data = HttpService:JSONDecode(res)
+            if data and data.data then
+                local fList = {}
+                for _, friend in ipairs(data.data) do
+                    table.insert(fList, friend.name)
+                end
+                if #fList > 0 then
+                    pcall(function() FriendDropdown:Refresh(fList) end)
+                    WindUI:Notify({Title = "Success", Content = "Loaded " .. #fList .. " friends!", Duration = 3})
+                else
+                    WindUI:Notify({Title = "Info", Content = "This user has no friends.", Duration = 3})
+                end
+            else
+                WindUI:Notify({Title = "Error", Content = "Failed to parse friend list.", Duration = 3})
+            end
+        else
+            WindUI:Notify({Title = "Error", Content = "Failed to fetch friend API.", Duration = 3})
         end
     end)
 end})
@@ -963,7 +1020,7 @@ FinderSec:Input({ Title = "Game Info (ID or Name)", Value = "", Callback = funct
     _G.GameInfoInput = v 
 end})
 
-FinderSec:Button({ Title = "Find Player & Auto-Join", Icon = "radar", Callback = function() 
+FinderSec:Button({ Title = "Find Target & Auto-Join", Icon = "radar", Callback = function() 
     if _G.PlayerToFind == "" then
         WindUI:Notify({Title = "Error", Content = "Please input a username!", Duration = 3})
         return
@@ -974,7 +1031,7 @@ FinderSec:Button({ Title = "Find Player & Auto-Join", Icon = "radar", Callback =
     if not extractedName then extractedName = targetUser end
     extractedName = string.gsub(extractedName, "%s+", "")
     
-    WindUI:Notify({Title = "Searching", Content = "Target: " .. extractedName .. ". Preparing scan...", Duration = 4})
+    WindUI:Notify({Title = "Searching", Content = "Target: " .. extractedName .. ". Preparing multi-scan...", Duration = 4})
     
     task.spawn(function()
         local HttpService = game:GetService("HttpService")
@@ -1006,14 +1063,15 @@ FinderSec:Button({ Title = "Find Player & Auto-Join", Icon = "radar", Callback =
                 WindUI:Notify({Title = "Error", Content = "Please input a Game Name!", Duration = 3})
                 return
             end
-            local successReq, reqRes = pcall(function() return game:HttpGet("https://games.roproxy.com/v1/games/list?model.keyword=" .. HttpService:UrlEncode(_G.GameInfoInput) .. "&model.maxRows=10") end)
+            local successReq, reqRes = pcall(function() return game:HttpGet("https://games.roproxy.com/v1/games/list?model.keyword=" .. HttpService:UrlEncode(_G.GameInfoInput) .. "&model.maxRows=50") end)
             if successReq and reqRes then
                 local data = HttpService:JSONDecode(reqRes)
                 if data and data.games and #data.games > 0 then
-                    for i = 1, math.min(#data.games, 5) do
+                    table.sort(data.games, function(a, b) return (a.playerCount or 0) > (b.playerCount or 0) end)
+                    for i = 1, math.min(#data.games, 15) do
                         table.insert(targetPlaces, data.games[i].placeId)
                     end
-                    WindUI:Notify({Title = "Multi-Scan", Content = "Scanning top " .. #targetPlaces .. " matching games...", Duration = 4})
+                    WindUI:Notify({Title = "Multi-Scan", Content = "Scanning top " .. #targetPlaces .. " populated games...", Duration = 4})
                 else
                     WindUI:Notify({Title = "Error", Content = "Game not found!", Duration = 3})
                     return
@@ -1048,7 +1106,7 @@ FinderSec:Button({ Title = "Find Player & Auto-Join", Icon = "radar", Callback =
             
             while cursor ~= nil and not foundServer and attempts < 100 do
                 attempts = attempts + 1
-                local apiUrl = "https://games.roproxy.com/v1/games/"..scanPlaceId.."/servers/Public?sortOrder=Asc&limit=100"
+                local apiUrl = "https://games.roblox.com/v1/games/"..scanPlaceId.."/servers/Public?sortOrder=Asc&limit=100"
                 if cursor ~= "" then apiUrl = apiUrl .. "&cursor=" .. cursor end
                 
                 local successReq, res = pcall(function() return game:HttpGet(apiUrl) end)
@@ -1084,7 +1142,7 @@ FinderSec:Button({ Title = "Find Player & Auto-Join", Icon = "radar", Callback =
                                 local reqFunc = request or http_request or (syn and syn.request) or (fluxus and fluxus.request)
                                 if reqFunc then
                                     local req = reqFunc({
-                                        Url = "https://thumbnails.roproxy.com/v1/batch",
+                                        Url = "https://thumbnails.roblox.com/v1/batch",
                                         Method = "POST",
                                         Headers = { ["Content-Type"] = "application/json", ["Accept"] = "application/json" },
                                         Body = HttpService:JSONEncode(postData)
@@ -1125,12 +1183,12 @@ FinderSec:Button({ Title = "Find Player & Auto-Join", Icon = "radar", Callback =
             if serverData.playing >= serverData.maxPlayers then
                 WindUI:Notify({Title = "Server Full", Content = "Target found but server is full. JobId copied!", Duration = 7})
             else
-                WindUI:Notify({Title = "Success", Content = "Found player! JobId copied. Teleporting...", Duration = 5})
+                WindUI:Notify({Title = "Success", Content = "Found target! JobId copied. Teleporting...", Duration = 5})
                 task.wait(1)
                 TeleportService:TeleportToPlaceInstance(successPlaceId, foundServer, LocalPlayer)
             end
         else
-            WindUI:Notify({Title = "Not Found", Content = "This player is not currently in the scanned places.", Duration = 5})
+            WindUI:Notify({Title = "Not Found", Content = "Target is not in the scanned servers.", Duration = 5})
         end
     end)
 end})
@@ -1156,7 +1214,6 @@ FinderSec:Button({ Title = "Join Server By JobId", Icon = "log-in", Callback = f
         WindUI:Notify({Title = "Error", Content = "Please input a valid JobId first!", Duration = 3})
     end
 end})
-
 
 local ThemeSection = SettingTab:Section({ Title = "Themes", Icon = "palette", Opened = true, Box = true })
 local validThemes = WindUI:GetThemes()

@@ -176,10 +176,11 @@ local HitboxSec = BypassTab:Section({ Title = "Hitbox Expander", Icon = "maximiz
 
 _G.HitboxStatus = false
 _G.HitboxSize = 25
+_G.HitboxTransparency = 70
+_G.HitboxColorMode = "Pre-defined"
 _G.HitboxStyle = "Red (Default)"
-_G.HitboxFormat = "RGB"
-_G.HitboxMainColor = "255, 0, 0"
-_G.HitboxOutlineColor = "255, 255, 255"
+_G.HitboxCustomRGB = "255, 0, 0"
+_G.HitboxCustomHEX = "#FF0000"
 
 HitboxSec:Toggle({ Title = "Enable Hitbox Expander", Desc = "Expand enemy body parts to hit them easily", Value = false, Callback = function(v) 
     _G.HitboxStatus = v 
@@ -189,26 +190,30 @@ HitboxSec:Slider({ Title = "Hitbox Size", Value = {Min = 5, Max = 100, Default =
     _G.HitboxSize = v 
 end})
 
-HitboxSec:Dropdown({ Title = "Hitbox Style & Color", Values = {"Red (Default)", "White", "Light Blue", "Black", "Transparent Outline", "Custom"}, Value = "Red (Default)", Callback = function(v) 
+HitboxSec:Slider({ Title = "Hitbox Transparency", Desc = "Adjust the visibility of the hitbox (0-100)", Value = {Min = 0, Max = 100, Default = 70}, Callback = function(v) 
+    _G.HitboxTransparency = v 
+end})
+
+HitboxSec:Dropdown({ Title = "Hitbox Color Mode", Values = {"Pre-defined", "Custom RGB", "Custom HEX"}, Value = "Pre-defined", Callback = function(v) 
+    _G.HitboxColorMode = v 
+end})
+
+HitboxSec:Dropdown({ Title = "Pre-defined Colors & Style", Values = {"Red (Default)", "White", "Light Blue", "Black", "Transparent Outline", "Custom"}, Value = "Red (Default)", Callback = function(v) 
     _G.HitboxStyle = v 
 end})
 
-HitboxSec:Dropdown({ Title = "Custom Color Format", Values = {"RGB", "HEX"}, Value = "RGB", Callback = function(v) 
-    _G.HitboxFormat = v 
-end})
-
 HitboxSec:Input({ Title = "Custom Main Color (Fill)", Value = "255, 0, 0", Callback = function(v) 
-    _G.HitboxMainColor = v 
+    _G.HitboxCustomRGB = v 
 end})
 
 HitboxSec:Input({ Title = "Custom Outline Color (Border)", Value = "255, 255, 255", Callback = function(v) 
-    _G.HitboxOutlineColor = v 
+    _G.HitboxCustomHEX = v 
 end})
 
 local function getParsedColor(val)
     local c = Color3.fromRGB(255, 255, 255)
     pcall(function()
-        if _G.HitboxFormat == "RGB" then
+        if _G.HitboxColorMode == "Custom RGB" then
             local r, g, b = string.match(val, "(%d+)%D+(%d+)%D+(%d+)")
             if r and g and b then c = Color3.fromRGB(tonumber(r), tonumber(g), tonumber(b)) end
         else
@@ -238,25 +243,31 @@ RunService.RenderStepped:Connect(function()
                     local mainC = Color3.fromRGB(255, 0, 0)
                     local outlineC = Color3.fromRGB(255, 255, 255)
                     
-                    if _G.HitboxStyle == "White" then 
-                        mainC = Color3.fromRGB(255, 255, 255)
-                    elseif _G.HitboxStyle == "Light Blue" then 
-                        mainC = Color3.fromRGB(0, 255, 255)
-                    elseif _G.HitboxStyle == "Black" then 
-                        mainC = Color3.fromRGB(0, 0, 0)
-                    elseif _G.HitboxStyle == "Transparent Outline" then
-                        useFill = false
-                        useOutline = true
-                        outlineC = Color3.fromRGB(255, 255, 255)
-                    elseif _G.HitboxStyle == "Custom" then
+                    if _G.HitboxColorMode == "Pre-defined" then
+                        if _G.HitboxStyle == "White" then 
+                            mainC = Color3.fromRGB(255, 255, 255)
+                        elseif _G.HitboxStyle == "Light Blue" then 
+                            mainC = Color3.fromRGB(0, 255, 255)
+                        elseif _G.HitboxStyle == "Black" then 
+                            mainC = Color3.fromRGB(0, 0, 0)
+                        elseif _G.HitboxStyle == "Transparent Outline" then
+                            useFill = false
+                            useOutline = true
+                            outlineC = Color3.fromRGB(255, 255, 255)
+                        elseif _G.HitboxStyle == "Custom" then
+                            useFill = true
+                            useOutline = true
+                            mainC = Color3.fromRGB(255, 0, 0)
+                        end
+                    else
                         useFill = true
                         useOutline = true
-                        mainC = getParsedColor(_G.HitboxMainColor)
-                        outlineC = getParsedColor(_G.HitboxOutlineColor)
+                        mainC = getParsedColor(_G.HitboxCustomRGB)
+                        outlineC = getParsedColor(_G.HitboxCustomHEX)
                     end
 
                     if useFill then
-                        hrp.Transparency = 0.7
+                        hrp.Transparency = _G.HitboxTransparency / 100
                         hrp.Material = Enum.Material.Neon
                         hrp.Color = mainC
                     else
@@ -385,6 +396,11 @@ end})
 
 CombatSec:Divider()
 
+_G.AutoDodge = false
+CombatSec:Toggle({ Title = "Auto Dodge", Desc = "Automatically step back if an armed enemy gets too close", Value = false, Callback = function(v) 
+    _G.AutoDodge = v 
+end})
+
 local function getNearestTarget()
     local nearest = nil
     local minDist = math.huge
@@ -406,6 +422,31 @@ local function getNearestTarget()
     end
     return nearest
 end
+
+local lastDodge = 0
+RunService.Heartbeat:Connect(function()
+    pcall(function()
+        if _G.AutoDodge and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            if tick() - lastDodge > 0.5 then
+                local myHrp = LocalPlayer.Character.HumanoidRootPart
+                local target = getNearestTarget()
+                if target and target:FindFirstChild("HumanoidRootPart") and target:FindFirstChildOfClass("Tool") then
+                    local tHrp = target.HumanoidRootPart
+                    local dist = (tHrp.Position - myHrp.Position).Magnitude
+                    if dist < 12 then
+                        local dodgeDir = (myHrp.Position - tHrp.Position).Unit
+                        dodgeDir = Vector3.new(dodgeDir.X, 0, dodgeDir.Z).Unit
+                        if dodgeDir.X ~= dodgeDir.X then dodgeDir = Vector3.new(0, 0, 1) end
+                        myHrp.CFrame = myHrp.CFrame + (dodgeDir * 8)
+                        lastDodge = tick()
+                    end
+                end
+            end
+        end
+    end)
+end)
+
+CombatSec:Divider()
 
 local function AttemptWeaponHit(TargetChar)
     pcall(function()
@@ -519,7 +560,7 @@ end)
 CombatSec:Divider()
 
 _G.AutoFarm = false
-CombatSec:Toggle({ Title = "Auto Farm", Desc = "Teleport behind targets and eliminate them", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Auto Farm", Desc = "Teleport above random players and eliminate them", Value = false, Callback = function(v) 
     _G.AutoFarm = v 
 end})
 

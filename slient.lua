@@ -176,7 +176,10 @@ local HitboxSec = BypassTab:Section({ Title = "Hitbox Expander", Icon = "maximiz
 
 _G.HitboxStatus = false
 _G.HitboxSize = 25
-_G.HitboxStyle = "Red"
+_G.HitboxStyle = "Red (Default)"
+_G.HitboxFormat = "RGB"
+_G.HitboxMainColor = "255, 0, 0"
+_G.HitboxOutlineColor = "255, 255, 255"
 
 HitboxSec:Toggle({ Title = "Enable Hitbox Expander", Desc = "Expand enemy body parts to hit them easily", Value = false, Callback = function(v) 
     _G.HitboxStatus = v 
@@ -186,42 +189,93 @@ HitboxSec:Slider({ Title = "Hitbox Size", Value = {Min = 5, Max = 100, Default =
     _G.HitboxSize = v 
 end})
 
-HitboxSec:Dropdown({ Title = "Hitbox Style & Color", Values = {"Red", "White", "Light Blue", "Black", "Transparent Outline"}, Value = "Red", Callback = function(v) 
+HitboxSec:Dropdown({ Title = "Hitbox Style & Color", Values = {"Red (Default)", "White", "Light Blue", "Black", "Transparent Outline", "Custom"}, Value = "Red (Default)", Callback = function(v) 
     _G.HitboxStyle = v 
 end})
 
+HitboxSec:Dropdown({ Title = "Custom Color Format", Values = {"RGB", "HEX"}, Value = "RGB", Callback = function(v) 
+    _G.HitboxFormat = v 
+end})
+
+HitboxSec:Input({ Title = "Custom Main Color (Fill)", Value = "255, 0, 0", Callback = function(v) 
+    _G.HitboxMainColor = v 
+end})
+
+HitboxSec:Input({ Title = "Custom Outline Color (Border)", Value = "255, 255, 255", Callback = function(v) 
+    _G.HitboxOutlineColor = v 
+end})
+
+local function getParsedColor(val)
+    local c = Color3.fromRGB(255, 255, 255)
+    pcall(function()
+        if _G.HitboxFormat == "RGB" then
+            local r, g, b = string.match(val, "(%d+)%D+(%d+)%D+(%d+)")
+            if r and g and b then c = Color3.fromRGB(tonumber(r), tonumber(g), tonumber(b)) end
+        else
+            local hex = val
+            if string.sub(hex, 1, 1) ~= "#" then hex = "#" .. hex end
+            c = Color3.fromHex(hex)
+        end
+    end)
+    return c
+end
+
 RunService.RenderStepped:Connect(function()
     pcall(function()
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            LocalPlayer.Character.HumanoidRootPart.Size = Vector3.new(2, 2, 1)
+        end
+
         for _, p in pairs(Players:GetPlayers()) do
             if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
                 local hrp = p.Character.HumanoidRootPart
                 if _G.HitboxStatus then
                     hrp.Size = Vector3.new(_G.HitboxSize, _G.HitboxSize, _G.HitboxSize)
                     hrp.CanCollide = false
-                    if _G.HitboxStyle == "Transparent Outline" then
+                    
+                    local useFill = true
+                    local useOutline = false
+                    local mainC = Color3.fromRGB(255, 0, 0)
+                    local outlineC = Color3.fromRGB(255, 255, 255)
+                    
+                    if _G.HitboxStyle == "White" then 
+                        mainC = Color3.fromRGB(255, 255, 255)
+                    elseif _G.HitboxStyle == "Light Blue" then 
+                        mainC = Color3.fromRGB(0, 255, 255)
+                    elseif _G.HitboxStyle == "Black" then 
+                        mainC = Color3.fromRGB(0, 0, 0)
+                    elseif _G.HitboxStyle == "Transparent Outline" then
+                        useFill = false
+                        useOutline = true
+                        outlineC = Color3.fromRGB(255, 255, 255)
+                    elseif _G.HitboxStyle == "Custom" then
+                        useFill = true
+                        useOutline = true
+                        mainC = getParsedColor(_G.HitboxMainColor)
+                        outlineC = getParsedColor(_G.HitboxOutlineColor)
+                    end
+
+                    if useFill then
+                        hrp.Transparency = 0.7
+                        hrp.Material = Enum.Material.Neon
+                        hrp.Color = mainC
+                    else
                         hrp.Transparency = 1
+                    end
+                    
+                    if useOutline then
                         if not hrp:FindFirstChild("HitboxSelection") then
                             local box = Instance.new("SelectionBox")
                             box.Name = "HitboxSelection"
                             box.Adornee = hrp
                             box.LineThickness = 0.05
-                            box.Color3 = Color3.fromRGB(255, 255, 255)
                             box.Parent = hrp
                         end
+                        hrp.HitboxSelection.Color3 = outlineC
+                        hrp.HitboxSelection.SurfaceTransparency = 1
                     else
                         if hrp:FindFirstChild("HitboxSelection") then 
                             hrp.HitboxSelection:Destroy() 
-                        end
-                        hrp.Transparency = 0.7
-                        hrp.Material = Enum.Material.Neon
-                        if _G.HitboxStyle == "White" then 
-                            hrp.BrickColor = BrickColor.new("White")
-                        elseif _G.HitboxStyle == "Light Blue" then 
-                            hrp.BrickColor = BrickColor.new("Toothpaste")
-                        elseif _G.HitboxStyle == "Black" then 
-                            hrp.BrickColor = BrickColor.new("Really black")
-                        else 
-                            hrp.BrickColor = BrickColor.new("Really red") 
                         end
                     end
                 else
@@ -241,14 +295,14 @@ HitboxSec:Divider()
 local FlingSec = BypassTab:Section({ Title = "Physics Fling Exploit", Icon = "wind", Opened = true, Box = true })
 
 _G.FlingActive = false
-_G.FlingMode = "Aura Fling"
+_G.FlingMode = "Touch Fling"
 _G.FlingTarget = ""
 
 FlingSec:Toggle({ Title = "Enable Fling", Desc = "", Value = false, Callback = function(v) 
     _G.FlingActive = v 
 end})
 
-FlingSec:Dropdown({ Title = "Fling Mode", Values = {"Touch Fling", "Fling Target", "Fling All"}, Value = "Aura Fling", Callback = function(v) 
+FlingSec:Dropdown({ Title = "Fling Mode", Values = {"Touch Fling", "Fling Target", "Fling All"}, Value = "Touch Fling", Callback = function(v) 
     _G.FlingMode = v 
 end})
 

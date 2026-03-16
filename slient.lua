@@ -249,6 +249,11 @@ GodSec:Toggle({ Title = "Anti-AFK", Desc = "Prevents 20-minute idle disconnects"
     _G.AntiAFK = v
 end})
 
+local SupportSection = BypassTab:Section({ Title = "Others", Icon = "wrench", Opened = true, Box = true })
+SupportSection:Toggle({ Title = "Auto Rejoin (Anti-Disconnect)", Desc = "Automatically reconnect when disconnected or kicked", Flag = "AutoRejoinToggle", Value = false, Callback = function(Value) if Value then _G.RejoinConnection = GuiService.ErrorMessageChanged:Connect(function() task.wait(0.5) if #game:GetService("Players"):GetPlayers() <= 1 then TeleportService:Teleport(game.PlaceId, _LocalPlayer22) else TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, _LocalPlayer22) end end) else if _G.RejoinConnection then _G.RejoinConnection:Disconnect(); _G.RejoinConnection = nil end end end })
+SupportSection:Button({ Title = "Rejoin Server (Manual)", Desc = "Use when stuck in terrain", Callback = function() if #game:GetService("Players"):GetPlayers() <= 1 then TeleportService:Teleport(game.PlaceId, _LocalPlayer22) else TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, _LocalPlayer22) end end })
+
+
 local HitboxSec = BypassTab:Section({ Title = "Hitbox Expander", Icon = "maximize", Opened = true, Box = true })
 
 _G.HitboxStatus = false
@@ -1134,8 +1139,6 @@ for themeName, _ in pairs(validThemes) do table.insert(themes, themeName) end
 table.sort(themes)
 ThemeSection:Dropdown({ Title = "Theme", Desc = "Choose UI Style", Values = themes, Flag = "ThemeDropdown", Value = "Dark", Callback = function(Value) if validThemes[Value] then pcall(function() WindUI:SetTheme(Value) end) end end })
 
-SettingTab:Space()
-
 local ConsoleSec = SettingTab:Section({ Title = "Console Manager", Icon = "code", Opened = true, Box = true })
 
 local VIM = game:GetService("VirtualInputManager")
@@ -1377,24 +1380,28 @@ SettingTab:Space()
 
 local ConfigSection = SettingTab:Section({ Title = "Config Manager", Icon = "save", Opened = true, Box = true })
 local ConfigManager = Window.ConfigManager
-local configName = "MainConfig"
+local configName = "Configs"
 local configFile = ConfigManager:CreateConfig(configName)
-
-local savedConfigs = {"MainConfig"}
-pcall(function()
-    local fetchedList = ConfigManager:AllConfigs()
-    if type(fetchedList) == "table" and #fetchedList > 0 then
-        savedConfigs = fetchedList
-    end
-end)
-
-local ConfigInput = ConfigSection:Input({ Title = "Config Name", Value = configName, Callback = function(value) configName = value or "MainConfig" end })
+local savedConfigs = ConfigManager:AllConfigs()
+if #savedConfigs == 0 then table.insert(savedConfigs, "Configs") end
+local ConfigInput = ConfigSection:Input({ Title = "Config Name", Value = configName, Callback = function(value) configName = value or "Configs" end })
 local AutoLoadToggle
-local ConfigDropdown = ConfigSection:Dropdown({ Title = "Choose Saved Config", Values = savedConfigs, Value = configName, AllowNone = false, Callback = function(value) configName = value or "MainConfig" ConfigInput:Set(configName) if AutoLoadToggle then AutoLoadToggle:Set(getAutoLoad() == configName) end end })
+local ConfigDropdown = ConfigSection:Dropdown({ Title = "Choose Saved Config", Values = savedConfigs, Value = configName, AllowNone = false, Callback = function(value) configName = value or "Configs" ConfigInput:Set(configName) if AutoLoadToggle then AutoLoadToggle:Set(getAutoLoad() == configName) end end })
 AutoLoadToggle = ConfigSection:Toggle({ Title = "Auto-Load Config", Desc = "Enable to auto load this config on execution", Value = (getAutoLoad() == configName), Callback = function(Value) if Value then setAutoLoad(configName) else setAutoLoad("none") end end })
-ConfigSection:Button({ Title = "Save Config", Icon = "check", Callback = function() configFile = ConfigManager:CreateConfig(configName) if configFile:Save() then local newList = {"MainConfig"} pcall(function() newList = ConfigManager:AllConfigs() end) if #newList == 0 then table.insert(newList, "MainConfig") end ConfigDropdown:Refresh(newList) WindUI:Notify({ Title = "Save Config", Content = "Saved: " .. configName, Duration = 3 }) end end })
+ConfigSection:Button({ Title = "Save Config", Icon = "check", Callback = function() configFile = ConfigManager:CreateConfig(configName) if configFile:Save() then local newList = ConfigManager:AllConfigs() if #newList == 0 then table.insert(newList, "Configs") end ConfigDropdown:Refresh(newList) WindUI:Notify({ Title = "Save Config", Content = "Saved: " .. configName, Duration = 3 }) end end })
 ConfigSection:Button({ Title = "Load Config", Icon = "refresh-cw", Callback = function() configFile = ConfigManager:CreateConfig(configName) if configFile:Load() then WindUI:Notify({ Title = "Load Config", Content = "Loaded: " .. configName, Duration = 3 }) end end })
 Window:OnClose(function() if ConfigManager and configFile then configFile:Save() end end)
+task.spawn(function()
+    task.wait(1.5)
+    local autoConf = getAutoLoad()
+    if autoConf ~= "none" then
+        configName = autoConf
+        configFile = ConfigManager:CreateConfig(configName)
+        pcall(function()
+            configFile:Load()
+            WindUI:Notify({ Title = "Auto-Load Enabled", Content = "Loaded config: " .. configName, Duration = 3 })
+        end)
+    end
 task.spawn(function()
     task.wait(1.5)
     local autoConf = getAutoLoad()

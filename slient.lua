@@ -876,7 +876,6 @@ refreshPlayers()
 
 local FinderSec = PlayerTab:Section({ Title = "Blox Finder (Server Sniper)", Icon = "search", Opened = true, Box = true })
 
--- [THUẬT TOÁN VƯỢT TƯỜNG LỬA API TỰ ĐỘNG]
 local function ProxiedFetch(subdomain, path, method, body)
     local HttpService = game:GetService("HttpService")
     local reqFunc = request or http_request or (syn and syn.request) or (fluxus and fluxus.request)
@@ -907,8 +906,65 @@ local function ProxiedFetch(subdomain, path, method, body)
 end
 
 _G.PlayerToFind = ""
-local TargetInput = FinderSec:Input({ Title = "Target Username (e.g. Name @user)", Value = "", Callback = function(v) 
+FinderSec:Input({ Title = "Target Username (e.g. Name @user)", Value = "", Callback = function(v) 
     _G.PlayerToFind = v 
+end})
+
+local StatusParagraph = FinderSec:Paragraph({
+    Title = "Player Status: Waiting...", 
+    Content = "Input a username and click check.",
+    Image = "user", 
+    ImageSize = 20
+})
+
+FinderSec:Button({ Title = "Check Player Status", Icon = "info", Callback = function()
+    if _G.PlayerToFind == "" then
+        pcall(function() StatusParagraph:Set({Title = "Error", Content = "Please input a username!"}) end)
+        return
+    end
+    
+    local targetUser = _G.PlayerToFind
+    local extractedName = string.match(targetUser, "@([%w_]+)")
+    if not extractedName then extractedName = targetUser end
+    extractedName = string.gsub(extractedName, "%s+", "")
+    
+    pcall(function() StatusParagraph:Set({Title = "Checking...", Content = "Fetching data for " .. extractedName}) end)
+    
+    task.spawn(function()
+        local HttpService = game:GetService("HttpService")
+        local successId, targetId = pcall(function() return Players:GetUserIdFromNameAsync(extractedName) end)
+        
+        if not successId or not targetId then
+            pcall(function() StatusParagraph:Set({Title = "Error", Content = "Invalid username: " .. extractedName}) end)
+            return
+        end
+        
+        local successReq, resBody = ProxiedFetch("presence", "/v1/presence/users", "POST", { userIds = { targetId } })
+        
+        if successReq and resBody then
+            local data = HttpService:JSONDecode(resBody)
+            if data and data.userPresences and data.userPresences[1] then
+                local p = data.userPresences[1]
+                local pType = p.userPresenceType
+                local statusMsg = ""
+                
+                if pType == 0 then statusMsg = "Offline"
+                elseif pType == 1 then statusMsg = "Online (No-Game)"
+                elseif pType == 2 then 
+                    local gameName = p.lastLocation
+                    if gameName == "" then gameName = "Hidden Game" end
+                    statusMsg = "In-Game: " .. gameName
+                elseif pType == 3 then statusMsg = "In Studio"
+                else statusMsg = "Unknown Status" end
+                
+                pcall(function() StatusParagraph:Set({Title = "Target: " .. extractedName, Content = "Status: " .. statusMsg}) end)
+            else
+                pcall(function() StatusParagraph:Set({Title = "Error", Content = "Failed to parse presence data."}) end)
+            end
+        else
+            pcall(function() StatusParagraph:Set({Title = "Error", Content = "API Blocked! Executor preventing connection."}) end)
+        end
+    end)
 end})
 
 FinderSec:Divider()
@@ -1105,7 +1161,6 @@ FinderSec:Button({ Title = "Join Server By JobId", Icon = "log-in", Callback = f
         WindUI:Notify({Title = "Error", Content = "Please input a valid JobId first!", Duration = 3})
     end
 end})
-
 
 local ThemeSection = SettingTab:Section({ Title = "Themes", Icon = "palette", Opened = true, Box = true })
 local validThemes = WindUI:GetThemes()

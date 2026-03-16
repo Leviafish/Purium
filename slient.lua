@@ -779,7 +779,7 @@ local function AttemptWeaponHit(TargetChar)
                 origin = fakeOrigin, 
                 enemyModel = TargetChar, 
                 distance = 0.1, 
-                direction = Vector3.new((0, 0, 1) -- Ép sát thương cắm xuống đất
+                direction = Vector3.new(0, 0, 1) -- Ép sát thương cắm xuống đất
             })
         end
         

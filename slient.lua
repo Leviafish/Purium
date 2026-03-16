@@ -245,34 +245,62 @@ LocalPlayer.Idled:Connect(function()
     end
 end)
 
-GodSec:Toggle({ Title = "Anti-AFK (24/7)", Desc = "Prevents 20-minute idle disconnects", Value = false, Callback = function(v)
+GodSec:Toggle({ Title = "Anti-AFK", Desc = "Prevents 20-minute idle disconnects", Value = false, Callback = function(v)
     _G.AntiAFK = v
 end})
 
 local MapSec = BypassTab:Section({ Title = "Map Bypasses(might not working)", Icon = "map", Opened = true, Box = true })
 
-_G.RemoveZone = false
-local zoneKeywords = {"zone", "infection", "gas", "storm", "radiation", "circle", "damage", "ring", "boundary"}
+local descendantConnection
 
-MapSec:Toggle({ Title = "Remove Map Zone", Desc = "Automatically deletes the shrinking damage zone", Value = false, Callback = function(v) 
-    _G.RemoveZone = v 
-end})
+-- Hàm xử lý Union (Làm tàng hình và không thể chạm)
+local function disableUnion(v)
+    if v:IsA("UnionOperation") or v.Name:lower() == "union" then
+        v.CanTouch = false
+        v.CanCollide = false
+        v.Transparency = 1 -- Làm tàng hình luôn cho đỡ vướng
+    end
+end
 
-RunService.Heartbeat:Connect(function()
-    pcall(function()
-        if _G.RemoveZone then
-            for _, v in ipairs(Workspace:GetChildren()) do
-                local name = string.lower(v.Name)
-                for _, keyword in ipairs(zoneKeywords) do
-                    if string.find(name, keyword) then
-                        v:Destroy()
-                        break
-                    end
-                end
+-- Tạo Toggle trong WindUI
+MapSec:Toggle({
+    Name = "Bypass Zone",
+    Desc = "Im Not Very Sure If This Actually Working",
+    CurrentValue = false,
+    Callback = function(Value)
+        if Value then
+            -- 1. Quét dọn ngay lập tức các Union đang có sẵn trên map
+            for _, v in pairs(game.Workspace:GetDescendants()) do
+                disableUnion(v)
             end
+            
+            -- 2. Lắng nghe và xử lý ngay khi map sinh ra Union mới
+            descendantConnection = game.Workspace.DescendantAdded:Connect(function(v)
+                -- Đợi 1 chút xíu để object load đầy đủ thuộc tính vào game
+                task.wait(0.1) 
+                disableUnion(v)
+            end)
+            
+            WindUI:Notify({
+                Title = "Thành công",
+                Content = "Đã bật chế độ Bypass Zone. Các vùng Union sẽ bị vô hiệu hóa.",
+                Duration = 3
+            })
+        else
+            -- Tắt tính năng lắng nghe khi gạt Toggle về Off
+            if descendantConnection then
+                descendantConnection:Disconnect()
+                descendantConnection = nil
+            end
+            
+            WindUI:Notify({
+                Title = "Đã tắt",
+                Content = "Đã tắt Bypass Zone. Các vùng mới sinh ra sẽ hoạt động bình thường.",
+                Duration = 3
+            })
         end
-    end)
-end)
+    end
+})
 
 local HitboxSec = BypassTab:Section({ Title = "Hitbox Expander", Icon = "maximize", Opened = true, Box = true })
 

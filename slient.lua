@@ -726,23 +726,24 @@ end
 local nukeConnections = {}
 
 _G.KillAll = false
+_G.SpamMultiplier = 30
 CombatSec:Toggle({ Title = "Kill All Players", Desc = "It's Now Is More Stable And Better!!!", Value = false, Callback = function(v) 
     _G.KillAll = v 
     if v then
-        table.insert(nukeConnections, RunService.Stepped:Connect(function() 
-            if _G.AttackDelay == 0 then task.spawn(FireInstantNuke) end 
-        end))
-        table.insert(nukeConnections, RunService.Heartbeat:Connect(function() 
-            task.spawn(FireInstantNuke) 
-        end))
-        
+        local function MultiSpam()
+            for i = 1, _G.SpamMultiplier do
+                task.spawn(FireInstantNuke)
+            end
+        end
+        table.insert(nukeConnections, RunService.Stepped:Connect(MultiSpam))
+        table.insert(nukeConnections, RunService.Heartbeat:Connect(MultiSpam))
+        pcall(function()
+            table.insert(nukeConnections, RunService.PreAnimation:Connect(MultiSpam))
+        end)
         task.spawn(function()
             while _G.KillAll do
-                if _G.AttackDelay > 0 then
-                    task.wait(_G.AttackDelay)
-                else
-                    task.wait() 
-                end
+                MultiSpam()
+                task.wait()
             end
         end)
     else
@@ -759,34 +760,31 @@ local function AttemptWeaponHit(TargetChar)
         if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
         if not TargetChar or not TargetChar:FindFirstChild("HumanoidRootPart") then return end
         
-        -- Bypass: Lấy vũ khí trực tiếp từ Balo hoặc trên tay, KHÔNG CẦN RÚT KIẾM
+        -- WEAPON BYPASS: Lấy trực tiếp từ Balo hoặc trên tay, triệt tiêu delay rút kiếm
         local MyTool = Char:FindFirstChildOfClass("Tool") or LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
         if not MyTool then return end
         
-        _G.LastAttackTime = tick()
         local isSlow = _G.AntiSlow and false or true
         local slowMul = _G.AntiSlow and 1 or 0.2
         local slowTim = _G.AntiSlow and 0 or 1.5
-        
         local fakeOrigin = TargetChar.HumanoidRootPart.Position
         
-        -- Combo Hủy Diệt: Nhồi 3 đòn đánh cùng lúc vào một mục tiêu để One-Shot
+        -- BATCH EXECUTION: Gắn 10 nhát chém vào chung 1 gói tin (Đảm bảo One-shot)
         local targetArray = {}
-        for i = 1, 3 do
+        for i = 1, 10000 do
             table.insert(targetArray, {
-                knockback = 0, -- Tắt văng lùi
+                knockback = 0, -- Chống văng mục tiêu
                 isClosestEnemy = true, 
                 origin = fakeOrigin, 
                 enemyModel = TargetChar, 
                 distance = 0.1, 
-                direction = Vector3.new(0, 0, 1) -- Ép sát thương cắm xuống đất
+                direction = Vector3.new(0, 0, 1)
             })
         end
         
         local Args = {
             "AttemptWeaponHit",
             {
-                -- Tối ưu hóa: Đánh ngay lập tức (attackTime = 0) và tắt đẩy lùi
                 attackCycleData = {knockbackMul=0, slowMult=slowMul, attackTime=0, lungeMul=0, slowTime=slowTim},
                 knockback = 0, shouldLock = true, shouldLunge = false,
                 hitboxOffset = Vector3.new(0, 0, 0), isCritical = true, shouldSlow = isSlow,
@@ -803,6 +801,7 @@ local function AttemptWeaponHit(TargetChar)
             targetArray
         }
         
+        -- Bắn gói tin lên Server mà không đợi phản hồi (Chống lag Client)
         task.spawn(function()
             pcall(function() GameRemote:InvokeServer(unpack(Args)) end)
         end)

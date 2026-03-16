@@ -249,58 +249,59 @@ GodSec:Toggle({ Title = "Anti-AFK", Desc = "Prevents 20-minute idle disconnects"
     _G.AntiAFK = v
 end})
 
-local MapSec = BypassTab:Section({ Title = "Map Bypasses(might not working)", Icon = "map", Opened = true, Box = true })
+_G.GodModeEnabled = false
+_G.HealthValue = 500
 
-local descendantConnection
-
--- Hàm xử lý Union (Làm tàng hình và không thể chạm)
-local function disableUnion(v)
-    if v:IsA("UnionOperation") or v.Name:lower() == "union" then
-        v.CanTouch = false
-        v.CanCollide = false
-        v.Transparency = 1 -- Làm tàng hình luôn cho đỡ vướng
+MoveSec:Toggle({ 
+    Title = "Enable Heal HP", 
+    Desc = "", 
+    Value = false, 
+    Callback = function(v) 
+        _G.GodModeEnabled = v
+        if not v then 
+            -- Trả về máu mặc định khi tắt
+            pcall(function() 
+                game.Players.LocalPlayer.Character.Humanoid.MaxHealth = 100 
+            end) 
+        end 
     end
-end
+})
 
--- Tạo Toggle trong WindUI
-MapSec:Toggle({
-    Name = "Bypass Zone",
-    Desc = "Im Not Very Sure If This Actually Working",
-    CurrentValue = false,
-    Callback = function(Value)
-        if Value then
-            -- 1. Quét dọn ngay lập tức các Union đang có sẵn trên map
-            for _, v in pairs(game.Workspace:GetDescendants()) do
-                disableUnion(v)
-            end
-            
-            -- 2. Lắng nghe và xử lý ngay khi map sinh ra Union mới
-            descendantConnection = game.Workspace.DescendantAdded:Connect(function(v)
-                -- Đợi 1 chút xíu để object load đầy đủ thuộc tính vào game
-                task.wait(0.1) 
-                disableUnion(v)
+MoveSec:Slider({ 
+    Title = "Health Value", 
+    Desc = "Kéo để chọn mức máu tối đa", 
+    Step = 50, 
+    Value = {
+        Min = 100,
+        Max = 5000,
+        Default = 500
+    }, 
+    Callback = function(v) 
+        _G.HealthValue = v
+        -- Cập nhật ngay lập tức nếu Toggle đang bật
+        if _G.GodModeEnabled then
+            pcall(function()
+                local hum = game.Players.LocalPlayer.Character.Humanoid
+                hum.MaxHealth = v
+                hum.Health = v
             end)
-            
-            WindUI:Notify({
-                Title = "Thành công",
-                Content = "Đã bật chế độ Bypass Zone. Các vùng Union sẽ bị vô hiệu hóa.",
-                Duration = 3
-            })
-        else
-            -- Tắt tính năng lắng nghe khi gạt Toggle về Off
-            if descendantConnection then
-                descendantConnection:Disconnect()
-                descendantConnection = nil
-            end
-            
-            WindUI:Notify({
-                Title = "Đã tắt",
-                Content = "Đã tắt Bypass Zone. Các vùng mới sinh ra sẽ hoạt động bình thường.",
-                Duration = 3
-            })
         end
     end
 })
+
+-- Vòng lặp chạy ngầm để giữ máu luôn đầy (chống lại các script trừ máu Client-side)
+game:GetService("RunService").Heartbeat:Connect(function()
+    if _G.GodModeEnabled then
+        pcall(function()
+            local hum = game.Players.LocalPlayer.Character.Humanoid
+            hum.MaxHealth = _G.HealthValue
+            -- Nếu máu tụt, lập tức kéo nó lên lại mức Value bạn đã chọn
+            if hum.Health < _G.HealthValue then
+                hum.Health = _G.HealthValue
+            end
+        end)
+    end
+end)
 
 local HitboxSec = BypassTab:Section({ Title = "Hitbox Expander", Icon = "maximize", Opened = true, Box = true })
 
@@ -435,7 +436,7 @@ HitboxSec:Divider()
 
 _G.DesyncGodMode = false
 
-MoveSec:Toggle({ Title = "God Mode", Desc = "Make You Invincible But Didn't Work With Other Hackers", Value = false, Callback = function(v) 
+HitboxSec:Toggle({ Title = "God Mode", Desc = "Make You Invincible But Didn't Work With Other Hackers", Value = false, Callback = function(v) 
     _G.DesyncGodMode = v 
     pcall(function()
         if not v then

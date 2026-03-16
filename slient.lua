@@ -249,62 +249,6 @@ GodSec:Toggle({ Title = "Anti-AFK", Desc = "Prevents 20-minute idle disconnects"
     _G.AntiAFK = v
 end})
 
-GodSec:Divider()
-
-_G.GodModeEnabled = false
-_G.HealthValue = 500
-
-GodSec:Toggle({ 
-    Title = "Enable Heal HP", 
-    Desc = "", 
-    Value = false, 
-    Callback = function(v) 
-        _G.GodModeEnabled = v
-        if not v then 
-            -- Trả về máu mặc định khi tắt
-            pcall(function() 
-                game.Players.LocalPlayer.Character.Humanoid.MaxHealth = 100 
-            end) 
-        end 
-    end
-})
-
-GodSec:Slider({ 
-    Title = "Health Value", 
-    Desc = "Kéo để chọn mức máu tối đa", 
-    Step = 50, 
-    Value = {
-        Min = 100,
-        Max = 5000,
-        Default = 500
-    }, 
-    Callback = function(v) 
-        _G.HealthValue = v
-        -- Cập nhật ngay lập tức nếu Toggle đang bật
-        if _G.GodModeEnabled then
-            pcall(function()
-                local hum = game.Players.LocalPlayer.Character.Humanoid
-                hum.MaxHealth = v
-                hum.Health = v
-            end)
-        end
-    end
-})
-
--- Vòng lặp chạy ngầm để giữ máu luôn đầy (chống lại các script trừ máu Client-side)
-game:GetService("RunService").Heartbeat:Connect(function()
-    if _G.GodModeEnabled then
-        pcall(function()
-            local hum = game.Players.LocalPlayer.Character.Humanoid
-            hum.MaxHealth = _G.HealthValue
-            -- Nếu máu tụt, lập tức kéo nó lên lại mức Value bạn đã chọn
-            if hum.Health < _G.HealthValue then
-                hum.Health = _G.HealthValue
-            end
-        end)
-    end
-end)
-
 local HitboxSec = BypassTab:Section({ Title = "Hitbox Expander", Icon = "maximize", Opened = true, Box = true })
 
 _G.HitboxStatus = false
@@ -544,6 +488,56 @@ end)
 
 HitboxSec:Divider()
 
+_G.GodModeEnabled = false
+_G.HealthValue = 500
+
+HitboxSec:Toggle({ 
+    Title = "Enable Heal HP", 
+    Desc = "", 
+    Value = false, 
+    Callback = function(v) 
+        _G.GodModeEnabled = v
+        if not v then 
+            pcall(function() 
+                game.Players.LocalPlayer.Character.Humanoid.MaxHealth = 100 
+            end) 
+        end 
+    end
+})
+
+HitboxSec:Slider({ 
+    Title = "Health Amount", 
+    Desc = "The Max HP Might Crash game so plz type Amount you want",
+    Step = 50, 
+    Value = {
+        Min = 100,
+        Max = 5000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,
+        Default = 500
+    }, 
+    Callback = function(v) 
+        _G.HealthValue = v
+        if _G.GodModeEnabled then
+            pcall(function()
+                local hum = game.Players.LocalPlayer.Character.Humanoid
+                hum.MaxHealth = v
+                hum.Health = v
+            end)
+        end
+    end
+})
+
+game:GetService("RunService").Heartbeat:Connect(function()
+    if _G.GodModeEnabled then
+        pcall(function()
+            local hum = game.Players.LocalPlayer.Character.Humanoid
+            hum.MaxHealth = _G.HealthValue
+            if hum.Health < _G.HealthValue then
+                hum.Health = _G.HealthValue
+            end
+        end)
+    end
+end)
+
 local FlingSec = BypassTab:Section({ Title = "Physics Fling Exploit(Didn't Work)", Icon = "wind", Opened = true, Box = true })
 
 _G.FlingActive = false
@@ -665,12 +659,10 @@ local function FireInstantNuke()
     pcall(function()
         local Char = LocalPlayer.Character
         if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
-        
         local MyTool = Char:FindFirstChildOfClass("Tool")
         if not MyTool then 
             local backpackTool = LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
             if backpackTool then
-                pcall(function() LocalPlayer.Character.Humanoid:EquipTool(backpackTool) end)
                 MyTool = backpackTool
             else
                 return
@@ -682,14 +674,16 @@ local function FireInstantNuke()
             if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
                 local hum = p.Character:FindFirstChild("Humanoid")
                 if hum and hum.Health > 0 then
-                    table.insert(targetArray, {
-                        knockback = 50, 
-                        isClosestEnemy = true, 
-                        origin = p.Character.HumanoidRootPart.Position, 
-                        enemyModel = p.Character, 
-                        distance = 0.1, 
-                        direction = Vector3.new(0, 0, 1)
-                    })
+                    for i = 1, 3 do
+                        table.insert(targetArray, {
+                            knockback = 0,
+                            isClosestEnemy = true, 
+                            origin = p.Character.HumanoidRootPart.Position, 
+                            enemyModel = p.Character, 
+                            distance = 0.1, 
+                            direction = Vector3.new(0, -1, 0)
+                        })
+                    end
                 end
             end
         end
@@ -703,17 +697,17 @@ local function FireInstantNuke()
             local Args = {
                 "AttemptWeaponHit",
                 {
-                    attackCycleData = {knockbackMul=10,slowMult=slowMul,attackTime=0.65,lungeMul=1,slowTime=slowTim},
-                    knockback = 100, shouldLock = true, shouldLunge = true,
+                    attackCycleData = {knockbackMul=0,slowMult=slowMul,attackTime=0,lungeMul=1,slowTime=slowTim},
+                    knockback = 0, shouldLock = true, shouldLunge = true,
                     hitboxOffset = Vector3.new(0, 0, -1.5), isCritical = true, shouldSlow = isSlow,
-                    attackCooldown = 0, damage = 99999, lungeKnockback = 55, cycleIndex = 1,
-                    slowMult = slowMul, hitboxSize = Vector3.new(150, 150, 150),
+                    attackCooldown = 0, damage = 999999, lungeKnockback = 0, cycleIndex = 1,
+                    slowMult = slowMul, hitboxSize = Vector3.new(2048, 2048, 2048),
                     weaponDefinition = { 
                         attackCycle = { 
-                            ["1"] = {knockbackMul=1, slowMult=slowMul, attackTime=0.65, lungeMul=1, slowTime=slowTim}, 
-                            ["4"] = {lungeMult=2.25, attackTime=0.98, slowMult=slowMul, hitboxOffsetAdd=Vector3.new(0,0,-1.5), hitboxSizeAdd=Vector3.new(0,0,3), knockbackMult=2.25, slowTime=slowTim}, 
-                            ["3"] = {lungeMult=0.75, slowMult=slowMul, attackTime=0.71, knockbackMult=1.5, slowTime=slowTim}, 
-                            ["2"] = {lungeMult=1, slowMult=slowMul, attackTime=0.65, knockbackMult=1, slowTime=slowTim} 
+                            ["1"] = {knockbackMul=0, slowMult=slowMul, attackTime=0, lungeMul=1, slowTime=slowTim}, 
+                            ["4"] = {lungeMult=2.25, attackTime=0, slowMult=slowMul, hitboxOffsetAdd=Vector3.new(0,0,-1.5), hitboxSizeAdd=Vector3.new(0,0,3), knockbackMult=2.25, slowTime=slowTim}, 
+                            ["3"] = {lungeMult=0.75, slowMult=slowMul, attackTime=0, knockbackMult=1.5, slowTime=slowTim}, 
+                            ["2"] = {lungeMult=1, slowMult=slowMul, attackTime=0, knockbackMult=1, slowTime=slowTim} 
                         }, 
                         attackOrder = {"1", "2", "3", "4"} 
                     },
@@ -732,7 +726,7 @@ end
 local nukeConnections = {}
 
 _G.KillAll = false
-CombatSec:Toggle({ Title = "Kill All Players", Desc = "After The Rewrite It Now Is Better", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Kill All Players", Desc = "It's Now Is More Stable And Better!!!", Value = false, Callback = function(v) 
     _G.KillAll = v 
     if v then
         table.insert(nukeConnections, RunService.Stepped:Connect(function() 

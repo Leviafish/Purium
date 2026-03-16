@@ -726,7 +726,7 @@ end
 local nukeConnections = {}
 
 _G.KillAll = false
-_G.SpamMultiplier = 30
+_G.SpamMultiplier = 20
 CombatSec:Toggle({ Title = "Kill All Players", Desc = "It's Now Is More Stable And Better!!!", Value = false, Callback = function(v) 
     _G.KillAll = v 
     if v then
@@ -754,6 +754,26 @@ CombatSec:Toggle({ Title = "Kill All Players", Desc = "It's Now Is More Stable A
     end
 end})
 
+CombatSec:Input({ 
+    Title = "Multiplier", 
+    Desc = "This ONLY For Kill all", 
+    Value = "20", 
+    Callback = function(v)
+        local num = tonumber(v)
+        if num and num > 0 then
+            if num > 100 then num = 100 end 
+            _G.SpamMultiplier = math.floor(num)
+        else
+            _G.SpamMultiplier = 5
+        end
+    end
+})
+
+CombatSec:Paragraph({
+    Title = "This is just my opinion", Desc = "Mobile Recommended : 10 - 20. \n PC Recommended : 30 - 50.",
+    Image = "circle-alert", ImageSize = 10
+})
+
 local function AttemptWeaponHit(TargetChar)
     pcall(function()
         local Char = LocalPlayer.Character
@@ -771,7 +791,7 @@ local function AttemptWeaponHit(TargetChar)
         
         -- BATCH EXECUTION: Gắn 10 nhát chém vào chung 1 gói tin (Đảm bảo One-shot)
         local targetArray = {}
-        for i = 1, 10000 do
+        for i = 1, 100000000 do
             table.insert(targetArray, {
                 knockback = 0, -- Chống văng mục tiêu
                 isClosestEnemy = true, 

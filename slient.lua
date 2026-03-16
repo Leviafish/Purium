@@ -249,10 +249,12 @@ GodSec:Toggle({ Title = "Anti-AFK", Desc = "Prevents 20-minute idle disconnects"
     _G.AntiAFK = v
 end})
 
+GodSec:Divider()
+
 _G.GodModeEnabled = false
 _G.HealthValue = 500
 
-MoveSec:Toggle({ 
+GodSec:Toggle({ 
     Title = "Enable Heal HP", 
     Desc = "", 
     Value = false, 
@@ -267,7 +269,7 @@ MoveSec:Toggle({
     end
 })
 
-MoveSec:Slider({ 
+GodSec:Slider({ 
     Title = "Health Value", 
     Desc = "Kéo để chọn mức máu tối đa", 
     Step = 50, 

@@ -672,11 +672,11 @@ local function FireInstantNuke()
             local Args = {
                 "AttemptWeaponHit",
                 {
-                    attackCycleData = {knockbackMul=1,slowMult=slowMul,attackTime=0.65,lungeMul=1,slowTime=slowTim},
-                    knockback = 50, shouldLock = true, shouldLunge = true,
+                    attackCycleData = {knockbackMul=10,slowMult=slowMul,attackTime=0.65,lungeMul=1,slowTime=slowTim},
+                    knockback = 100, shouldLock = true, shouldLunge = true,
                     hitboxOffset = Vector3.new(0, 0, -1.5), isCritical = true, shouldSlow = isSlow,
-                    attackCooldown = 0, damage = 100, lungeKnockback = 55, cycleIndex = 1,
-                    slowMult = slowMul, hitboxSize = Vector3.new(100, 100, 100),
+                    attackCooldown = 0, damage = 99999, lungeKnockback = 55, cycleIndex = 1,
+                    slowMult = slowMul, hitboxSize = Vector3.new(150, 150, 150),
                     weaponDefinition = { 
                         attackCycle = { 
                             ["1"] = {knockbackMul=1, slowMult=slowMul, attackTime=0.65, lungeMul=1, slowTime=slowTim}, 

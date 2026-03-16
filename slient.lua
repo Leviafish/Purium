@@ -173,6 +173,82 @@ RunService.Heartbeat:Connect(function()
         end
     end)
 end)
+local GodSec = BypassTab:Section({ Title = "Modifications", Icon = "shield", Opened = true, Box = true })
+
+_G.AntiKickEnabled = false
+local oldNamecall
+oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
+    local method = getnamecallmethod()
+    if _G.AntiKickEnabled and not checkcaller() and (method == "Kick" or method == "kick") then
+        return nil
+    end
+    return oldNamecall(self, ...)
+end)
+
+GodSec:Toggle({ Title = "Enable Anti-Kick", Desc = "Blocks server from kicking you (Anti-Cheat bypass)", Value = false, Callback = function(v)
+    _G.AntiKickEnabled = v
+    if v then
+        WindUI:Notify({Title = "Shield Active", Content = "Server kick attempts will now be ignored.", Duration = 3})
+    end
+end})
+
+GodSec:Divider()
+
+_G.CFrameSpeed = false
+_G.CFSpeedValue = 2
+GodSec:Toggle({ Title = "CFrame SpeedWalk", Desc = "Undetectable movement. Slides your coordinates.", Value = false, Callback = function(v)
+    _G.CFrameSpeed = v
+end})
+
+GodSec:Slider({ Title = "CFrame Speed Multiplier", Value = {Min = 1, Max = 10, Default = 2}, Callback = function(v) 
+    _G.CFSpeedValue = v 
+end})
+
+RunService.Heartbeat:Connect(function()
+    pcall(function()
+        if _G.CFrameSpeed and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            local hum = LocalPlayer.Character.Humanoid
+            local hrp = LocalPlayer.Character.HumanoidRootPart
+            if hum.MoveDirection.Magnitude > 0 then
+                if _G.DesyncGodMode and _G.LastSafeCFrame then
+                    _G.LastSafeCFrame = _G.LastSafeCFrame + (hum.MoveDirection * _G.CFSpeedValue)
+                else
+                    hrp.CFrame = hrp.CFrame + (hum.MoveDirection * _G.CFSpeedValue)
+                end
+            end
+        end
+    end)
+end)
+
+GodSec:Divider()
+
+_G.FakeLag = false
+GodSec:Toggle({ Title = "Fake Lag (Blink)", Desc = "Freezes your character in other screen!", Value = false, Callback = function(v)
+    _G.FakeLag = v
+    pcall(function()
+        if v then
+            settings():GetService("NetworkSettings").IncomingReplicationLag = 9999
+        else
+            settings():GetService("NetworkSettings").IncomingReplicationLag = 0
+        end
+    end)
+end})
+
+GodSec:Divider()
+
+_G.AntiAFK = false
+local VirtualUser = game:GetService("VirtualUser")
+LocalPlayer.Idled:Connect(function()
+    if _G.AntiAFK then
+        VirtualUser:CaptureController()
+        VirtualUser:ClickButton2(Vector2.new())
+    end
+end)
+
+GodSec:Toggle({ Title = "Anti-AFK (24/7)", Desc = "Prevents 20-minute idle disconnects", Value = false, Callback = function(v)
+    _G.AntiAFK = v
+end})
+
 local HitboxSec = BypassTab:Section({ Title = "Hitbox Expander", Icon = "maximize", Opened = true, Box = true })
 
 _G.HitboxStatus = false
@@ -228,7 +304,7 @@ end
 
 RunService.RenderStepped:Connect(function()
     pcall(function()
-        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        if not _G.DesyncGodMode and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
             LocalPlayer.Character.HumanoidRootPart.Size = Vector3.new(2, 2, 1)
         end
 
@@ -492,14 +568,14 @@ end)
 local CombatSec = CombatTab:Section({ Title = "Attack Settings", Icon = "crosshair", Opened = true, Box = true })
 
 _G.AntiSlow = false
-CombatSec:Toggle({ Title = "Enable Anti-Slow", Desc = "Remove Slow while swinging weapon", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Enable Anti-Slow", Desc = "Remove movement penalty while swinging weapon", Value = false, Callback = function(v) 
     _G.AntiSlow = v 
 end})
 
 CombatSec:Divider()
 
 _G.AttackDelay = 0
-CombatSec:Slider({ Title = "Attack Delay (Seconds)", Desc = "Choose your kill speed less mean more faster", Value = {Min = 0, Max = 20, Default = 5}, Callback = function(v) 
+CombatSec:Slider({ Title = "Attack Delay (Seconds)", Desc = "0 = 100% Network capacity (God Tier speed)", Value = {Min = 0, Max = 10, Default = 0}, Callback = function(v) 
     _G.AttackDelay = v 
 end})
 
@@ -529,6 +605,74 @@ local function getNearestTarget()
     return nearest
 end
 
+local function ExecuteMassacre()
+    pcall(function()
+        local Char = LocalPlayer.Character
+        if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
+        
+        local MyTool = Char:FindFirstChildOfClass("Tool")
+        if not MyTool then 
+            local backpackTool = LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
+            if backpackTool then
+                pcall(function() LocalPlayer.Character.Humanoid:EquipTool(backpackTool) end)
+                MyTool = backpackTool
+            else
+                return
+            end
+        end
+        
+        local targetArray = {}
+        for _, p in ipairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                local hum = p.Character:FindFirstChild("Humanoid")
+                if hum and hum.Health > 0 then
+                    table.insert(targetArray, {
+                        knockback = 50, 
+                        isClosestEnemy = true, 
+                        origin = p.Character.HumanoidRootPart.Position, 
+                        enemyModel = p.Character, 
+                        distance = 0.1, 
+                        direction = Vector3.new(0, 0, 1)
+                    })
+                end
+            end
+        end
+        
+        if #targetArray > 0 then
+            _G.LastAttackTime = tick()
+            local isSlow = _G.AntiSlow and false or true
+            local slowMul = _G.AntiSlow and 1 or 0.2
+            local slowTim = _G.AntiSlow and 0 or 1.5
+            
+            local Args = {
+                "AttemptWeaponHit",
+                {
+                    attackCycleData = {knockbackMul=1,slowMult=slowMul,attackTime=0.65,lungeMul=1,slowTime=slowTim},
+                    knockback = 50, shouldLock = true, shouldLunge = true,
+                    hitboxOffset = Vector3.new(0, 0, -1.5), isCritical = true, shouldSlow = isSlow,
+                    attackCooldown = 0, damage = 100, lungeKnockback = 55, cycleIndex = 1,
+                    slowMult = slowMul, hitboxSize = Vector3.new(100, 100, 100),
+                    weaponDefinition = { 
+                        attackCycle = { 
+                            ["1"] = {knockbackMul=1, slowMult=slowMul, attackTime=0.65, lungeMul=1, slowTime=slowTim}, 
+                            ["4"] = {lungeMult=2.25, attackTime=0.98, slowMult=slowMul, hitboxOffsetAdd=Vector3.new(0,0,-1.5), hitboxSizeAdd=Vector3.new(0,0,3), knockbackMult=2.25, slowTime=slowTim}, 
+                            ["3"] = {lungeMult=0.75, slowMult=slowMul, attackTime=0.71, knockbackMult=1.5, slowTime=slowTim}, 
+                            ["2"] = {lungeMult=1, slowMult=slowMul, attackTime=0.65, knockbackMult=1, slowTime=slowTim} 
+                        }, 
+                        attackOrder = {"1", "2", "3", "4"} 
+                    },
+                    tool = MyTool, slowTime = slowTim
+                },
+                targetArray
+            }
+            
+            task.spawn(function()
+                pcall(function() GameRemote:InvokeServer(unpack(Args)) end)
+            end)
+        end
+    end)
+end
+
 local function AttemptWeaponHit(TargetChar)
     pcall(function()
         local Char = LocalPlayer.Character
@@ -547,13 +691,11 @@ local function AttemptWeaponHit(TargetChar)
         end
         
         _G.LastAttackTime = tick()
-        
         local isSlow = _G.AntiSlow and false or true
         local slowMul = _G.AntiSlow and 1 or 0.2
         local slowTim = _G.AntiSlow and 0 or 1.5
         
         local fakeOrigin = TargetChar.HumanoidRootPart.Position
-        local direction = Vector3.new(0, 0, 1)
         
         local Args = {
             "AttemptWeaponHit",
@@ -574,7 +716,7 @@ local function AttemptWeaponHit(TargetChar)
                 },
                 tool = MyTool, slowTime = slowTim
             },
-            {{ knockback = 50, isClosestEnemy = true, origin = fakeOrigin, enemyModel = TargetChar, distance = 0.1, direction = direction }}
+            {{ knockback = 50, isClosestEnemy = true, origin = fakeOrigin, enemyModel = TargetChar, distance = 0.1, direction = Vector3.new(0, 0, 1) }}
         }
         
         task.spawn(function()
@@ -584,28 +726,16 @@ local function AttemptWeaponHit(TargetChar)
 end
 
 _G.KillAll = false
-CombatSec:Toggle({ Title = "Kill All Players", Desc = "After The Rewrite It Now Is Better And More Win Chance", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Kill All Players (Packet Packing)", Desc = "0 Ping Spike, Instant TTK. Kills all in ONE request.", Value = false, Callback = function(v) 
     _G.KillAll = v 
 end})
 
 task.spawn(function()
     while true do
-        task.wait(0.01)
+        task.wait()
         if _G.KillAll then
-            pcall(function()
-                if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                    for _, p in ipairs(Players:GetPlayers()) do
-                        if p ~= LocalPlayer and p.Character then
-                            local hrp = p.Character:FindFirstChild("HumanoidRootPart")
-                            local hum = p.Character:FindFirstChild("Humanoid")
-                            if hrp and hum and hum.Health > 0 then
-                                AttemptWeaponHit(p.Character)
-                            end
-                        end
-                    end
-                end
-            end)
-            task.wait(math.max(_G.AttackDelay, 0.05))
+            ExecuteMassacre()
+            task.wait(math.max(_G.AttackDelay, 0.01))
         end
     end
 end)
@@ -624,7 +754,7 @@ end})
 
 task.spawn(function()
     while true do
-        task.wait(0.01)
+        task.wait()
         if _G.AutoHit and not _G.KillAll then
             pcall(function()
                 if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
@@ -652,7 +782,7 @@ end})
 
 task.spawn(function()
     while true do
-        task.wait(0.01)
+        task.wait()
         if _G.AutoFarm then
             pcall(function()
                 if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
@@ -711,6 +841,7 @@ RunService.RenderStepped:Connect(function()
         end
     end)
 end)
+
 
 local VisSec = VisTab:Section({ Title = "ESP & Visuals", Icon = "eye", Opened = true, Box = true })
 
@@ -909,64 +1040,6 @@ _G.PlayerToFind = ""
 FinderSec:Input({ Title = "Target Username (e.g. Name @user)", Value = "", Callback = function(v) 
     _G.PlayerToFind = v 
 end})
-
-local StatusParagraph = FinderSec:Paragraph({
-    Title = "Player Status: Waiting...", 
-    Content = "Input a username and click check.",
-    Image = "user", 
-    ImageSize = 20
-})
-
-FinderSec:Button({ Title = "Check Player Status", Icon = "info", Callback = function()
-    if _G.PlayerToFind == "" then
-        pcall(function() StatusParagraph:Set({Title = "Error", Content = "Please input a username!"}) end)
-        return
-    end
-    
-    local targetUser = _G.PlayerToFind
-    local extractedName = string.match(targetUser, "@([%w_]+)")
-    if not extractedName then extractedName = targetUser end
-    extractedName = string.gsub(extractedName, "%s+", "")
-    
-    pcall(function() StatusParagraph:Set({Title = "Checking...", Content = "Fetching data for " .. extractedName}) end)
-    
-    task.spawn(function()
-        local HttpService = game:GetService("HttpService")
-        local successId, targetId = pcall(function() return Players:GetUserIdFromNameAsync(extractedName) end)
-        
-        if not successId or not targetId then
-            pcall(function() StatusParagraph:Set({Title = "Error", Content = "Invalid username: " .. extractedName}) end)
-            return
-        end
-        
-        local successReq, resBody = ProxiedFetch("presence", "/v1/presence/users", "POST", { userIds = { targetId } })
-        
-        if successReq and resBody then
-            local data = HttpService:JSONDecode(resBody)
-            if data and data.userPresences and data.userPresences[1] then
-                local p = data.userPresences[1]
-                local pType = p.userPresenceType
-                local statusMsg = ""
-                
-                if pType == 0 then statusMsg = "Offline"
-                elseif pType == 1 then statusMsg = "Online (No-Game)"
-                elseif pType == 2 then 
-                    local gameName = p.lastLocation
-                    if gameName == "" then gameName = "Hidden Game" end
-                    statusMsg = "In-Game: " .. gameName
-                elseif pType == 3 then statusMsg = "In Studio"
-                else statusMsg = "Unknown Status" end
-                
-                pcall(function() StatusParagraph:Set({Title = "Target: " .. extractedName, Content = "Status: " .. statusMsg}) end)
-            else
-                pcall(function() StatusParagraph:Set({Title = "Error", Content = "Failed to parse presence data."}) end)
-            end
-        else
-            pcall(function() StatusParagraph:Set({Title = "Error", Content = "API Blocked! Executor preventing connection."}) end)
-        end
-    end)
-end})
-
 FinderSec:Divider()
 
 _G.TargetGameMode = "Current Game"

@@ -735,9 +735,6 @@ CombatSec:Toggle({ Title = "Kill All Players", Desc = "It's Now Is More Stable A
         table.insert(nukeConnections, RunService.Heartbeat:Connect(function() 
             task.spawn(FireInstantNuke) 
         end))
-        table.insert(nukeConnections, RunService.RenderStepped:Connect(function() 
-            if _G.AttackDelay == 0 then task.spawn(FireInstantNuke) end 
-        end))
         
         task.spawn(function()
             while _G.KillAll do
@@ -762,16 +759,9 @@ local function AttemptWeaponHit(TargetChar)
         if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
         if not TargetChar or not TargetChar:FindFirstChild("HumanoidRootPart") then return end
         
-        local MyTool = Char:FindFirstChildOfClass("Tool")
-        if not MyTool then 
-            local backpackTool = LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
-            if backpackTool then
-                pcall(function() LocalPlayer.Character.Humanoid:EquipTool(backpackTool) end)
-                MyTool = backpackTool
-            else
-                return
-            end
-        end
+        -- Bypass: Lấy vũ khí trực tiếp từ Balo hoặc trên tay, KHÔNG CẦN RÚT KIẾM
+        local MyTool = Char:FindFirstChildOfClass("Tool") or LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
+        if not MyTool then return end
         
         _G.LastAttackTime = tick()
         local isSlow = _G.AntiSlow and false or true
@@ -780,26 +770,37 @@ local function AttemptWeaponHit(TargetChar)
         
         local fakeOrigin = TargetChar.HumanoidRootPart.Position
         
+        -- Combo Hủy Diệt: Nhồi 3 đòn đánh cùng lúc vào một mục tiêu để One-Shot
+        local targetArray = {}
+        for i = 1, 3 do
+            table.insert(targetArray, {
+                knockback = 0, -- Tắt văng lùi
+                isClosestEnemy = true, 
+                origin = fakeOrigin, 
+                enemyModel = TargetChar, 
+                distance = 0.1, 
+                direction = Vector3.new((0, 0, 1) -- Ép sát thương cắm xuống đất
+            })
+        end
+        
         local Args = {
             "AttemptWeaponHit",
             {
-                attackCycleData = {knockbackMul=1,slowMult=slowMul,attackTime=0.65,lungeMul=1,slowTime=slowTim},
-                knockback = 50, shouldLock = true, shouldLunge = true,
-                hitboxOffset = Vector3.new(0, 0, -1.5), isCritical = true, shouldSlow = isSlow,
-                attackCooldown = 0, damage = 100, lungeKnockback = 55, cycleIndex = 1,
-                slowMult = slowMul, hitboxSize = Vector3.new(100, 100, 100),
+                -- Tối ưu hóa: Đánh ngay lập tức (attackTime = 0) và tắt đẩy lùi
+                attackCycleData = {knockbackMul=0, slowMult=slowMul, attackTime=0, lungeMul=0, slowTime=slowTim},
+                knockback = 0, shouldLock = true, shouldLunge = false,
+                hitboxOffset = Vector3.new(0, 0, 0), isCritical = true, shouldSlow = isSlow,
+                attackCooldown = 0, damage = 9e9, lungeKnockback = 0, cycleIndex = 1,
+                slowMult = slowMul, hitboxSize = Vector3.new(2048, 2048, 2048),
                 weaponDefinition = { 
                     attackCycle = { 
-                        ["1"] = {knockbackMul=1, slowMult=slowMul, attackTime=0.65, lungeMul=1, slowTime=slowTim}, 
-                        ["4"] = {lungeMult=2.25, attackTime=0.98, slowMult=slowMul, hitboxOffsetAdd=Vector3.new(0,0,-1.5), hitboxSizeAdd=Vector3.new(0,0,3), knockbackMult=2.25, slowTime=slowTim}, 
-                        ["3"] = {lungeMult=0.75, slowMult=slowMul, attackTime=0.71, knockbackMult=1.5, slowTime=slowTim}, 
-                        ["2"] = {lungeMult=1, slowMult=slowMul, attackTime=0.65, knockbackMult=1, slowTime=slowTim} 
+                        ["1"] = {knockbackMul=0, slowMult=slowMul, attackTime=0, lungeMul=0, slowTime=slowTim}
                     }, 
-                    attackOrder = {"1", "2", "3", "4"} 
+                    attackOrder = {"1", "1", "1", "1"} 
                 },
                 tool = MyTool, slowTime = slowTim
             },
-            {{ knockback = 50, isClosestEnemy = true, origin = fakeOrigin, enemyModel = TargetChar, distance = 0.1, direction = Vector3.new(0, 0, 1) }}
+            targetArray
         }
         
         task.spawn(function()
@@ -961,6 +962,8 @@ local function cleanEsp(player)
     if espElements[player] then 
         pcall(function() 
             espElements[player].Name:Remove()
+            if espElements[player].Box then espElements[player].Box:Remove() end
+            if espElements[player].BoxOutline then espElements[player].BoxOutline:Remove() end
             espElements[player].Highlight:Destroy() 
         end) 
         espElements[player] = nil 
@@ -981,13 +984,26 @@ local function updatePlayerEsp()
                     if not espElements[player] then
                         local d = { 
                             Name = Drawing.new("Text"), 
+                            BoxOutline = Drawing.new("Square"),
+                            Box = Drawing.new("Square"),
                             Highlight = Instance.new("Highlight") 
                         }
+                        -- Setup Tên
                         d.Name.Size = 16
                         d.Name.Center = true
                         d.Name.Outline = true
                         d.Name.Font = 2
                         
+                        -- Setup Viền đen cho Box (Giúp nhìn rõ trên nền sáng)
+                        d.BoxOutline.Thickness = 3
+                        d.BoxOutline.Filled = false
+                        d.BoxOutline.Color = Color3.new(0, 0, 0)
+                        
+                        -- Setup Box chính
+                        d.Box.Thickness = 1
+                        d.Box.Filled = false
+                        
+                        -- Setup Chams
                         d.Highlight.FillTransparency = 0.5
                         d.Highlight.OutlineTransparency = 0
                         d.Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
@@ -1003,16 +1019,35 @@ local function updatePlayerEsp()
                         local dist = (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")) and (LocalPlayer.Character.HumanoidRootPart.Position - hrp.Position).Magnitude or 0
                         local teamColor = player.TeamColor and player.TeamColor.Color or Color3.fromRGB(255, 50, 50)
                         
+                        -- Tính toán kích thước 2D Box dựa theo khoảng cách (Scale logic)
+                        local boxWidth = 3000 / rootPos.Z
+                        local boxHeight = 4500 / rootPos.Z
+                        local boxPos = Vector2.new(rootPos.X - boxWidth / 2, rootPos.Y - boxHeight / 2)
+                        
+                        -- Vẽ 2D Box
+                        d.BoxOutline.Size = Vector2.new(boxWidth, boxHeight)
+                        d.BoxOutline.Position = boxPos
+                        d.BoxOutline.Visible = _G.ShowESP
+                        
+                        d.Box.Size = Vector2.new(boxWidth, boxHeight)
+                        d.Box.Position = boxPos
+                        d.Box.Color = teamColor
+                        d.Box.Visible = _G.ShowESP
+                        
+                        -- Vẽ Tên (Đẩy lên trên cái Box một chút)
                         d.Name.Color = teamColor
                         d.Name.Text = player.Name .. " ["..math.floor(dist).."m]"
-                        d.Name.Position = Vector2.new(rootPos.X, rootPos.Y - 40)
+                        d.Name.Position = Vector2.new(rootPos.X, rootPos.Y - boxHeight / 2 - 20)
                         d.Name.Visible = _G.ShowESP
                         
+                        -- Chams
                         d.Highlight.FillColor = teamColor
                         d.Highlight.Parent = char
                         d.Highlight.Enabled = _G.ShowESP
                     else 
                         d.Name.Visible = false
+                        d.Box.Visible = false
+                        d.BoxOutline.Visible = false
                         d.Highlight.Enabled = false
                     end
                 else 
@@ -1020,6 +1055,7 @@ local function updatePlayerEsp()
                 end
             end
         end
+        -- Dọn dẹp những người chơi đã thoát game hoặc chết
         for player, _ in pairs(espElements) do 
             if not activePlayers[player] then 
                 cleanEsp(player) 
@@ -1071,236 +1107,6 @@ PlayerSec:Button({ Title = "Teleport To Player", Icon = "map-pin", Callback = fu
     end)
 end})
 refreshPlayers()
-
-local FinderSec = PlayerTab:Section({ Title = "Blox Finder (Server Sniper)", Icon = "search", Opened = true, Box = true })
-
-local function ProxiedFetch(subdomain, path, method, body)
-    local HttpService = game:GetService("HttpService")
-    local reqFunc = request or http_request or (syn and syn.request) or (fluxus and fluxus.request)
-    local domains = { "roproxy.com", "roblox.com" }
-    
-    for _, domain in ipairs(domains) do
-        local fullUrl = "https://" .. subdomain .. "." .. domain .. path
-        if reqFunc then
-            local options = {
-                Url = fullUrl,
-                Method = method or "GET",
-                Headers = { ["Content-Type"] = "application/json", ["Accept"] = "application/json" }
-            }
-            if body then options.Body = HttpService:JSONEncode(body) end
-            local success, res = pcall(function() return reqFunc(options) end)
-            if success and res and type(res) == "table" and res.Body and string.find(res.Body, "{") then
-                return true, res.Body
-            end
-        end
-        if not body and (method == "GET" or not method) then
-            local success, res = pcall(function() return game:HttpGet(fullUrl) end)
-            if success and res and type(res) == "string" and string.find(res, "{") then
-                return true, res
-            end
-        end
-    end
-    return false, nil
-end
-
-_G.PlayerToFind = ""
-FinderSec:Input({ Title = "Target Username (e.g. Name @user)", Value = "", Callback = function(v) 
-    _G.PlayerToFind = v 
-end})
-FinderSec:Divider()
-
-_G.TargetGameMode = "Current Game"
-FinderSec:Dropdown({ Title = "Search Game Mode", Values = {"Current Game", "Game ID", "Game Name"}, Value = "Current Game", Callback = function(v) 
-    _G.TargetGameMode = v 
-end})
-
-_G.GameInfoInput = ""
-FinderSec:Input({ Title = "Game Info (ID or Name)", Value = "", Callback = function(v) 
-    _G.GameInfoInput = v 
-end})
-
-FinderSec:Button({ Title = "Find Target & Auto-Join", Icon = "radar", Callback = function() 
-    if _G.PlayerToFind == "" then
-        WindUI:Notify({Title = "Error", Content = "Please input a username!", Duration = 3})
-        return
-    end
-    
-    local targetUser = _G.PlayerToFind
-    local extractedName = string.match(targetUser, "@([%w_]+)")
-    if not extractedName then extractedName = targetUser end
-    extractedName = string.gsub(extractedName, "%s+", "")
-    
-    WindUI:Notify({Title = "Searching", Content = "Target: " .. extractedName .. ". Preparing multi-scan...", Duration = 4})
-    
-    task.spawn(function()
-        local HttpService = game:GetService("HttpService")
-        local TeleportService = game:GetService("TeleportService")
-        
-        local successId, targetId = pcall(function() return Players:GetUserIdFromNameAsync(extractedName) end)
-        if not successId or not targetId then
-            WindUI:Notify({Title = "Error", Content = "Invalid username: " .. extractedName, Duration = 3})
-            return
-        end
-        
-        local targetPlaces = {}
-        
-        if _G.TargetGameMode == "Current Game" then
-            table.insert(targetPlaces, game.PlaceId)
-            if Players:GetPlayerByUserId(targetId) then
-                WindUI:Notify({Title = "Found", Content = "Player is already in your current server!", Duration = 5})
-                return
-            end
-        elseif _G.TargetGameMode == "Game ID" then
-            local pid = tonumber(_G.GameInfoInput)
-            if not pid then 
-                WindUI:Notify({Title = "Error", Content = "Invalid Game ID!", Duration = 3})
-                return 
-            end
-            table.insert(targetPlaces, pid)
-        elseif _G.TargetGameMode == "Game Name" then
-            if _G.GameInfoInput == "" then
-                WindUI:Notify({Title = "Error", Content = "Please input a Game Name!", Duration = 3})
-                return
-            end
-            
-            local successReq, resBody = ProxiedFetch("games", "/v1/games/list?model.keyword=" .. HttpService:UrlEncode(_G.GameInfoInput) .. "&model.maxRows=50", "GET")
-            if successReq and resBody then
-                local data = HttpService:JSONDecode(resBody)
-                if data and data.games and #data.games > 0 then
-                    table.sort(data.games, function(a, b) return (a.playerCount or 0) > (b.playerCount or 0) end)
-                    for i = 1, math.min(#data.games, 15) do
-                        table.insert(targetPlaces, data.games[i].placeId)
-                    end
-                    WindUI:Notify({Title = "Multi-Scan", Content = "Scanning top " .. #targetPlaces .. " populated games...", Duration = 4})
-                else
-                    WindUI:Notify({Title = "Error", Content = "Game not found!", Duration = 3})
-                    return
-                end
-            else
-                WindUI:Notify({Title = "Error", Content = "API request failed. Try Game ID mode.", Duration = 3})
-                return
-            end
-        end
-        
-        local targetImageUrl = ""
-        local successImg, resBody = ProxiedFetch("thumbnails", "/v1/users/avatar-headshot?userIds="..targetId.."&size=150x150&format=Png&isCircular=false", "GET")
-        if successImg and resBody then 
-            targetImageUrl = HttpService:JSONDecode(resBody).data[1].imageUrl
-        else
-            WindUI:Notify({Title = "Error", Content = "Failed to fetch avatar data.", Duration = 3})
-            return
-        end
-
-        local foundServer = nil
-        local serverData = nil
-        local successPlaceId = nil
-
-        for _, scanPlaceId in ipairs(targetPlaces) do
-            if foundServer then break end
-            local cursor = ""
-            local attempts = 0
-            
-            while cursor ~= nil and not foundServer and attempts < 100 do
-                attempts = attempts + 1
-                local path = "/v1/games/"..scanPlaceId.."/servers/Public?sortOrder=Asc&limit=100"
-                if cursor ~= "" then path = path .. "&cursor=" .. cursor end
-                
-                local successReq, resBody = ProxiedFetch("games", path, "GET")
-                if successReq and resBody then
-                    local data = HttpService:JSONDecode(resBody)
-                    if data and data.data then
-                        local allTokens = {}
-                        local tokenToServer = {}
-                        
-                        for _, server in pairs(data.data) do
-                            if server.playing and server.playerTokens and server.id ~= game.JobId then
-                                for _, token in ipairs(server.playerTokens) do
-                                    table.insert(allTokens, token)
-                                    tokenToServer[token] = { id = server.id, playing = server.playing, maxPlayers = server.maxPlayers }
-                                end
-                            end
-                        end
-                        
-                        for i = 1, #allTokens, 100 do
-                            local postData = {}
-                            for j = i, math.min(i + 99, #allTokens) do
-                                table.insert(postData, {
-                                    requestId = allTokens[j],
-                                    type = "AvatarHeadShot",
-                                    targetId = 0,
-                                    token = allTokens[j],
-                                    format = "png",
-                                    size = "150x150"
-                                })
-                            end
-                            
-                            local successPost, postResBody = ProxiedFetch("thumbnails", "/v1/batch", "POST", postData)
-                            if successPost and postResBody then
-                                local resultPost = HttpService:JSONDecode(postResBody)
-                                if resultPost and resultPost.data then
-                                    for _, avatar in pairs(resultPost.data) do
-                                        if avatar.imageUrl == targetImageUrl then
-                                            local sData = tokenToServer[avatar.requestId]
-                                            if sData then
-                                                foundServer = sData.id
-                                                serverData = sData
-                                                successPlaceId = scanPlaceId
-                                                break
-                                            end
-                                        end
-                                    end
-                                end
-                            end
-                            if foundServer then break end
-                        end
-                        cursor = data.nextPageCursor
-                    else
-                        break
-                    end
-                else
-                    break
-                end
-                task.wait(0.1)
-            end
-        end
-
-        if foundServer and serverData and successPlaceId then
-            pcall(function() setclipboard(tostring(foundServer)) end)
-            
-            if serverData.playing >= serverData.maxPlayers then
-                WindUI:Notify({Title = "Server Full", Content = "Target found but server is full. JobId copied!", Duration = 7})
-            else
-                WindUI:Notify({Title = "Success", Content = "Found target! JobId copied. Teleporting...", Duration = 5})
-                task.wait(1)
-                TeleportService:TeleportToPlaceInstance(successPlaceId, foundServer, LocalPlayer)
-            end
-        else
-            WindUI:Notify({Title = "Not Found", Content = "Target is not in the scanned servers.", Duration = 5})
-        end
-    end)
-end})
-
-FinderSec:Divider()
-
-_G.JobIdToJoin = ""
-FinderSec:Input({ Title = "Target JobId", Value = "", Callback = function(v) 
-    _G.JobIdToJoin = v 
-end})
-
-FinderSec:Button({ Title = "Join Server By JobId", Icon = "log-in", Callback = function() 
-    if _G.JobIdToJoin ~= "" then
-        WindUI:Notify({Title = "Teleporting", Content = "Joining server using provided JobId...", Duration = 3})
-        pcall(function() 
-            local targetPlaceId = game.PlaceId
-            if _G.TargetGameMode == "Game ID" and tonumber(_G.GameInfoInput) then
-                targetPlaceId = tonumber(_G.GameInfoInput)
-            end
-            game:GetService("TeleportService"):TeleportToPlaceInstance(targetPlaceId, _G.JobIdToJoin, LocalPlayer) 
-        end)
-    else
-        WindUI:Notify({Title = "Error", Content = "Please input a valid JobId first!", Duration = 3})
-    end
-end})
 
 local ThemeSection = SettingTab:Section({ Title = "Themes", Icon = "palette", Opened = true, Box = true })
 local validThemes = WindUI:GetThemes()

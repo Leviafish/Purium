@@ -194,26 +194,26 @@ end})
 
 GodSec:Divider()
 
-_G.CFrameSpeed = false
-_G.CFSpeedValue = 2
-GodSec:Toggle({ Title = "CFrame SpeedWalk", Desc = "Undetectable movement. Slides your coordinates.", Value = false, Callback = function(v)
-    _G.CFrameSpeed = v
+_G.TeleportWalk = false
+_G.TPWalkValue = 2
+GodSec:Toggle({ Title = "Teleport Walk", Desc = "Safer And Better than walkspeed", Value = false, Callback = function(v)
+    _G.TeleportWalk = v
 end})
 
-GodSec:Slider({ Title = "CFrame Speed Multiplier", Value = {Min = 1, Max = 10, Default = 2}, Callback = function(v) 
-    _G.CFSpeedValue = v 
+GodSec:Slider({ Title = "Teleport Walk Distance", Value = {Min = 1, Max = 10, Default = 2}, Callback = function(v) 
+    _G.TPWalkValue = v 
 end})
 
 RunService.Heartbeat:Connect(function()
     pcall(function()
-        if _G.CFrameSpeed and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        if _G.TeleportWalk and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character:FindFirstChild("Humanoid") then
             local hum = LocalPlayer.Character.Humanoid
             local hrp = LocalPlayer.Character.HumanoidRootPart
             if hum.MoveDirection.Magnitude > 0 then
                 if _G.DesyncGodMode and _G.LastSafeCFrame then
-                    _G.LastSafeCFrame = _G.LastSafeCFrame + (hum.MoveDirection * _G.CFSpeedValue)
+                    _G.LastSafeCFrame = _G.LastSafeCFrame + (hum.MoveDirection * _G.TPWalkValue)
                 else
-                    hrp.CFrame = hrp.CFrame + (hum.MoveDirection * _G.CFSpeedValue)
+                    hrp.CFrame = hrp.CFrame + (hum.MoveDirection * _G.TPWalkValue)
                 end
             end
         end
@@ -223,7 +223,7 @@ end)
 GodSec:Divider()
 
 _G.FakeLag = false
-GodSec:Toggle({ Title = "Fake Lag (Blink)", Desc = "Freezes your character in other screen!", Value = false, Callback = function(v)
+GodSec:Toggle({ Title = "Fake Lag (Blink)", Desc = "Freeze Your Character In Others Screen!", Value = false, Callback = function(v)
     _G.FakeLag = v
     pcall(function()
         if v then
@@ -248,6 +248,31 @@ end)
 GodSec:Toggle({ Title = "Anti-AFK (24/7)", Desc = "Prevents 20-minute idle disconnects", Value = false, Callback = function(v)
     _G.AntiAFK = v
 end})
+
+local MapSec = BypassTab:Section({ Title = "Map Bypasses(might not working)", Icon = "map", Opened = true, Box = true })
+
+_G.RemoveZone = false
+local zoneKeywords = {"zone", "infection", "gas", "storm", "radiation", "circle", "damage", "ring", "boundary"}
+
+MapSec:Toggle({ Title = "Remove Map Zone", Desc = "Automatically deletes the shrinking damage zone", Value = false, Callback = function(v) 
+    _G.RemoveZone = v 
+end})
+
+RunService.Heartbeat:Connect(function()
+    pcall(function()
+        if _G.RemoveZone then
+            for _, v in ipairs(Workspace:GetChildren()) do
+                local name = string.lower(v.Name)
+                for _, keyword in ipairs(zoneKeywords) do
+                    if string.find(name, keyword) then
+                        v:Destroy()
+                        break
+                    end
+                end
+            end
+        end
+    end)
+end)
 
 local HitboxSec = BypassTab:Section({ Title = "Hitbox Expander", Icon = "maximize", Opened = true, Box = true })
 
@@ -575,7 +600,7 @@ end})
 CombatSec:Divider()
 
 _G.AttackDelay = 0
-CombatSec:Slider({ Title = "Attack Delay (Seconds)", Desc = "0 = 100% Network capacity (God Tier speed)", Value = {Min = 0, Max = 10, Default = 0}, Callback = function(v) 
+CombatSec:Slider({ Title = "Attack Delay (Seconds)", Desc = "Choose your kill speed ( for auto hit & kill all )", Value = {Min = 0, Max = 10, Default = 0}, Callback = function(v) 
     _G.AttackDelay = v 
 end})
 
@@ -605,7 +630,7 @@ local function getNearestTarget()
     return nearest
 end
 
-local function ExecuteMassacre()
+local function FireInstantNuke()
     pcall(function()
         local Char = LocalPlayer.Character
         if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
@@ -673,6 +698,39 @@ local function ExecuteMassacre()
     end)
 end
 
+local nukeConnections = {}
+
+_G.KillAll = false
+CombatSec:Toggle({ Title = "Kill All Players", Desc = "After The Rewrite It Now Is Better", Value = false, Callback = function(v) 
+    _G.KillAll = v 
+    if v then
+        table.insert(nukeConnections, RunService.Stepped:Connect(function() 
+            if _G.AttackDelay == 0 then task.spawn(FireInstantNuke) end 
+        end))
+        table.insert(nukeConnections, RunService.Heartbeat:Connect(function() 
+            task.spawn(FireInstantNuke) 
+        end))
+        table.insert(nukeConnections, RunService.RenderStepped:Connect(function() 
+            if _G.AttackDelay == 0 then task.spawn(FireInstantNuke) end 
+        end))
+        
+        task.spawn(function()
+            while _G.KillAll do
+                if _G.AttackDelay > 0 then
+                    task.wait(_G.AttackDelay)
+                else
+                    task.wait() 
+                end
+            end
+        end)
+    else
+        for _, conn in ipairs(nukeConnections) do
+            if conn then conn:Disconnect() end
+        end
+        nukeConnections = {}
+    end
+end})
+
 local function AttemptWeaponHit(TargetChar)
     pcall(function()
         local Char = LocalPlayer.Character
@@ -725,30 +783,15 @@ local function AttemptWeaponHit(TargetChar)
     end)
 end
 
-_G.KillAll = false
-CombatSec:Toggle({ Title = "Kill All Players (Packet Packing)", Desc = "0 Ping Spike, Instant TTK. Kills all in ONE request.", Value = false, Callback = function(v) 
-    _G.KillAll = v 
-end})
-
-task.spawn(function()
-    while true do
-        task.wait()
-        if _G.KillAll then
-            ExecuteMassacre()
-            task.wait(math.max(_G.AttackDelay, 0.01))
-        end
-    end
-end)
-
 CombatSec:Divider()
 
 _G.AutoHit = false
 _G.HitRange = 15
-CombatSec:Toggle({ Title = "Auto Hit By Distance", Desc = "Automatically attack enemies near you", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Auto Hit By Distance", Desc = "Automatically attack enemies in hit range you", Value = false, Callback = function(v) 
     _G.AutoHit = v 
 end})
 
-CombatSec:Slider({ Title = "Auto Hit Range", Value = {Min = 5, Max = 100, Default = 15}, Callback = function(v) 
+CombatSec:Slider({ Title = "Auto Hit Range", Value = {Min = 5, Max = 1000, Default = 15}, Callback = function(v) 
     _G.HitRange = v 
 end})
 
@@ -763,7 +806,7 @@ task.spawn(function()
                         local myPos = (_G.DesyncGodMode and _G.LastSafeCFrame) and _G.LastSafeCFrame.Position or LocalPlayer.Character.HumanoidRootPart.Position
                         local dist = (target.HumanoidRootPart.Position - myPos).Magnitude
                         if dist <= _G.HitRange then 
-                            AttemptWeaponHit(target)
+                            task.spawn(AttemptWeaponHit, target)
                         end
                     end
                 end
@@ -797,7 +840,7 @@ task.spawn(function()
                             hrp.CFrame = tHrp.CFrame * CFrame.new(0, 0, 3)
                         end
                         
-                        AttemptWeaponHit(target)
+                        task.spawn(AttemptWeaponHit, target)
                         
                         if _G.DesyncGodMode and _G.LastSafeCFrame then
                             _G.LastSafeCFrame = tHrp.CFrame * CFrame.new(0, 25, 0)
@@ -841,7 +884,6 @@ RunService.RenderStepped:Connect(function()
         end
     end)
 end)
-
 
 local VisSec = VisTab:Section({ Title = "ESP & Visuals", Icon = "eye", Opened = true, Box = true })
 

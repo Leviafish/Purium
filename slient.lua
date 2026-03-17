@@ -660,175 +660,125 @@ local function getNearestTarget()
     return nearest
 end
 
-local function FireInstantNuke()
-    pcall(function()
-        local Char = LocalPlayer.Character
-        if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
-        local MyTool = Char:FindFirstChildOfClass("Tool")
-        if not MyTool then 
-            local backpackTool = LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
-            if backpackTool then
-                MyTool = backpackTool
-            else
-                return
-            end
-        end
-        
-        local targetArray = {}
-        for _, p in ipairs(Players:GetPlayers()) do
-            if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                local hum = p.Character:FindFirstChild("Humanoid")
-                if hum and hum.Health > 0 then
-                    for i = 1, 3 do
-                        table.insert(targetArray, {
-                            knockback = 0,
-                            isClosestEnemy = true, 
-                            origin = p.Character.HumanoidRootPart.Position, 
-                            enemyModel = p.Character, 
-                            distance = 0.1, 
-                            direction = Vector3.new(0, -1, 0)
-                        })
-                    end
+local function FireFatNuke()
+    local Char = LocalPlayer.Character
+    if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
+
+    local MyTool = Char:FindFirstChildOfClass("Tool") or LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
+    if not MyTool then return end
+    
+    local targetArray = {}
+    local hasTargets = false
+
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            local hum = p.Character:FindFirstChild("Humanoid")
+            if hum and hum.Health > 0 then
+                hasTargets = true
+                for i = 1, 500000 do
+                    table.insert(targetArray, {
+                        knockback = 0,
+                        isClosestEnemy = true, 
+                        origin = p.Character.HumanoidRootPart.Position, 
+                        enemyModel = p.Character, 
+                        distance = 0.1, 
+                        direction = Vector3.new(0, -1, 0)
+                    })
                 end
             end
         end
-        
-        if #targetArray > 0 then
-            _G.LastAttackTime = tick()
-            local isSlow = _G.AntiSlow and false or true
-            local slowMul = _G.AntiSlow and 1 or 0.2
-            local slowTim = _G.AntiSlow and 0 or 1.5
-            
-            local Args = {
-                "AttemptWeaponHit",
-                {
-                    attackCycleData = {knockbackMul=0,slowMult=slowMul,attackTime=0,lungeMul=1,slowTime=slowTim},
-                    knockback = 0, shouldLock = true, shouldLunge = true,
-                    hitboxOffset = Vector3.new(0, 0, -1.5), isCritical = true, shouldSlow = isSlow,
-                    attackCooldown = 0, damage = 999999, lungeKnockback = 0, cycleIndex = 1,
-                    slowMult = slowMul, hitboxSize = Vector3.new(2048, 2048, 2048),
-                    weaponDefinition = { 
-                        attackCycle = { 
-                            ["1"] = {knockbackMul=0, slowMult=slowMul, attackTime=0, lungeMul=1, slowTime=slowTim}, 
-                            ["4"] = {lungeMult=2.25, attackTime=0, slowMult=slowMul, hitboxOffsetAdd=Vector3.new(0,0,-1.5), hitboxSizeAdd=Vector3.new(0,0,3), knockbackMult=2.25, slowTime=slowTim}, 
-                            ["3"] = {lungeMult=0.75, slowMult=slowMul, attackTime=0, knockbackMult=1.5, slowTime=slowTim}, 
-                            ["2"] = {lungeMult=1, slowMult=slowMul, attackTime=0, knockbackMult=1, slowTime=slowTim} 
-                        }, 
-                        attackOrder = {"1", "2", "3", "4"} 
-                    },
-                    tool = MyTool, slowTime = slowTim
-                },
-                targetArray
-            }
-            
-            task.spawn(function()
-                pcall(function() GameRemote:InvokeServer(unpack(Args)) end)
-            end)
-        end
-    end)
-end
-
-local nukeConnections = {}
-
-_G.KillAll = false
-_G.SpamMultiplier = 20
-CombatSec:Toggle({ Title = "Kill All Players", Desc = "It's Now Is More Stable And Better!!!", Value = false, Callback = function(v) 
-    _G.KillAll = v 
-    if v then
-        local function MultiSpam()
-            for i = 10, _G.SpamMultiplier do
-                task.spawn(FireInstantNuke)
-            end
-        end
-        table.insert(nukeConnections, RunService.Stepped:Connect(MultiSpam))
-
-        table.insert(nukeConnections, RunService.Heartbeat:Connect(MultiSpam))
-
-        task.spawn(function()
-            while _G.KillAll do
-                MultiSpam()
-                task.wait()
-            end
-        end)
-    else
-        for _, conn in ipairs(nukeConnections) do
-            if conn then conn:Disconnect() end
-        end
-        nukeConnections = {}
     end
-end})
-
-CombatSec:Input({ 
-    Title = "Multiplier", 
-    Desc = "This ONLY For Kill all", 
-    Value = "20", 
-    Callback = function(v)
-        local num = tonumber(v)
-        if num and num > 0 then
-            if num > 100 then num = 100 end 
-            _G.SpamMultiplier = math.floor(num)
-        else
-            _G.SpamMultiplier = 5
-        end
-    end
-})
-
-CombatSec:Paragraph({
-    Title = "This is just my opinion", Desc = "Mobile Recommended : 10 - 20. \n PC Recommended : 30 - 50.",
-    Image = "circle-alert", ImageSize = 10
-})
-
-local function AttemptWeaponHit(TargetChar)
-    pcall(function()
-        local Char = LocalPlayer.Character
-        if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
-        if not TargetChar or not TargetChar:FindFirstChild("HumanoidRootPart") then return end
-        
-        -- WEAPON BYPASS: Lấy trực tiếp từ Balo hoặc trên tay, triệt tiêu delay rút kiếm
-        local MyTool = Char:FindFirstChildOfClass("Tool") or LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
-        if not MyTool then return end
-        
-        local isSlow = _G.AntiSlow and false or true
+    
+    if hasTargets then
+        _G.LastAttackTime = tick()
+        local isSlow = not _G.AntiSlow
         local slowMul = _G.AntiSlow and 1 or 0.2
         local slowTim = _G.AntiSlow and 0 or 1.5
-        local fakeOrigin = TargetChar.HumanoidRootPart.Position
-        
-        -- BATCH EXECUTION: Gắn 10 nhát chém vào chung 1 gói tin (Đảm bảo One-shot)
-        local targetArray = {}
-        for i = 1, 100000000 do
-            table.insert(targetArray, {
-                knockback = 0, -- Chống văng mục tiêu
-                isClosestEnemy = true, 
-                origin = fakeOrigin, 
-                enemyModel = TargetChar, 
-                distance = 0.1, 
-                direction = Vector3.new(0, 0, 1)
-            })
-        end
         
         local Args = {
             "AttemptWeaponHit",
             {
-                attackCycleData = {knockbackMul=0, slowMult=slowMul, attackTime=0, lungeMul=0, slowTime=slowTim},
+                attackCycleData = {knockbackMul=0,slowMult=slowMul,attackTime=0,lungeMul=0,slowTime=slowTim},
                 knockback = 0, shouldLock = true, shouldLunge = false,
                 hitboxOffset = Vector3.new(0, 0, 0), isCritical = true, shouldSlow = isSlow,
-                attackCooldown = 0, damage = 999999, lungeKnockback = 0, cycleIndex = 1,
+                attackCooldown = 0, damage = 9e9, lungeKnockback = 0, cycleIndex = 1,
                 slowMult = slowMul, hitboxSize = Vector3.new(2048, 2048, 2048),
                 weaponDefinition = { 
-                    attackCycle = { 
-                        ["1"] = {knockbackMul=0, slowMult=slowMul, attackTime=0, lungeMul=0, slowTime=slowTim}
-                    }, 
+                    attackCycle = { ["1"] = {knockbackMul=0, slowMult=slowMul, attackTime=0, lungeMul=0, slowTime=slowTim} }, 
                     attackOrder = {"1", "2", "3", "4"} 
                 },
                 tool = MyTool, slowTime = slowTim
             },
             targetArray
         }
-        
-        -- Bắn gói tin lên Server mà không đợi phản hồi (Chống lag Client)
         task.spawn(function()
             pcall(function() GameRemote:InvokeServer(unpack(Args)) end)
         end)
+    end
+end
+
+_G.KillAll = false
+CombatSec:Toggle({ Title = "Kill All Players", Desc = "It's Now Is More Stable And Better!!!", Value = false, Callback = function(v) 
+    _G.KillAll = v 
+    if v then
+        task.spawn(function()
+            while _G.KillAll do
+                FireFatNuke()
+                if _G.AttackDelay > 0 then
+                    task.wait(_G.AttackDelay)
+                else
+                    RunService.Heartbeat:Wait() -- Chạy chuẩn 1 lần mỗi Frame, không spam rác luồng
+                end
+            end
+        end)
+    end
+end})
+
+local function AttemptWeaponHit(TargetChar)
+    local Char = LocalPlayer.Character
+    if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
+    if not TargetChar or not TargetChar:FindFirstChild("HumanoidRootPart") then return end
+    
+    local MyTool = Char:FindFirstChildOfClass("Tool") or LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
+    if not MyTool then return end
+    
+    local isSlow = not _G.AntiSlow
+    local slowMul = _G.AntiSlow and 1 or 0.2
+    local slowTim = _G.AntiSlow and 0 or 1.5
+    local fakeOrigin = TargetChar.HumanoidRootPart.Position
+    
+    -- NHỒI 10 HIT VÀO CÙNG 1 GÓI TIN ĐỂ ĐẢM BẢO ONE-SHOT
+    local targetArray = {}
+    for i = 1, 10 do
+        table.insert(targetArray, {
+            knockback = 0,
+            isClosestEnemy = true, 
+            origin = fakeOrigin, 
+            enemyModel = TargetChar, 
+            distance = 0.1, 
+            direction = Vector3.new(0, -1, 0)
+        })
+    end
+    
+    local Args = {
+        "AttemptWeaponHit",
+        {
+            attackCycleData = {knockbackMul=0, slowMult=slowMul, attackTime=0, lungeMul=0, slowTime=slowTim},
+            knockback = 0, shouldLock = true, shouldLunge = false,
+            hitboxOffset = Vector3.new(0, 0, 0), isCritical = true, shouldSlow = isSlow,
+            attackCooldown = 0, damage = 9e9, lungeKnockback = 0, cycleIndex = 1,
+            slowMult = slowMul, hitboxSize = Vector3.new(2048, 2048, 2048),
+            weaponDefinition = { 
+                attackCycle = { ["1"] = {knockbackMul=0, slowMult=slowMul, attackTime=0, lungeMul=0, slowTime=slowTim} }, 
+                attackOrder = {"1", "2", "3", "4"} 
+            },
+            tool = MyTool, slowTime = slowTim
+        },
+        targetArray
+    }
+    
+    task.spawn(function()
+        pcall(function() GameRemote:InvokeServer(unpack(Args)) end)
     end)
 end
 
@@ -908,26 +858,47 @@ end)
 
 local AimSec = CombatTab:Section({ Title = "Aimbot Configuration", Icon = "crosshair", Opened = true, Box = true })
 _G.AimbotMode = "None"
+_G.AimbotSmoothness = 1 -- 1 là khóa chết (nhanh nhất), số cao hơn là xoay từ từ (mượt)
+
 AimSec:Dropdown({ Title = "Select Aimbot Mode", Values = {"None", "Camera", "Character", "Camera & Character"}, Value = "None", Callback = function(v) 
     _G.AimbotMode = v 
 end})
 
+AimSec:Slider({ Title = "Smoothness (Camera)", Desc = "1 = Khóa lập tức, Cao hơn = Khóa mượt", Value = {Min = 1, Max = 10, Default = 1}, Callback = function(v) 
+    _G.AimbotSmoothness = v 
+end})
+
+-- Luồng 1: RenderStepped CHỈ DÀNH CHO CAMERA (Chống giật màn hình)
 RunService.RenderStepped:Connect(function()
+    if (_G.AimbotMode == "Camera" or _G.AimbotMode == "Camera & Character") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local target = getNearestTarget()
+        if target and target:FindFirstChild("HumanoidRootPart") then
+            local tPos = target.HumanoidRootPart.Position
+            local goalCFrame = CFrame.lookAt(Camera.CFrame.Position, tPos)
+            
+            if _G.AimbotSmoothness == 1 then
+                Camera.CFrame = goalCFrame
+            else
+                -- Lerp giúp camera lia tới mục tiêu mượt mà như người thật
+                Camera.CFrame = Camera.CFrame:Lerp(goalCFrame, 1 / _G.AimbotSmoothness)
+            end
+        end
+    end
+end)
+
+RunService.Heartbeat:Connect(function()
     pcall(function()
-        if _G.AimbotMode ~= "None" and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        if (_G.AimbotMode == "Character" or _G.AimbotMode == "Camera & Character") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
             local target = getNearestTarget()
             if target and target:FindFirstChild("HumanoidRootPart") then
                 local myHrp = LocalPlayer.Character.HumanoidRootPart
                 local tPos = target.HumanoidRootPart.Position
-                if _G.AimbotMode == "Camera" or _G.AimbotMode == "Camera & Character" then
-                    Camera.CFrame = CFrame.lookAt(Camera.CFrame.Position, tPos)
-                end
-                if _G.AimbotMode == "Character" or _G.AimbotMode == "Camera & Character" then
-                    if _G.DesyncGodMode and _G.LastSafeCFrame then
-                        _G.LastSafeCFrame = CFrame.lookAt(_G.LastSafeCFrame.Position, Vector3.new(tPos.X, _G.LastSafeCFrame.Position.Y, tPos.Z))
-                    else
-                        myHrp.CFrame = CFrame.lookAt(myHrp.Position, Vector3.new(tPos.X, myHrp.Position.Y, tPos.Z))
-                    end
+
+                local lookVec = Vector3.new(tPos.X, myHrp.Position.Y, tPos.Z)
+                if _G.DesyncGodMode and _G.LastSafeCFrame then
+                    _G.LastSafeCFrame = CFrame.lookAt(_G.LastSafeCFrame.Position, lookVec)
+                else
+                    myHrp.CFrame = CFrame.lookAt(myHrp.Position, lookVec)
                 end
             end
         end

@@ -678,25 +678,29 @@ local function FireExtremeNuke()
     local MyTool = Char:FindFirstChildOfClass("Tool") or LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
     if not MyTool then return end
     
+    local myHrp = Char.HumanoidRootPart
     local targetArray = {}
     local hasTargets = false
 
     for _, p in ipairs(Players:GetPlayers()) do
         if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
             local hum = p.Character:FindFirstChild("Humanoid")
+            local tHrp = p.Character.HumanoidRootPart
+            
             if hum and hum.Health > 0 then
                 hasTargets = true
-                -- NHỒI HÀNG TRĂM HIT VÀO ĐÚNG 1 GÓI TIN MẠNG
-                for i = 1, _G.HitsPerPacket do
-                    table.insert(targetArray, {
-                        knockback = 0,
-                        isClosestEnemy = true, 
-                        origin = p.Character.HumanoidRootPart.Position, 
-                        enemyModel = p.Character, 
-                        distance = 0.1, 
-                        direction = Vector3.new(0, -1, 0)
-                    })
-                end
+                local dist = (tHrp.Position - myHrp.Position).Magnitude
+                local dir = (tHrp.Position - myHrp.Position).Unit
+                if dist == 0 then dir = Vector3.new(0, 0, 1) end
+
+                table.insert(targetArray, {
+                    knockback = 0,
+                    isClosestEnemy = true, 
+                    origin = myHrp.Position, -- Vị trí CHUẨN của bạn
+                    enemyModel = p.Character, 
+                    distance = dist,
+                    direction = dir 
+                })
             end
         end
     end
@@ -711,20 +715,28 @@ local function FireExtremeNuke()
             {
                 attackCycleData = {knockbackMul=0,slowMult=slowMul,attackTime=0,lungeMul=0,slowTime=slowTim},
                 knockback = 0, shouldLock = true, shouldLunge = false,
-                hitboxOffset = Vector3.new(0, 0, 0), isCritical = true, shouldSlow = isSlow,
+                hitboxOffset = Vector3.new(0, 0, -1.5), isCritical = true, shouldSlow = isSlow,
                 attackCooldown = 0, damage = 9e9, lungeKnockback = 0, cycleIndex = 1,
-                slowMult = slowMul, hitboxSize = Vector3.new(2048, 2048, 2048),
+                slowMult = slowMul, 
+                
+                hitboxSize = Vector3.new(9e9, 9e9, 9e9), 
                 weaponDefinition = { 
-                    attackCycle = { ["1"] = {knockbackMul=0, slowMult=slowMul, attackTime=0, lungeMul=0, slowTime=slowTim} }, 
-                    attackOrder = {"1", "1", "1", "1"} 
+                    attackCycle = { 
+                        ["1"] = {
+                            knockbackMul=0, slowMult=slowMul, attackTime=0, lungeMul=0, slowTime=slowTim,
+                            hitboxSizeAdd = Vector3.new(9e9, 9e9, 9e9) -- Bù thêm Hitbox vô cực
+                        } 
+                    }, 
+                    attackOrder = {"1", "2", "3", "4"} 
                 },
                 tool = MyTool, slowTime = slowTim
             },
             targetArray
         }
         
-        -- Đợi Server nhận xong gói tin khổng lồ này rồi mới chạy tiếp
-        pcall(function() GameRemote:InvokeServer(unpack(Args)) end)
+        task.spawn(function()
+            pcall(function() GameRemote:InvokeServer(unpack(Args)) end)
+        end)
     end
 end
 
@@ -739,7 +751,7 @@ CombatSec:Toggle({ Title = "Kill All Players", Desc = "It Now Is Actually Better
                 if _G.AttackDelay > 0 then
                     task.wait(_G.AttackDelay)
                 else
-                    task.wait(0.01) -- Thời gian nghỉ vi mô để Client không bị treo
+                    task.wait()
                 end
             end
         end)
@@ -758,8 +770,6 @@ local function AttemptWeaponHit(TargetChar)
     local slowMul = _G.AntiSlow and 1 or 0.2
     local slowTim = _G.AntiSlow and 0 or 1.5
     local fakeOrigin = TargetChar.HumanoidRootPart.Position
-    
-    -- NHỒI 10 HIT VÀO CÙNG 1 GÓI TIN ĐỂ ĐẢM BẢO ONE-SHOT
     local targetArray = {}
     for i = 1, 10 do
         table.insert(targetArray, {

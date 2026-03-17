@@ -736,15 +736,14 @@ CombatSec:Toggle({ Title = "Kill All Players", Desc = "It's Now Is More Stable A
     _G.KillAll = v 
     if v then
         local function MultiSpam()
-            for i = 1, _G.SpamMultiplier do
+            for i = 10, _G.SpamMultiplier do
                 task.spawn(FireInstantNuke)
             end
         end
         table.insert(nukeConnections, RunService.Stepped:Connect(MultiSpam))
+
         table.insert(nukeConnections, RunService.Heartbeat:Connect(MultiSpam))
-        pcall(function()
-            table.insert(nukeConnections, RunService.PreAnimation:Connect(MultiSpam))
-        end)
+
         task.spawn(function()
             while _G.KillAll do
                 MultiSpam()
@@ -813,13 +812,13 @@ local function AttemptWeaponHit(TargetChar)
                 attackCycleData = {knockbackMul=0, slowMult=slowMul, attackTime=0, lungeMul=0, slowTime=slowTim},
                 knockback = 0, shouldLock = true, shouldLunge = false,
                 hitboxOffset = Vector3.new(0, 0, 0), isCritical = true, shouldSlow = isSlow,
-                attackCooldown = 0, damage = 9e9, lungeKnockback = 0, cycleIndex = 1,
+                attackCooldown = 0, damage = 999999, lungeKnockback = 0, cycleIndex = 1,
                 slowMult = slowMul, hitboxSize = Vector3.new(2048, 2048, 2048),
                 weaponDefinition = { 
                     attackCycle = { 
                         ["1"] = {knockbackMul=0, slowMult=slowMul, attackTime=0, lungeMul=0, slowTime=slowTim}
                     }, 
-                    attackOrder = {"1", "1", "1", "1"} 
+                    attackOrder = {"1", "2", "3", "4"} 
                 },
                 tool = MyTool, slowTime = slowTim
             },
@@ -1384,6 +1383,23 @@ local configName = "Configs"
 local configFile = ConfigManager:CreateConfig(configName)
 local savedConfigs = ConfigManager:AllConfigs()
 
+local function getAutoLoad()
+    pcall(function()
+        if isfile and isfile("AutoLoad.txt") then
+            return readfile("AutoLoad.txt")
+        end
+    end)
+    return "none"
+end
+
+local function setAutoLoad(name)
+    pcall(function()
+        if writefile then
+            writefile("AutoLoad.txt", name)
+        end
+    end)
+end
+
 if #savedConfigs == 0 then table.insert(savedConfigs, "Configs") end
 
 local ConfigInput = ConfigSection:Input({ Title = "Config Name", Value = configName, Callback = function(value) configName = value or "Configs" end })
@@ -1403,7 +1419,7 @@ local ConfigDropdown = ConfigSection:Dropdown({
     end 
 })
 
-AutoLoadToggle = ConfigSection:Toggle({ 
+ConfigSection:Toggle({ 
     Title = "Auto-Load Config", 
     Desc = "Enable to auto load this config on execution", 
     Value = (getAutoLoad() == configName), 

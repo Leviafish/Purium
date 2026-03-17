@@ -663,9 +663,9 @@ end
 _G.HitsPerPacket = 50 -- Mặc định nhồi 50 nhát chém vào 1 gói tin
 
 CombatSec:Slider({ 
-    Title = "Hits Per Packet (Data Packing)", 
-    Desc = "Số nhát chém nhồi vào 1 lần gửi. (Khuyên dùng: 20-100)", 
-    Value = {Min = 1, Max = 200, Default = 50}, 
+    Title = "Hits Per Seconds", 
+    Desc = "Stack How Many Slash In A Second( Recommend 50-150 )", 
+    Value = {Min = 1, Max = 800, Default = 50}, 
     Callback = function(v) 
         _G.HitsPerPacket = v 
     end
@@ -729,7 +729,7 @@ local function FireExtremeNuke()
 end
 
 _G.KillAll = false
-CombatSec:Toggle({ Title = "Kill All Players (Extreme Packing)", Desc = "Kỹ thuật nhồi nhét dữ liệu. 1000 hit / giây không lag.", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Kill All Players", Desc = "It Now Is Actually Better Than Ever.", Value = false, Callback = function(v) 
     _G.KillAll = v 
     if v then
         task.spawn(function()

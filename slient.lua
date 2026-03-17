@@ -1383,14 +1383,65 @@ local ConfigManager = Window.ConfigManager
 local configName = "Configs"
 local configFile = ConfigManager:CreateConfig(configName)
 local savedConfigs = ConfigManager:AllConfigs()
+
 if #savedConfigs == 0 then table.insert(savedConfigs, "Configs") end
+
 local ConfigInput = ConfigSection:Input({ Title = "Config Name", Value = configName, Callback = function(value) configName = value or "Configs" end })
 local AutoLoadToggle
-local ConfigDropdown = ConfigSection:Dropdown({ Title = "Choose Saved Config", Values = savedConfigs, Value = configName, AllowNone = false, Callback = function(value) configName = value or "Configs" ConfigInput:Set(configName) if AutoLoadToggle then AutoLoadToggle:Set(getAutoLoad() == configName) end end })
-AutoLoadToggle = ConfigSection:Toggle({ Title = "Auto-Load Config", Desc = "Enable to auto load this config on execution", Value = (getAutoLoad() == configName), Callback = function(Value) if Value then setAutoLoad(configName) else setAutoLoad("none") end end })
-ConfigSection:Button({ Title = "Save Config", Icon = "check", Callback = function() configFile = ConfigManager:CreateConfig(configName) if configFile:Save() then local newList = ConfigManager:AllConfigs() if #newList == 0 then table.insert(newList, "Configs") end ConfigDropdown:Refresh(newList) WindUI:Notify({ Title = "Save Config", Content = "Saved: " .. configName, Duration = 3 }) end end })
-ConfigSection:Button({ Title = "Load Config", Icon = "refresh-cw", Callback = function() configFile = ConfigManager:CreateConfig(configName) if configFile:Load() then WindUI:Notify({ Title = "Load Config", Content = "Loaded: " .. configName, Duration = 3 }) end end })
-Window:OnClose(function() if ConfigManager and configFile then configFile:Save() end end)
+
+local ConfigDropdown = ConfigSection:Dropdown({ 
+    Title = "Choose Saved Config", 
+    Values = savedConfigs, 
+    Value = configName, 
+    AllowNone = false, 
+    Callback = function(value) 
+        configName = value or "Configs" 
+        ConfigInput:Set(configName) 
+        if AutoLoadToggle then 
+            AutoLoadToggle:Set(getAutoLoad() == configName) 
+        end 
+    end 
+})
+
+AutoLoadToggle = ConfigSection:Toggle({ 
+    Title = "Auto-Load Config", 
+    Desc = "Enable to auto load this config on execution", 
+    Value = (getAutoLoad() == configName), 
+    Callback = function(Value) 
+        if Value then setAutoLoad(configName) else setAutoLoad("none") end 
+    end 
+})
+
+ConfigSection:Button({ 
+    Title = "Save Config", 
+    Icon = "check", 
+    Callback = function() 
+        configFile = ConfigManager:CreateConfig(configName) 
+        if configFile:Save() then 
+            local newList = ConfigManager:AllConfigs() 
+            if #newList == 0 then table.insert(newList, "Configs") end 
+            ConfigDropdown:Refresh(newList) 
+            WindUI:Notify({ Title = "Save Config", Content = "Saved: " .. configName, Duration = 3 }) 
+        end 
+    end 
+})
+
+ConfigSection:Button({ 
+    Title = "Load Config", 
+    Icon = "refresh-cw", 
+    Callback = function() 
+        configFile = ConfigManager:CreateConfig(configName) 
+        if configFile:Load() then 
+            WindUI:Notify({ Title = "Load Config", Content = "Loaded: " .. configName, Duration = 3 }) 
+        end 
+    end 
+})
+
+Window:OnClose(function() 
+    if ConfigManager and configFile then configFile:Save() end 
+end)
+
+-- 3. Đã gộp 2 cái task.spawn lộn xộn thành 1 cái chuẩn chỉ
 task.spawn(function()
     task.wait(1.5)
     local autoConf = getAutoLoad()
@@ -1402,15 +1453,12 @@ task.spawn(function()
             WindUI:Notify({ Title = "Auto-Load Enabled", Content = "Loaded config: " .. configName, Duration = 3 })
         end)
     end
-task.spawn(function()
-    task.wait(1.5)
-    local autoConf = getAutoLoad()
-    if autoConf ~= "none" then configName = autoConf; configFile = ConfigManager:CreateConfig(configName); pcall(function() configFile:Load(); WindUI:Notify({ Title = "Auto-Load Enabled", Content = "Loaded config: " .. configName, Duration = 3 }) end) end
-    task.wait(0.5); pcall(function() Window:Minimize() end); pcall(function() Window:Toggle() end)
-    WindUI:Notify({ Title = "UI Minimized", Content = "The Ui Automatic Minized You Can Open By Click The Ui On The Bottom", Duration = 5 })
+    
+    task.wait(0.5)
+    pcall(function() Window:Minimize() end)
+    WindUI:Notify({ Title = "UI Minimized", Content = "The UI automatically minimized. You can open it by clicking the button on the screen.", Duration = 5 })
 end)
 
 ThemeSection:Keybind({ Title = "Keybind", Desc = "Keybind to open ui", Value = "G", Callback = function(v) Window:SetToggleKey(Enum.KeyCode[v]) end })
-
 
 print("Successfully loaded all assets! Purium on Top!")

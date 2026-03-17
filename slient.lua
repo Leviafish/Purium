@@ -660,10 +660,21 @@ local function getNearestTarget()
     return nearest
 end
 
-local function FireFatNuke()
+_G.HitsPerPacket = 50 -- Mặc định nhồi 50 nhát chém vào 1 gói tin
+
+CombatSec:Slider({ 
+    Title = "Hits Per Packet (Data Packing)", 
+    Desc = "Số nhát chém nhồi vào 1 lần gửi. (Khuyên dùng: 20-100)", 
+    Value = {Min = 1, Max = 200, Default = 50}, 
+    Callback = function(v) 
+        _G.HitsPerPacket = v 
+    end
+})
+
+local function FireExtremeNuke()
     local Char = LocalPlayer.Character
     if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
-
+    
     local MyTool = Char:FindFirstChildOfClass("Tool") or LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
     if not MyTool then return end
     
@@ -675,7 +686,8 @@ local function FireFatNuke()
             local hum = p.Character:FindFirstChild("Humanoid")
             if hum and hum.Health > 0 then
                 hasTargets = true
-                for i = 1, 500000 do
+                -- NHỒI HÀNG TRĂM HIT VÀO ĐÚNG 1 GÓI TIN MẠNG
+                for i = 1, _G.HitsPerPacket do
                     table.insert(targetArray, {
                         knockback = 0,
                         isClosestEnemy = true, 
@@ -690,7 +702,6 @@ local function FireFatNuke()
     end
     
     if hasTargets then
-        _G.LastAttackTime = tick()
         local isSlow = not _G.AntiSlow
         local slowMul = _G.AntiSlow and 1 or 0.2
         local slowTim = _G.AntiSlow and 0 or 1.5
@@ -705,29 +716,30 @@ local function FireFatNuke()
                 slowMult = slowMul, hitboxSize = Vector3.new(2048, 2048, 2048),
                 weaponDefinition = { 
                     attackCycle = { ["1"] = {knockbackMul=0, slowMult=slowMul, attackTime=0, lungeMul=0, slowTime=slowTim} }, 
-                    attackOrder = {"1", "2", "3", "4"} 
+                    attackOrder = {"1", "1", "1", "1"} 
                 },
                 tool = MyTool, slowTime = slowTim
             },
             targetArray
         }
-        task.spawn(function()
-            pcall(function() GameRemote:InvokeServer(unpack(Args)) end)
-        end)
+        
+        -- Đợi Server nhận xong gói tin khổng lồ này rồi mới chạy tiếp
+        pcall(function() GameRemote:InvokeServer(unpack(Args)) end)
     end
 end
 
 _G.KillAll = false
-CombatSec:Toggle({ Title = "Kill All Players", Desc = "It's Now Is More Stable And Better!!!", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Kill All Players (Extreme Packing)", Desc = "Kỹ thuật nhồi nhét dữ liệu. 1000 hit / giây không lag.", Value = false, Callback = function(v) 
     _G.KillAll = v 
     if v then
         task.spawn(function()
             while _G.KillAll do
-                FireFatNuke()
+                FireExtremeNuke()
+                
                 if _G.AttackDelay > 0 then
                     task.wait(_G.AttackDelay)
                 else
-                    RunService.Heartbeat:Wait() -- Chạy chuẩn 1 lần mỗi Frame, không spam rác luồng
+                    task.wait(0.01) -- Thời gian nghỉ vi mô để Client không bị treo
                 end
             end
         end)

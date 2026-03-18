@@ -2,7 +2,7 @@ print("Loading script maybe take a few seconds to complete")
 game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Purium On Top!", Text = "Loading Script...", Duration = 3 })
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 local Window = WindUI:CreateWindow({
-    Title = "Purium Hub [By @hlck49] | Silent Assassin |", Icon = "door-open", Author = "Version : 0.0.1", Folder = "Purium_Silent-Assassin",
+    Title = "Purium Hub [By @hlck49] | Silent Assassin |", Icon = "door-open", Author = "Version : 1.7.9 Ultimate", Folder = "Purium_Silent-Assassin",
     Size = UDim2.fromOffset(580, 460), MinSize = Vector2.new(560, 350), MaxSize = Vector2.new(850, 560),
     Transparent = true, Theme = "Dark", Resizable = true, SideBarWidth = 200, BackgroundImageTransparency = 0.42,
     HideSearchBar = true, ScrollBarEnabled = false,
@@ -33,7 +33,7 @@ WindUI:AddTheme({ Name = "Arctic", Accent = Color3.fromHex("40E0FF"), Dialog = C
 WindUI:AddTheme({ Name = "Cloud", Accent = Color3.fromHex("6DB0FF"), Dialog = Color3.fromHex("FFFFFF"), Outline = Color3.fromHex("C8DCF0"), Text = Color3.fromHex("1E1E1E"), Placeholder = Color3.fromHex("828282"), Background = Color3.fromHex("F0F8FF"), Button = Color3.fromHex("DCEBFA"), Icon = Color3.fromHex("1E1E1E"), Toggle = Color3.fromHex("6DB0FF"), Slider = Color3.fromHex("6DB0FF"), Checkbox = Color3.fromHex("6DB0FF"), PanelBackground = Color3.fromHex("FFFFFF"), PanelBackgroundTransparency = 0, SliderIcon = Color3.fromHex("828282"), Primary = Color3.fromHex("6DB0FF"), LabelBackground = Color3.fromHex("FFFFFF"), LabelBackgroundTransparency = 0 })
 WindUI:AddTheme({ Name = "Sapphire", Accent = Color3.fromHex("0F52BA"), Dialog = Color3.fromHex("0F192D"), Outline = Color3.fromHex("1E2D50"), Text = Color3.fromHex("E6E6E6"), Placeholder = Color3.fromHex("8C8C8C"), Background = Color3.fromHex("0A0F1E"), Button = Color3.fromHex("14233C"), Icon = Color3.fromHex("E6E6E6"), Toggle = Color3.fromHex("0F52BA"), Slider = Color3.fromHex("0F52BA"), Checkbox = Color3.fromHex("0F52BA"), PanelBackground = Color3.fromHex("0F192D"), PanelBackgroundTransparency = 0.5, SliderIcon = Color3.fromHex("8C8C8C"), Primary = Color3.fromHex("0F52BA"), LabelBackground = Color3.fromHex("0F192D"), LabelBackgroundTransparency = 0 })
 
-Window:Tag({ Title = "v1.6.6", Icon = "github", Color = Color3.fromRGB(48, 255, 106), Radius = 10 })
+Window:Tag({ Title = "v1.7.9 Ultimate", Icon = "flame", Color = Color3.fromRGB(255, 48, 106), Radius = 10 })
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -48,27 +48,32 @@ _G.AntiSlow = false
 _G.AntiKickEnabled = false
 _G.LastAttackTime = 0
 
+-- HOOK TỐI THƯỢNG (ANTI-SLOW & ANTI-KICK dùng table.unpack)
 local oldNamecall
 oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
     local method = getnamecallmethod()
     local args = {...}
-    if not checkcaller() and (method == "FireServer" or method == "InvokeServer") then
-        if _G.AntiSlow and args[1] == "AttemptWeaponHit" and type(args[2]) == "table" then
-            args[2].shouldSlow = false
-            args[2].slowMult = 1
-            args[2].slowTime = 0
-            if args[2].attackCycleData then 
-                args[2].attackCycleData.slowMult = 1 
-                args[2].attackCycleData.slowTime = 0 
-            end
-            if args[2].weaponDefinition and args[2].weaponDefinition.attackCycle then
-                for k, v in pairs(args[2].weaponDefinition.attackCycle) do 
-                    v.slowMult = 1
-                    v.slowTime = 0
+    if not checkcaller() then
+        if _G.AntiKickEnabled and (method == "Kick" or method == "kick") then
+            return nil
+        end
+        if _G.AntiSlow and (method == "FireServer" or method == "InvokeServer") then
+            if args[1] == "AttemptWeaponHit" and type(args[2]) == "table" then
+                args[2].shouldSlow = false
+                args[2].slowMult = 1
+                args[2].slowTime = 0
+                if args[2].attackCycleData then 
+                    args[2].attackCycleData.slowMult = 1 
+                    args[2].attackCycleData.slowTime = 0 
                 end
+                if args[2].weaponDefinition and args[2].weaponDefinition.attackCycle then
+                    for k, v in pairs(args[2].weaponDefinition.attackCycle) do 
+                        v.slowMult = 1
+                        v.slowTime = 0
+                    end
+                end
+                return oldNamecall(self, table.unpack(args))
             end
-            -- FIX: unpack -> table.unpack
-            return oldNamecall(self, table.unpack(args))
         end
     end
     return oldNamecall(self, ...)
@@ -175,6 +180,7 @@ RunService.Heartbeat:Connect(function()
         end
     end)
 end)
+
 local GodSec = BypassTab:Section({ Title = "Modifications", Icon = "shield", Opened = true, Box = true })
 
 GodSec:Toggle({ Title = "Enable Anti-Kick", Desc = "Blocks server from kicking you (Anti-Cheat bypass)", Value = false, Callback = function(v)
@@ -242,8 +248,8 @@ GodSec:Toggle({ Title = "Anti-AFK", Desc = "Prevents 20-minute idle disconnects"
 end})
 
 local SupportSection = BypassTab:Section({ Title = "Others", Icon = "wrench", Opened = true, Box = true })
-SupportSection:Toggle({ Title = "Auto Rejoin (Anti-Disconnect)", Desc = "Automatically reconnect when disconnected or kicked", Flag = "AutoRejoinToggle", Value = false, Callback = function(Value) if Value then _G.RejoinConnection = GuiService.ErrorMessageChanged:Connect(function() task.wait(0.5) if #game:GetService("Players"):GetPlayers() <= 1 then TeleportService:Teleport(game.PlaceId, _LocalPlayer22) else TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, _LocalPlayer22) end end) else if _G.RejoinConnection then _G.RejoinConnection:Disconnect(); _G.RejoinConnection = nil end end end })
-SupportSection:Button({ Title = "Rejoin Server (Manual)", Desc = "Use when stuck in terrain", Callback = function() if #game:GetService("Players"):GetPlayers() <= 1 then TeleportService:Teleport(game.PlaceId, _LocalPlayer22) else TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, _LocalPlayer22) end end })
+SupportSection:Toggle({ Title = "Auto Rejoin (Anti-Disconnect)", Desc = "Automatically reconnect when disconnected or kicked", Flag = "AutoRejoinToggle", Value = false, Callback = function(Value) if Value then _G.RejoinConnection = game:GetService("GuiService").ErrorMessageChanged:Connect(function() task.wait(0.5) TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer) end) else if _G.RejoinConnection then _G.RejoinConnection:Disconnect(); _G.RejoinConnection = nil end end end })
+SupportSection:Button({ Title = "Rejoin Server (Manual)", Desc = "Use when stuck in terrain", Callback = function() TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer) end })
 
 
 local HitboxSec = BypassTab:Section({ Title = "Hitbox Expander", Icon = "maximize", Opened = true, Box = true })
@@ -464,150 +470,6 @@ LocalPlayer.CharacterAdded:Connect(function()
     end)
 end)
 
-RunService.Heartbeat:Connect(function()
-    pcall(function()
-        local char = LocalPlayer.Character
-        if char then
-            local hum = char:FindFirstChild("Humanoid")
-            if hum then
-                if _G.WsEnabled then 
-                    hum.WalkSpeed = _G.WsValue 
-                elseif _G.AntiSlow and hum.WalkSpeed < 16 then
-                    hum.WalkSpeed = 16
-                end
-                if _G.JpEnabled then 
-                    hum.JumpPower = _G.JpValue 
-                end
-            end
-        end
-    end)
-end)
-
-HitboxSec:Divider()
-
-_G.GodModeEnabled = false
-_G.HealthValue = 500
-
-HitboxSec:Toggle({ 
-    Title = "Enable Heal HP", 
-    Desc = "", 
-    Value = false, 
-    Callback = function(v) 
-        _G.GodModeEnabled = v
-        if not v then 
-            pcall(function() 
-                game.Players.LocalPlayer.Character.Humanoid.MaxHealth = 100 
-            end) 
-        end 
-    end
-})
-
-HitboxSec:Slider({ 
-    Title = "Health Amount", 
-    Desc = "The Max HP Might Crash game so plz type Amount you want",
-    Step = 50, 
-    Value = {
-        Min = 100,
-        Max = 5000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,
-        Default = 500
-    }, 
-    Callback = function(v) 
-        _G.HealthValue = v
-        if _G.GodModeEnabled then
-            pcall(function()
-                local hum = game.Players.LocalPlayer.Character.Humanoid
-                hum.MaxHealth = v
-                hum.Health = v
-            end)
-        end
-    end
-})
-
-game:GetService("RunService").Heartbeat:Connect(function()
-    if _G.GodModeEnabled then
-        pcall(function()
-            local hum = game.Players.LocalPlayer.Character.Humanoid
-            hum.MaxHealth = _G.HealthValue
-            if hum.Health < _G.HealthValue then
-                hum.Health = _G.HealthValue
-            end
-        end)
-    end
-end)
-
-local FlingSec = BypassTab:Section({ Title = "Physics Fling Exploit(Didn't Work)", Icon = "wind", Opened = true, Box = true })
-
-_G.FlingActive = false
-_G.FlingMode = "Touch Fling"
-_G.FlingTarget = ""
-
-FlingSec:Toggle({ Title = "Enable Fling", Desc = "", Value = false, Callback = function(v) 
-    _G.FlingActive = v 
-end})
-
-FlingSec:Dropdown({ Title = "Fling Mode", Values = {"Touch Fling", "Fling Target", "Fling All"}, Value = "Touch Fling", Callback = function(v) 
-    _G.FlingMode = v 
-end})
-
-FlingSec:Input({ Title = "Target Username (For Target Mode)", Value = "", Callback = function(v) 
-    _G.FlingTarget = v 
-end})
-
-RunService.Heartbeat:Connect(function()
-    pcall(function()
-        if _G.FlingActive and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            local myHrp = LocalPlayer.Character.HumanoidRootPart
-            
-            for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
-                if part:IsA("BasePart") then 
-                    part.CanCollide = false 
-                    part.Massless = true 
-                end
-            end
-
-            local function executeFling(targetHrp)
-                local oldPos = myHrp.CFrame
-                myHrp.CFrame = targetHrp.CFrame
-                myHrp.Velocity = Vector3.new(50000, 50000, 50000)
-                
-                if _G.FlingMode == "Touch Fling" then
-                    task.wait()
-                    myHrp.CFrame = oldPos
-                    myHrp.Velocity = Vector3.new(0, 0, 0)
-                end
-            end
-
-            if _G.FlingMode == "Touch Fling" then
-                for _, p in ipairs(Players:GetPlayers()) do
-                    if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                        local tHrp = p.Character.HumanoidRootPart
-                        if (tHrp.Position - myHrp.Position).Magnitude < 10 then
-                            executeFling(tHrp)
-                        end
-                    end
-                end
-            elseif _G.FlingMode == "Fling Target" and _G.FlingTarget ~= "" then
-                for _, p in ipairs(Players:GetPlayers()) do
-                    if p ~= LocalPlayer and string.find(string.lower(p.Name), string.lower(_G.FlingTarget)) and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                        executeFling(p.Character.HumanoidRootPart)
-                        break
-                    end
-                end
-            elseif _G.FlingMode == "Fling All" then
-                local targets = {}
-                for _, p in ipairs(Players:GetPlayers()) do
-                    if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
-                        table.insert(targets, p.Character.HumanoidRootPart)
-                    end
-                end
-                if #targets > 0 then
-                    executeFling(targets[math.random(1, #targets)])
-                end
-            end
-        end
-    end)
-end)
-
 local CombatSec = CombatTab:Section({ Title = "Attack Settings", Icon = "crosshair", Opened = true, Box = true })
 
 _G.AntiSlow = false
@@ -624,32 +486,7 @@ end})
 
 CombatSec:Divider()
 
-_G.KillMultiplier = 20
-CombatSec:Slider({ Title = "Kill Multiplier (Stat Farm)", Desc = "Số Kill ảo nhận được khi hạ 1 mục tiêu (Tối ưu: 20-50)", Value = {Min = 1, Max = 100, Default = 20}, Callback = function(v) _G.KillMultiplier = v end})
-
-CombatSec:Divider()
-
-local function getNearestTarget()
-    local nearest = nil
-    local minDist = math.huge
-    local char = LocalPlayer.Character
-    if not char or not char:FindFirstChild("HumanoidRootPart") then return nil end
-    local myPos = (_G.DesyncGodMode and _G.LastSafeCFrame) and _G.LastSafeCFrame.Position or char.HumanoidRootPart.Position
-    for _, p in ipairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and p.Character then
-            local hrp = p.Character:FindFirstChild("HumanoidRootPart")
-            local hum = p.Character:FindFirstChild("Humanoid")
-            if hrp and hum and hum.Health > 0 then
-                local dist = (hrp.Position - myPos).Magnitude
-                if dist < minDist then minDist = dist; nearest = p.Character end
-            end
-        end
-    end
-    return nearest
-end
-
 _G.HitsPerPacket = 50 
-
 CombatSec:Slider({ 
     Title = "Hits Per Seconds", 
     Desc = "Stack How Many Slash In A Second( Recommend 50-150 )", 
@@ -661,8 +498,13 @@ CombatSec:Slider({
 
 CombatSec:Divider()
 
+-- CỐT LÕI SÁT THƯƠNG CHUẨN XÁC
 local function BuildHitData(TargetChar)
-    local myHrp = LocalPlayer.Character.HumanoidRootPart
+    local Char = LocalPlayer.Character
+    if not Char or not Char:FindFirstChild("HumanoidRootPart") then return {} end
+    if not TargetChar or not TargetChar:FindFirstChild("HumanoidRootPart") then return {} end
+    
+    local myHrp = Char.HumanoidRootPart
     local tHrp = TargetChar.HumanoidRootPart
     local dist = (tHrp.Position - myHrp.Position).Magnitude
     local dir = (tHrp.Position - myHrp.Position).Unit
@@ -679,7 +521,9 @@ local function BuildHitData(TargetChar)
     return targetArray
 end
 
+-- LÕI GỬI SÁT THƯƠNG (HITBOX 9 TỶ & DÙNG TABLE.UNPACK)
 local function FireCombatRequest(targetArray)
+    if #targetArray == 0 then return end
     local Char = LocalPlayer.Character
     if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
     local MyTool = Char:FindFirstChildOfClass("Tool") or LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
@@ -707,80 +551,36 @@ local function FireCombatRequest(targetArray)
         },
         targetArray
     }
-    -- FIX: unpack -> table.unpack
     task.spawn(function() pcall(function() GameRemote:InvokeServer(table.unpack(Args)) end) end)
 end
 
 _G.KillAll = false
-CombatSec:Toggle({ Title = "Kill All Players", Desc = "Well I Must Touch Some Grass.", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Kill All Players (Perfect Nuke)", Desc = "One-shot all players from anywhere in the map.", Value = false, Callback = function(v) 
     _G.KillAll = v 
     if v then
         task.spawn(function()
             while _G.KillAll do
-                local fullArray = {}
-                for _, p in ipairs(Players:GetPlayers()) do
-                    if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                        local hum = p.Character:FindFirstChild("Humanoid")
-                        if hum and hum.Health > 0 then
-                            local data = BuildHitData(p.Character)
-                            for _, hit in ipairs(data) do table.insert(fullArray, hit) end
+                pcall(function()
+                    local fullArray = {}
+                    local Char = LocalPlayer.Character
+                    if Char and Char:FindFirstChild("HumanoidRootPart") then
+                        for _, p in ipairs(Players:GetPlayers()) do
+                            if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                                local hum = p.Character:FindFirstChild("Humanoid")
+                                if hum and hum.Health > 0 then
+                                    local data = BuildHitData(p.Character)
+                                    for _, hit in ipairs(data) do table.insert(fullArray, hit) end
+                                end
+                            end
                         end
+                        if #fullArray > 0 then FireCombatRequest(fullArray) end
                     end
-                end
-                
-                if #fullArray > 0 then FireCombatRequest(fullArray) end
-                if _G.AttackDelay > 0 then task.wait(_G.AttackDelay) else task.wait() end
+                end)
+                if _G.AttackDelay > 0 then task.wait(_G.AttackDelay) else task.wait(0.1) end
             end
         end)
     end
 end})
-
-local function AttemptWeaponHit(TargetChar)
-    local Char = LocalPlayer.Character
-    if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
-    if not TargetChar or not TargetChar:FindFirstChild("HumanoidRootPart") then return end
-    
-    local MyTool = Char:FindFirstChildOfClass("Tool") or LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
-    if not MyTool then return end
-    
-    local isSlow = not _G.AntiSlow
-    local slowMul = _G.AntiSlow and 1 or 0.2
-    local slowTim = _G.AntiSlow and 0 or 1.5
-    local fakeOrigin = TargetChar.HumanoidRootPart.Position
-    local targetArray = {}
-    for i = 1, 10 do
-        table.insert(targetArray, {
-            knockback = 0,
-            isClosestEnemy = true, 
-            origin = fakeOrigin, 
-            enemyModel = TargetChar, 
-            distance = 0.1, 
-            direction = Vector3.new(0, -1, 0)
-        })
-    end
-    
-    local Args = {
-        "AttemptWeaponHit",
-        {
-            attackCycleData = {knockbackMul=0, slowMult=slowMul, attackTime=0, lungeMul=0, slowTime=slowTim},
-            knockback = 0, shouldLock = true, shouldLunge = false,
-            hitboxOffset = Vector3.new(0, 0, 0), isCritical = true, shouldSlow = isSlow,
-            attackCooldown = 0, damage = 9e9, lungeKnockback = 0, cycleIndex = 1,
-            slowMult = slowMul, hitboxSize = Vector3.new(2048, 2048, 2048),
-            weaponDefinition = { 
-                attackCycle = { ["1"] = {knockbackMul=0, slowMult=slowMul, attackTime=0, lungeMul=0, slowTime=slowTim} }, 
-                attackOrder = {"1", "2", "3", "4"} 
-            },
-            tool = MyTool, slowTime = slowTim
-        },
-        targetArray
-    }
-    
-    task.spawn(function()
-        -- FIX: unpack -> table.unpack
-        pcall(function() GameRemote:InvokeServer(table.unpack(Args)) end)
-    end)
-end
 
 CombatSec:Divider()
 
@@ -799,13 +599,15 @@ task.spawn(function()
         task.wait()
         if _G.AutoHit and not _G.KillAll then
             pcall(function()
-                if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                local Char = LocalPlayer.Character
+                if Char and Char:FindFirstChild("HumanoidRootPart") then
                     local target = getNearestTarget()
                     if target and target:FindFirstChild("HumanoidRootPart") then
-                        local myPos = (_G.DesyncGodMode and _G.LastSafeCFrame) and _G.LastSafeCFrame.Position or LocalPlayer.Character.HumanoidRootPart.Position
+                        local myPos = (_G.DesyncGodMode and _G.LastSafeCFrame) and _G.LastSafeCFrame.Position or Char.HumanoidRootPart.Position
                         local dist = (target.HumanoidRootPart.Position - myPos).Magnitude
                         if dist <= _G.HitRange then 
-                            task.spawn(AttemptWeaponHit, target)
+                            local data = BuildHitData(target)
+                            if #data > 0 then FireCombatRequest(data) end
                         end
                     end
                 end
@@ -825,12 +627,13 @@ end})
 task.spawn(function()
     while true do
         task.wait()
-        if _G.AutoFarm then
+        if _G.AutoFarm and not _G.KillAll then
             pcall(function()
-                if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                local Char = LocalPlayer.Character
+                if Char and Char:FindFirstChild("HumanoidRootPart") then
                     local target = getNearestTarget()
                     if target and target:FindFirstChild("HumanoidRootPart") then
-                        local hrp = LocalPlayer.Character.HumanoidRootPart
+                        local hrp = Char.HumanoidRootPart
                         local tHrp = target.HumanoidRootPart
                         
                         if _G.DesyncGodMode and _G.LastSafeCFrame then
@@ -839,7 +642,8 @@ task.spawn(function()
                             hrp.CFrame = tHrp.CFrame * CFrame.new(0, 0, 3)
                         end
                         
-                        task.spawn(AttemptWeaponHit, target)
+                        local data = BuildHitData(target)
+                        if #data > 0 then FireCombatRequest(data) end
                         
                         if _G.DesyncGodMode and _G.LastSafeCFrame then
                             _G.LastSafeCFrame = tHrp.CFrame * CFrame.new(0, 25, 0)
@@ -1191,6 +995,11 @@ task.spawn(function()
             WindUI:Notify({ Title = "Auto-Load Enabled", Content = "Loaded config: " .. configName, Duration = 3 })
         end)
     end
+    task.wait(0.5)
+    pcall(function() Window:Minimize() end)
+    pcall(function() Window:Toggle() end)
+    WindUI:Notify({ Title = "UI Minimized", Content = "The Ui Automatic Minimized You Can Open By Click The Ui On The Bottom", Duration = 5 })
+end)
 
 ThemeSection:Keybind({ Title = "Keybind", Desc = "Keybind to open ui", Value = "G", Callback = function(v) Window:SetToggleKey(Enum.KeyCode[v]) end })
 

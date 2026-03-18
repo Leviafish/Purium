@@ -2,7 +2,7 @@ print("Loading script maybe take a few seconds to complete")
 game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Purium On Top!", Text = "Loading Script...", Duration = 3 })
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 local Window = WindUI:CreateWindow({
-    Title = "Purium Hub [By @hlck49] | Silent Assassin |", Icon = "door-open", Author = "Version : 2.7.0", Folder = "Purium_Silent-Assassin",
+    Title = "Purium Hub [By @hlck49] | Silent Assassin |", Icon = "door-open", Author = "Version : 2.8.0 Fast-CD", Folder = "Purium_Silent-Assassin",
     Size = UDim2.fromOffset(580, 460), MinSize = Vector2.new(560, 350), MaxSize = Vector2.new(850, 560),
     Transparent = true, Theme = "Dark", Resizable = true, SideBarWidth = 200, BackgroundImageTransparency = 0.42,
     HideSearchBar = true, ScrollBarEnabled = false,
@@ -14,7 +14,7 @@ Window:EditOpenButton({ Title = "Open UI", Icon = "monitor", CornerRadius = UDim
 WindUI:AddTheme({ Name = "Amethyst", Accent = Color3.fromHex("7E2CB6"), Dialog = Color3.fromHex("321E46"), Outline = Color3.fromHex("552D78"), Text = Color3.fromHex("F0F0F0"), Placeholder = Color3.fromHex("AAAAAA"), Background = Color3.fromHex("280C47"), Button = Color3.fromHex("733796"), Icon = Color3.fromHex("AAAAAA"), Toggle = Color3.fromHex("7E2CB6"), Slider = Color3.fromHex("7E2CB6"), Checkbox = Color3.fromHex("7E2CB6"), PanelBackground = Color3.fromHex("FFFFFF"), PanelBackgroundTransparency = 0.95, SliderIcon = Color3.fromHex("AAAAAA"), Primary = Color3.fromHex("7E2CB6"), LabelBackground = Color3.fromHex("000000"), LabelBackgroundTransparency = 0.85 })
 WindUI:AddTheme({ Name = "AMOLED", Accent = Color3.fromHex("FFFFFF"), Dialog = Color3.fromHex("000000"), Outline = Color3.fromHex("141414"), Text = Color3.fromHex("FFFFFF"), Placeholder = Color3.fromHex("AAAAAA"), Background = Color3.fromHex("000000"), Button = Color3.fromHex("0F0F0F"), Icon = Color3.fromHex("FFFFFF"), Toggle = Color3.fromHex("FFFFFF"), Slider = Color3.fromHex("FFFFFF"), Checkbox = Color3.fromHex("FFFFFF"), PanelBackground = Color3.fromHex("000000"), PanelBackgroundTransparency = 0, SliderIcon = Color3.fromHex("AAAAAA"), Primary = Color3.fromHex("FFFFFF"), LabelBackground = Color3.fromHex("000000"), LabelBackgroundTransparency = 0 })
 
-Window:Tag({ Title = "v2.7.0 (Auto Gacha & Split Code)", Icon = "box", Color = Color3.fromRGB(0, 255, 150), Radius = 10 })
+Window:Tag({ Title = "v2.8.0 (Fast CD & Gacha Fix)", Icon = "zap", Color = Color3.fromRGB(0, 255, 150), Radius = 10 })
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -25,49 +25,39 @@ local LocalPlayer = Players.LocalPlayer
 local GameRemote = ReplicatedStorage:WaitForChild("Events"):WaitForChild("GameRemoteFunction")
 
 _G.AntiSlow = false
-_G.NoCooldown = false
+_G.FastCooldown = false
 _G.AntiKickEnabled = false
 _G.InfiniteInvis = false
 _G.LastAttackTime = 0
 
--- LÕI HOOK TỐI THƯỢNG ĐÃ ĐƯỢC TÁCH (Xử lý chém tay NO-CD riêng biệt)
+-- LÕI HOOK (CHỈNH SỬA TỐC ĐỘ CHÉM THÀNH 0.05 THAY VÌ 0)
 local oldNamecall
 oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
     local method = getnamecallmethod()
     local args = {...}
     
     if not checkcaller() then
-        if _G.AntiKickEnabled and (method == "Kick" or method == "kick") then
-            return nil
-        end
+        if _G.AntiKickEnabled and (method == "Kick" or method == "kick") then return nil end
         
         if method == "InvokeServer" or method == "FireServer" then
             -- Chặn lột tàng hình
-            if _G.InfiniteInvis and args[1] == "SendMessage" and args[2] == "WeaponSwung" then
-                return nil 
-            end
+            if _G.InfiniteInvis and args[1] == "SendMessage" and args[2] == "WeaponSwung" then return nil end
             
-            -- CHỈNH SỬA NHÁT CHÉM TAY THÔNG THƯỜNG (NO CD + ANTI SLOW)
-            if (_G.NoCooldown or _G.AntiSlow) and args[1] == "AttemptWeaponHit" and type(args[2]) == "table" then
+            -- Ép tốc độ chém và chống chậm
+            if (_G.FastCooldown or _G.AntiSlow) and args[1] == "AttemptWeaponHit" and type(args[2]) == "table" then
                 if _G.AntiSlow then args[2].shouldSlow = false end
                 
                 if args[2].attackCycleData then 
-                    if _G.AntiSlow then
-                        args[2].attackCycleData.slowMult = 1 
-                        args[2].attackCycleData.slowTime = 0 
-                    end
-                    if _G.NoCooldown then
-                        args[2].attackCycleData.attackTime = 0
-                    end
+                    if _G.AntiSlow then args[2].attackCycleData.slowMult = 1; args[2].attackCycleData.slowTime = 0 end
+                    if _G.FastCooldown then args[2].attackCycleData.attackTime = 0.05 end
                 end
                 
                 if args[2].weaponDefinition and args[2].weaponDefinition.attackCycle then
                     for k, v in pairs(args[2].weaponDefinition.attackCycle) do 
                         if _G.AntiSlow then v.slowMult = 1; v.slowTime = 0 end
-                        if _G.NoCooldown then v.attackTime = 0 end
+                        if _G.FastCooldown then v.attackTime = 0.05 end
                     end
                 end
-                -- Giữ nguyên Hitbox gốc, chỉ sửa thời gian chém -> Gửi đi
                 return oldNamecall(self, table.unpack(args))
             end
         end
@@ -101,11 +91,11 @@ local function getNearestTarget()
 end
 
 -- =====================================
--- TAB AUTO GACHA MỚI
+-- TAB AUTO GACHA (CHUẨN 100%)
 -- =====================================
 local GachaSec = GachaTab:Section({ Title = "Auto Open Chests", Icon = "shopping-cart", Opened = true, Box = true })
 _G.AutoGacha = false
-_G.GachaType = "Basic" -- Mặc định là Basic (50 coins)
+_G.GachaType = "Basic" 
 
 GachaSec:Dropdown({ Title = "Select Chest Type", Values = {"Basic", "Divine"}, Value = "Basic", Callback = function(v) 
     _G.GachaType = v 
@@ -117,18 +107,16 @@ GachaSec:Toggle({ Title = "Enable Auto Gacha", Desc = "Tự động mua rương 
         task.spawn(function()
             while _G.AutoGacha do
                 pcall(function()
-                    -- DỰ ĐOÁN LỆNH GACHA: Tùy game có thể là OpenChest, BuyCrate, v.v.
-                    -- Nếu không chạy, ta sẽ dùng máy nghe lén để đổi tên lệnh
-                    GameRemote:InvokeServer("OpenChest", _G.GachaType)
+                    local args = {
+                        [1] = "AttemptRollGachaChest",
+                        [2] = _G.GachaType
+                    }
+                    GameRemote:InvokeServer(table.unpack(args))
                 end)
-                task.wait(1.5) -- Đợi 1.5s mỗi lần mở để không bị kick vì spam
+                task.wait(1.5) -- Trễ 1.5 giây để tránh sập game hoặc bị kick
             end
         end)
     end
-end})
-
-GachaSec:Button({ Title = "Click Nếu Auto Gacha Không Mua Được", Icon = "alert-circle", Callback = function()
-    WindUI:Notify({ Title = "Cách tìm Lệnh Gacha", Content = "1. Tắt Auto Gacha\n2. Mở F9 dán máy nghe lén\n3. Bấm mua rương bằng tay 1 lần\n4. Nhắn lệnh in ra ở F9 cho Dev để vá lại!", Duration = 8 })
 end})
 
 -- =====================================
@@ -242,8 +230,46 @@ end)
 
 local CombatSec = CombatTab:Section({ Title = "Weapon Control", Icon = "crosshair", Opened = true, Box = true })
 
--- NO COOLDOWN VÀ ANTI SLOW (Cho chém tay)
-CombatSec:Toggle({ Title = "Weapon No Cooldown", Desc = "Chém bằng tay không có độ trễ", Value = false, Callback = function(v) _G.NoCooldown = v end})
+local moddedTools = {}
+CombatSec:Toggle({ Title = "Fast Cooldown (Chém siêu tốc)", Desc = "Giảm độ trễ vũ khí xuống 0.05s thay vì 0 để chống kẹt", Value = false, Callback = function(v) 
+    _G.FastCooldown = v 
+    if not v then moddedTools = {} end 
+end})
+
+RunService.Heartbeat:Connect(function()
+    if _G.FastCooldown then
+        pcall(function()
+            local char = LocalPlayer.Character
+            if char then
+                local tool = char:FindFirstChildOfClass("Tool")
+                if tool and not moddedTools[tool] then
+                    moddedTools[tool] = true
+                    for _, v in pairs(tool:GetDescendants()) do
+                        if v:IsA("ModuleScript") then
+                            local success, stats = pcall(require, v)
+                            if success and type(stats) == "table" then
+                                for realStat, val in pairs(stats) do
+                                    local lowerStat = string.lower(realStat)
+                                    if lowerStat:match("cooldown") or lowerStat:match("delay") or lowerStat:match("rate") or lowerStat:match("debounce") or lowerStat:match("time") then
+                                        if type(val) == "number" and val > 0 then
+                                            stats[realStat] = 0.05 -- Gán mức 0.05 để tránh lỗi Divide by zero
+                                        end
+                                    end
+                                end
+                            end
+                        elseif v:IsA("NumberValue") or v:IsA("IntValue") then
+                            local lowerName = string.lower(v.Name)
+                            if lowerName:match("cooldown") or lowerName:match("delay") or lowerName:match("rate") or lowerName:match("debounce") then
+                                v.Value = 0.05
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    end
+end)
+
 CombatSec:Toggle({ Title = "Enable Anti-Slow", Desc = "Chém không bị chậm tốc độ chạy", Value = false, Callback = function(v) _G.AntiSlow = v end})
 CombatSec:Toggle({ Title = "Ghost Mode (Infinite Invis)", Desc = "Chặn server lột tàng hình", Value = false, Callback = function(v) _G.InfiniteInvis = v end})
 
@@ -269,7 +295,6 @@ local function BuildHitData(TargetChar)
     return targetArray
 end
 
--- HÀM GỬI LỆNH KILL ALL ĐỘC LẬP (Hitbox 9 Tỷ)
 local function FireCombatRequest(targetArray)
     if #targetArray == 0 then return end
     local Char = LocalPlayer.Character
@@ -287,7 +312,7 @@ local function FireCombatRequest(targetArray)
             attackCycleData = {knockbackMul=0,slowMult=slowMul,attackTime=0,lungeMul=0,slowTime=slowTim},
             knockback = 0, shouldLock = true, shouldLunge = false, hitboxOffset = Vector3.new(0, 0, 0), isCritical = true, shouldSlow = isSlow,
             attackCooldown = 0, damage = 9e9, lungeKnockback = 0, cycleIndex = 1, slowMult = slowMul, 
-            hitboxSize = Vector3.new(9e9, 9e9, 9e9), -- HITBOX 9 TỶ CHỈ ÁP DỤNG KHI BẬT KILL ALL
+            hitboxSize = Vector3.new(9e9, 9e9, 9e9), 
             weaponDefinition = { attackCycle = { ["1"] = {knockbackMul=0, slowMult=slowMul, attackTime=0, lungeMul=0, slowTime=slowTim, hitboxSizeAdd = Vector3.new(9e9, 9e9, 9e9)} }, attackOrder = {"1", "1", "1", "1"} },
             tool = MyTool, slowTime = slowTim
         },

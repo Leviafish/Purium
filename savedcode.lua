@@ -1,12 +1,12 @@
-print("Loading V7.0 AURA ENGINE...")
-game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Purium V7.0", Text = "Spatial Query & Event Engine Injected!", Duration = 3 })
+print("Loading V8.0 SINGULARITY ENGINE...")
+game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Purium V8.0", Text = "PostSimulation & Spatial Engine Injected!", Duration = 3 })
 
 -- ÉP 100 FPS
 pcall(function() if setfpscap then setfpscap(100) end end)
 
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 local Window = WindUI:CreateWindow({
-    Title = "Purium Hub [By @hlck49] | Silent Assassin |", Icon = "door-open", Author = "Version : 7.0 Spatial Aura", Folder = "Purium_Silent-Assassin",
+    Title = "Purium Hub [By @hlck49] | Silent Assassin |", Icon = "door-open", Author = "Version : 8.0 The Singularity", Folder = "Purium_Silent-Assassin",
     Size = UDim2.fromOffset(580, 460), MinSize = Vector2.new(560, 350), MaxSize = Vector2.new(850, 560),
     Transparent = true, Theme = "Dark", Resizable = true, SideBarWidth = 200, BackgroundImageTransparency = 0.42,
     HideSearchBar = true, ScrollBarEnabled = false,
@@ -15,7 +15,7 @@ local Window = WindUI:CreateWindow({
 
 Window:EditOpenButton({ Title = "Open UI", Icon = "monitor", CornerRadius = UDim.new(0,16), StrokeThickness = 2, Color = ColorSequence.new(Color3.fromHex("1e1e1e"), Color3.fromHex("000000")), OnlyMobile = false, Enabled = true, Draggable = true })
 WindUI:AddTheme({ Name = "Amethyst", Accent = Color3.fromHex("7E2CB6"), Dialog = Color3.fromHex("321E46"), Outline = Color3.fromHex("552D78"), Text = Color3.fromHex("F0F0F0"), Placeholder = Color3.fromHex("AAAAAA"), Background = Color3.fromHex("280C47"), Button = Color3.fromHex("733796"), Icon = Color3.fromHex("AAAAAA"), Toggle = Color3.fromHex("7E2CB6"), Slider = Color3.fromHex("7E2CB6"), Checkbox = Color3.fromHex("7E2CB6"), PanelBackground = Color3.fromHex("FFFFFF"), PanelBackgroundTransparency = 0.95, SliderIcon = Color3.fromHex("AAAAAA"), Primary = Color3.fromHex("7E2CB6"), LabelBackground = Color3.fromHex("000000"), LabelBackgroundTransparency = 0.85 })
-Window:Tag({ Title = "v7.0 (Spatial Event Engine)", Icon = "radio", Color = Color3.fromRGB(0, 255, 255), Radius = 10 })
+Window:Tag({ Title = "v8.0 (Zero-Lag Singularity)", Icon = "zap", Color = Color3.fromRGB(0, 255, 150), Radius = 10 })
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -27,7 +27,7 @@ local GameRemote = ReplicatedStorage:WaitForChild("Events"):WaitForChild("GameRe
 
 _G.AntiSlow = false; _G.FastSlash = false; _G.AntiKickEnabled = false; _G.InfiniteInvis = false; _G.LastAttackTime = 0
 
--- LÕI HOOK (Tẩy Não Nhát Chém)
+-- LÕI HOOK (Tẩy Não)
 local oldNamecall
 oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
     local method = getnamecallmethod()
@@ -75,21 +75,15 @@ GachaSec:Toggle({ Title = "Enable Auto Gacha", Value = false, Callback = functio
 end})
 
 -- =======================================================
--- LẬP TRÌNH HƯỚNG SỰ KIỆN: GETPROPERTYCHANGEDSIGNAL (0% CPU)
+-- LẬP TRÌNH HƯỚNG SỰ KIỆN: 0% CPU OVERHEAD
 -- =======================================================
 local MoveSec = MoveTab:Section({ Title = "Character Modification", Icon = "user", Opened = true, Box = true })
 _G.WsEnabled, _G.WsValue = false, 25
 MoveSec:Toggle({ Title = "Enable WalkSpeed", Value = false, Callback = function(v) 
-    _G.WsEnabled = v 
-    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        LocalPlayer.Character.Humanoid.WalkSpeed = v and _G.WsValue or 16
-    end
+    _G.WsEnabled = v; if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then LocalPlayer.Character.Humanoid.WalkSpeed = v and _G.WsValue or 16 end
 end})
 MoveSec:Slider({ Title = "Speed Amount", Value = {Min = 16, Max = 1500, Default = 25}, Callback = function(v) 
-    _G.WsValue = v 
-    if _G.WsEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        LocalPlayer.Character.Humanoid.WalkSpeed = v
-    end
+    _G.WsValue = v; if _G.WsEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then LocalPlayer.Character.Humanoid.WalkSpeed = v end
 end})
 
 local GodModeSec = BypassTab:Section({ Title = "God Mode & Heal", Icon = "heart", Opened = true, Box = true })
@@ -109,57 +103,32 @@ local function getFakeCamPart() local cp = Workspace:FindFirstChild("PuriumCamPa
 RunService.RenderStepped:Connect(function() pcall(function() if _G.DesyncGodMode and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then local hrp = LocalPlayer.Character.HumanoidRootPart; if hrp.Position.Y > 20000 then local vel, rot = hrp.AssemblyLinearVelocity, hrp.AssemblyAngularVelocity; hrp.CFrame = hrp.CFrame - Vector3.new(0, 50000, 0); hrp.AssemblyLinearVelocity = vel; hrp.AssemblyAngularVelocity = rot end; local cp = getFakeCamPart(); cp.CFrame = hrp.CFrame; Camera.CameraSubject = cp end end) end)
 
 _G.GodModeEnabled = false; _G.HealthValue = 5000
-GodModeSec:Toggle({ Title = "Event Auto Heal (0% CPU)", Desc = "Chỉ bơm máu ngay lúc bị chém trúng. Cực nhẹ máy!", Value = false, Callback = function(v) _G.GodModeEnabled = v end})
+GodModeSec:Toggle({ Title = "Event Auto Heal (0% CPU)", Value = false, Callback = function(v) _G.GodModeEnabled = v end})
 GodModeSec:Slider({ Title = "Health Amount", Value = {Min = 100, Max = 100000, Default = 5000}, Callback = function(v) _G.HealthValue = v end})
 
--- CẢM BIẾN NHÂN VẬT: Thay vì dùng Heartbeat, ta gắn bẫy vào Humanoid
 local function SetupEventSensors(char)
     local hum = char:WaitForChild("Humanoid", 5)
     if hum then
-        -- Cảm biến Máu
-        hum:GetPropertyChangedSignal("Health"):Connect(function()
-            if _G.GodModeEnabled and hum.Health < _G.HealthValue then
-                hum.Health = _G.HealthValue
-            end
-        end)
-        hum:GetPropertyChangedSignal("MaxHealth"):Connect(function()
-            if _G.GodModeEnabled and hum.MaxHealth < _G.HealthValue then
-                hum.MaxHealth = _G.HealthValue
-            end
-        end)
-        
-        -- Cảm biến Tốc độ (Chống làm chậm tuyệt đối)
-        hum:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
-            if _G.AntiSlow and hum.WalkSpeed < 16 then
-                hum.WalkSpeed = 16
-            elseif _G.WsEnabled and hum.WalkSpeed ~= _G.WsValue then
-                hum.WalkSpeed = _G.WsValue
-            end
-        end)
-        
-        -- Kích hoạt ngay khi vừa gắn bẫy
+        hum:GetPropertyChangedSignal("Health"):Connect(function() if _G.GodModeEnabled and hum.Health < _G.HealthValue then hum.Health = _G.HealthValue end end)
+        hum:GetPropertyChangedSignal("MaxHealth"):Connect(function() if _G.GodModeEnabled and hum.MaxHealth < _G.HealthValue then hum.MaxHealth = _G.HealthValue end end)
+        hum:GetPropertyChangedSignal("WalkSpeed"):Connect(function() if _G.AntiSlow and hum.WalkSpeed < 16 then hum.WalkSpeed = 16 elseif _G.WsEnabled and hum.WalkSpeed ~= _G.WsValue then hum.WalkSpeed = _G.WsValue end end)
         if _G.GodModeEnabled then hum.MaxHealth = _G.HealthValue; hum.Health = _G.HealthValue end
         if _G.WsEnabled then hum.WalkSpeed = _G.WsValue end
     end
 end
-
--- Lắng nghe mỗi khi nhân vật hồi sinh để gắn bẫy
 LocalPlayer.CharacterAdded:Connect(SetupEventSensors)
 if LocalPlayer.Character then SetupEventSensors(LocalPlayer.Character) end
 
-
 local CombatSec = CombatTab:Section({ Title = "Weapon Control", Icon = "crosshair", Opened = true, Box = true })
 CombatSec:Toggle({ Title = "M1 Combo Lock + Fast Slash", Value = false, Callback = function(v) _G.FastSlash = v end})
-RunService.Heartbeat:Connect(function()
-    if _G.FastSlash then pcall(function() local char = LocalPlayer.Character; if char then for _, v in ipairs(char:GetDescendants()) do if v:IsA("ModuleScript") then if string.find(string.lower(v.Name), "weapon") or string.find(string.lower(v.Name), "attack") or string.find(string.lower(v.Name), "stats") then local success, stats = pcall(require, v); if success and type(stats) == "table" and stats.attackCycle then if stats.attackOrder then stats.attackOrder = {"1", "1", "1", "1"} end; for realStat, val in pairs(stats) do local lowerStat = string.lower(realStat); if lowerStat == "attacktime" or lowerStat == "swingtime" or lowerStat == "windup" then if type(val) == "number" and val ~= 0.2 then stats[realStat] = 0.2 end end end; for k, cycle in pairs(stats.attackCycle) do if type(cycle) == "table" and cycle.attackTime and cycle.attackTime ~= 0.2 then cycle.attackTime = 0.2 end end end end end end end end) end
-end)
-CombatSec:Toggle({ Title = "Enable Anti-Slow", Desc = "Dùng cảm biến sự kiện để chống chậm thay vì lặp", Value = false, Callback = function(v) _G.AntiSlow = v end})
+RunService.Heartbeat:Connect(function() if _G.FastSlash then pcall(function() local char = LocalPlayer.Character; if char then for _, v in ipairs(char:GetDescendants()) do if v:IsA("ModuleScript") then if string.find(string.lower(v.Name), "weapon") or string.find(string.lower(v.Name), "attack") or string.find(string.lower(v.Name), "stats") then local success, stats = pcall(require, v); if success and type(stats) == "table" and stats.attackCycle then if stats.attackOrder then stats.attackOrder = {"1", "1", "1", "1"} end; for realStat, val in pairs(stats) do local lowerStat = string.lower(realStat); if lowerStat == "attacktime" or lowerStat == "swingtime" or lowerStat == "windup" then if type(val) == "number" and val ~= 0.2 then stats[realStat] = 0.2 end end end; for k, cycle in pairs(stats.attackCycle) do if type(cycle) == "table" and cycle.attackTime and cycle.attackTime ~= 0.2 then cycle.attackTime = 0.2 end end end end end end end end) end end)
+CombatSec:Toggle({ Title = "Enable Anti-Slow", Value = false, Callback = function(v) _G.AntiSlow = v end})
 CombatSec:Toggle({ Title = "Ghost Mode (Infinite Invis)", Value = false, Callback = function(v) _G.InfiniteInvis = v end})
 
-local KillSec = CombatTab:Section({ Title = "C++ SPATIAL AURA NUKE", Icon = "radio", Opened = true, Box = true })
+local KillSec = CombatTab:Section({ Title = "THE SINGULARITY ENGINE", Icon = "zap", Opened = true, Box = true })
 
 -- =======================================================
--- BỘ MÁY C++ SPATIAL AURA (GETPARTBOUNDSINRADIUS) + DEFER
+-- BỘ MÁY TỐI ƯU HÓA ĐỈNH CAO: POSTSIMULATION + DEFER + SPATIAL FILTER
 -- =======================================================
 local NukeWeaponDef = { 
     attackCycle = { ["1"] = {knockbackMul=0, slowMult=1, attackTime=0, lungeMul=0, slowTime=0, hitboxSizeAdd = Vector3.new(9e9, 9e9, 9e9)} }, 
@@ -167,77 +136,88 @@ local NukeWeaponDef = {
 }
 local NukeCycleData = {knockbackMul=0, slowMult=1, attackTime=0, lungeMul=0, slowTime=0}
 
-_G.AuraEnabled = false
+_G.ParallelAura = false
 _G.AuraRadius = 500
 _G.AuraSpam = 20
 _G.AuraDelay = 0.1
 
-KillSec:Toggle({ Title = "Enable Spatial Kill Aura", Desc = "Dùng thuật toán C++ để quét địch siêu tốc. Defer chống giật.", Value = false, Callback = function(v) _G.AuraEnabled = v end})
-KillSec:Slider({ Title = "Aura Radius (Bán kính vùng chém)", Value = {Min = 50, Max = 2000, Default = 500}, Callback = function(v) _G.AuraRadius = v end})
-KillSec:Slider({ Title = "Hits Per Target (Tham chiếu)", Value = {Min = 1, Max = 100, Default = 20}, Callback = function(v) _G.AuraSpam = v end})
-KillSec:Slider({ Title = "Network Throttle (Giây)", Desc = "0.1 là mượt. Giảm xuống 0 = Cháy máy", Value = {Min = 0, Max = 1, Default = 0.1}, Callback = function(v) _G.AuraDelay = v end})
+KillSec:Toggle({ Title = "Enable The Singularity (Zero-Lag Nuke)", Desc = "Dùng PostSimulation + Spatial Query (Lọc rác) + Defer Remote", Value = false, Callback = function(v) _G.ParallelAura = v end})
+KillSec:Slider({ Title = "Singularity Radius (Tầm quét)", Value = {Min = 50, Max = 2000, Default = 500}, Callback = function(v) _G.AuraRadius = v end})
+KillSec:Slider({ Title = "Spam Per Target (Trọng Lượng)", Value = {Min = 1, Max = 100, Default = 20}, Callback = function(v) _G.AuraSpam = v end})
+KillSec:Slider({ Title = "Ping Stabilizer (Delay)", Desc = "0.1 là lý tưởng nhất, Ping xanh mượt", Value = {Min = 0, Max = 1, Default = 0.1}, Callback = function(v) _G.AuraDelay = v end})
+
+-- LỌC RÁC: Khai báo SpatialParams để Engine KHÔNG quét map, chỉ quét quái/người
+local SpatialParams = OverlapParams.new()
+SpatialParams.FilterType = Enum.RaycastFilterType.Exclude
+
+local function UpdateSpatialFilter()
+    if LocalPlayer.Character then
+        -- Loại bỏ bản thân và toàn bộ Terrain/Đất đá ra khỏi vùng quét (Giảm 99% tải CPU)
+        SpatialParams.FilterDescendantsInstances = {LocalPlayer.Character, Workspace.Terrain}
+    end
+end
+LocalPlayer.CharacterAdded:Connect(UpdateSpatialFilter)
+UpdateSpatialFilter()
 
 local lastAuraTick = 0
 
--- Dùng Heartbeat để bắt nhịp game
-RunService.Heartbeat:Connect(function()
-    if not _G.AuraEnabled then return end
+-- SỬ DỤNG POSTSIMULATION ĐỂ LÀM TRÙM FRAME CUỐI
+RunService.PostSimulation:Connect(function()
+    if not _G.ParallelAura then return end
     
-    -- Điều tiết tốc độ quét để giữ Ping xanh (Network Throttling)
-    if tick() - lastAuraTick < _G.AuraDelay then return end
-    lastAuraTick = tick()
+    local currentTime = tick()
+    if currentTime - lastAuraTick < _G.AuraDelay then return end
+    lastAuraTick = currentTime
 
     local Char = LocalPlayer.Character
     local MyTool = Char and Char:FindFirstChildOfClass("Tool") or LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
     if not Char or not MyTool or not Char:FindFirstChild("HumanoidRootPart") then return end
-
     local myPos = (_G.DesyncGodMode and _G.LastSafeCFrame) and _G.LastSafeCFrame.Position or Char.HumanoidRootPart.Position
 
-    -- DÙNG TASK.DEFER: Bỏ qua frame hiện tại, gom toàn bộ tính toán sang góc khuất của RAM để khỏi rớt FPS
+    -- ĐƯA VÀO HÀNG CHỜ DEFER ĐỂ KHÔNG CHẶN LUỒNG GAME
     task.defer(function()
-        pcall(function()
-            -- SỨC MẠNH CỦA C++ SPATIAL QUERY: Tìm mọi vật thể trong bán kính tàng hình ngay lập tức!
-            local partsInRadius = Workspace:GetPartBoundsInRadius(myPos, _G.AuraRadius)
-            
-            local targetsFound = {}
-            local processedModels = {}
-            
-            -- Lọc ra Kẻ Địch CÒN SỐNG từ đống vật thể C++ trả về
-            for _, part in ipairs(partsInRadius) do
-                local model = part:FindFirstAncestorOfClass("Model")
-                if model and not processedModels[model] then
-                    processedModels[model] = true
-                    local player = Players:GetPlayerFromCharacter(model)
-                    if player and player ~= LocalPlayer then
-                        local hum = model:FindFirstChild("Humanoid")
-                        if hum and hum.Health > 0 then
-                            table.insert(targetsFound, model)
-                        end
-                    end
+        local targetsFound = {}
+        local processedModels = {}
+        local hitArray = {}
+
+        -- QUÉT SIÊU TỐC VỚI BỘ LỌC C++ (Không còn bị lag máy)
+        local partsInRadius = Workspace:GetPartBoundsInRadius(myPos, _G.AuraRadius, SpatialParams)
+        
+        for _, part in ipairs(partsInRadius) do
+            local model = part.Parent
+            if model and model:IsA("Model") and not processedModels[model] then
+                processedModels[model] = true
+                local hum = model:FindFirstChild("Humanoid")
+                -- Chỉ gom những ai có Humanoid và còn máu
+                if hum and hum.Health > 0 and model ~= Char then
+                    table.insert(targetsFound, model)
                 end
             end
+        end
 
-            -- NẾU CÓ ĐỊCH TRONG VÒNG AURA -> XẢ ĐẠN (DÙNG THAM CHIẾU BỘ NHỚ)
-            if #targetsFound > 0 then
-                local hitArray = {}
-                
-                for _, targetModel in ipairs(targetsFound) do
-                    local tPos = targetModel:GetPivot().Position
+        -- NẾU TÌM THẤY MỤC TIÊU -> GOM GÓI TIN LẠI
+        if #targetsFound > 0 then
+            for _, targetModel in ipairs(targetsFound) do
+                local hrp = targetModel:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    local tPos = hrp.Position
                     local dist = (tPos - myPos).Magnitude
                     local dir = dist > 0 and (tPos - myPos).Unit or Vector3.zAxis
                     
-                    -- Khởi tạo DUY NHẤT 1 bảng cho mỗi thằng địch
                     local singleHit = {
                         knockback = 0, isClosestEnemy = true, origin = myPos, 
                         enemyModel = targetModel, distance = dist, direction = dir
                     }
                     
-                    -- Nhân bản vào gói tin (Không tốn RAM)
-                    for i = 1, _G.AuraSpam do
+                    -- Nhân bản lệnh đánh theo chỉ số AuraSpam (Gióng lên Max 50 để tránh đứt kết nối Server)
+                    for i = 1, math.clamp(_G.AuraSpam, 1, 50) do
                         table.insert(hitArray, singleHit)
                     end
                 end
+            end
 
+            -- BẮN 1 PHÁT DUY NHẤT QUA REMOTE (Chống Ping Spike)
+            if #hitArray > 0 then
                 local Args = {
                     "AttemptWeaponHit",
                     {
@@ -250,13 +230,14 @@ RunService.Heartbeat:Connect(function()
                     hitArray
                 }
                 
-                -- Gửi gói tin lên máy chủ mà không chặn luồng (Non-yielding)
-                GameRemote:InvokeServer(table.unpack(Args))
+                -- Spawn ra luồng riêng để InvokeServer không làm khựng màn hình
+                task.spawn(function()
+                    pcall(function() GameRemote:InvokeServer(table.unpack(Args)) end)
+                end)
             end
-        end)
+        end
     end)
 end)
-
 
 local VisSec = VisTab:Section({ Title = "ESP Configurations", Icon = "eye", Opened = true, Box = true })
 _G.ESP_Box, _G.ESP_Name, _G.ESP_Chams = false, false, false

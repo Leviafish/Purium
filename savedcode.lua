@@ -2,7 +2,7 @@ print("Loading script maybe take a few seconds to complete")
 game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Purium On Top!", Text = "Loading Script...", Duration = 3 })
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 local Window = WindUI:CreateWindow({
-    Title = "Purium Hub [By @hlck49] | Silent Assassin |", Icon = "door-open", Author = "Version : 2.5.0 Ultimate", Folder = "Purium_Silent-Assassin",
+    Title = "Purium Hub [By @hlck49] | Silent Assassin |", Icon = "door-open", Author = "Version : 2.6.0 No-CD", Folder = "Purium_Silent-Assassin",
     Size = UDim2.fromOffset(580, 460), MinSize = Vector2.new(560, 350), MaxSize = Vector2.new(850, 560),
     Transparent = true, Theme = "Dark", Resizable = true, SideBarWidth = 200, BackgroundImageTransparency = 0.42,
     HideSearchBar = true, ScrollBarEnabled = false,
@@ -18,7 +18,7 @@ Window:EditOpenButton({
 WindUI:AddTheme({ Name = "Amethyst", Accent = Color3.fromHex("7E2CB6"), Dialog = Color3.fromHex("321E46"), Outline = Color3.fromHex("552D78"), Text = Color3.fromHex("F0F0F0"), Placeholder = Color3.fromHex("AAAAAA"), Background = Color3.fromHex("280C47"), Button = Color3.fromHex("733796"), Icon = Color3.fromHex("AAAAAA"), Toggle = Color3.fromHex("7E2CB6"), Slider = Color3.fromHex("7E2CB6"), Checkbox = Color3.fromHex("7E2CB6"), PanelBackground = Color3.fromHex("FFFFFF"), PanelBackgroundTransparency = 0.95, SliderIcon = Color3.fromHex("AAAAAA"), Primary = Color3.fromHex("7E2CB6"), LabelBackground = Color3.fromHex("000000"), LabelBackgroundTransparency = 0.85 })
 WindUI:AddTheme({ Name = "AMOLED", Accent = Color3.fromHex("FFFFFF"), Dialog = Color3.fromHex("000000"), Outline = Color3.fromHex("141414"), Text = Color3.fromHex("FFFFFF"), Placeholder = Color3.fromHex("AAAAAA"), Background = Color3.fromHex("000000"), Button = Color3.fromHex("0F0F0F"), Icon = Color3.fromHex("FFFFFF"), Toggle = Color3.fromHex("FFFFFF"), Slider = Color3.fromHex("FFFFFF"), Checkbox = Color3.fromHex("FFFFFF"), PanelBackground = Color3.fromHex("000000"), PanelBackgroundTransparency = 0, SliderIcon = Color3.fromHex("AAAAAA"), Primary = Color3.fromHex("FFFFFF"), LabelBackground = Color3.fromHex("000000"), LabelBackgroundTransparency = 0 })
 
-Window:Tag({ Title = "v2.5.0 Ultimate (Ghost Mode)", Icon = "ghost", Color = Color3.fromRGB(150, 100, 255), Radius = 10 })
+Window:Tag({ Title = "v2.6.0 (No-Cooldown)", Icon = "zap", Color = Color3.fromRGB(255, 255, 0), Radius = 10 })
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -30,10 +30,8 @@ local GameRemote = ReplicatedStorage:WaitForChild("Events"):WaitForChild("GameRe
 
 _G.AntiSlow = false
 _G.AntiKickEnabled = false
-_G.InfiniteInvis = false
 _G.LastAttackTime = 0
 
--- LÕI HOOK TỐI THƯỢNG (Chặn Mất Tàng Hình + Anti-Slow + Anti-Kick)
 local oldNamecall
 oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
     local method = getnamecallmethod()
@@ -45,12 +43,6 @@ oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
         end
         
         if method == "InvokeServer" or method == "FireServer" then
-            -- 1. CHẶN BÁO CÁO VUNG KIẾM (TÀNG HÌNH VĨNH CỬU)
-            if _G.InfiniteInvis and args[1] == "SendMessage" and args[2] == "WeaponSwung" then
-                return nil -- Đạp gói tin này xuống biển
-            end
-            
-            -- 2. ANTI-SLOW (Giữ tốc độ khi chém)
             if _G.AntiSlow and args[1] == "AttemptWeaponHit" and type(args[2]) == "table" then
                 args[2].shouldSlow = false
                 args[2].slowMult = 1
@@ -134,17 +126,13 @@ end)
 
 local FlingSec = MoveTab:Section({ Title = "Physics Fling Exploits", Icon = "wind", Opened = true, Box = true })
 _G.AntiFling = false
-FlingSec:Toggle({ Title = "Anti Fling (God Collision)", Desc = "Người khác đi xuyên qua bạn, chống bị hất văng", Value = false, Callback = function(v) _G.AntiFling = v end})
-
+FlingSec:Toggle({ Title = "Anti Fling (God Collision)", Desc = "Chống bị hất văng", Value = false, Callback = function(v) _G.AntiFling = v end})
 _G.FlingMode = "Spin Fling"
 FlingSec:Dropdown({ Title = "Select Fling Mode", Values = {"Spin Fling", "Teleport & Fling", "Touch Fling"}, Value = "Spin Fling", Callback = function(v) _G.FlingMode = v end})
-
 _G.FlingTarget = ""
 FlingSec:Input({ Title = "Target Name (For Teleport)", Value = "", Callback = function(v) _G.FlingTarget = v end})
-
 _G.FlingPower = 50000
 FlingSec:Slider({ Title = "Fling Power", Value = {Min = 1000, Max = 100000, Default = 50000}, Callback = function(v) _G.FlingPower = v end})
-
 _G.FlingActive = false
 FlingSec:Toggle({ Title = "Enable Fling", Value = false, Callback = function(v) 
     _G.FlingActive = v 
@@ -273,7 +261,7 @@ end)
 
 _G.GodModeEnabled = false
 _G.HealthValue = 5000
-GodModeSec:Toggle({ Title = "Auto Heal (Custom HP Bypass)", Desc = "Quét tự động bơm máu ẩn", Value = false, Callback = function(v) _G.GodModeEnabled = v end})
+GodModeSec:Toggle({ Title = "Auto Heal (Custom HP Bypass)", Value = false, Callback = function(v) _G.GodModeEnabled = v end})
 GodModeSec:Slider({ Title = "Health Amount", Value = {Min = 100, Max = 100000, Default = 5000}, Callback = function(v) _G.HealthValue = v end})
 
 RunService.Heartbeat:Connect(function()
@@ -303,9 +291,50 @@ end)
 
 local CombatSec = CombatTab:Section({ Title = "Assassin Skills", Icon = "crosshair", Opened = true, Box = true })
 
-CombatSec:Toggle({ Title = "Ghost Mode (Infinite Invis)", Desc = "Chém thả ga không hiện hình!", Value = false, Callback = function(v) 
-    _G.InfiniteInvis = v 
+-- LÕI CHÉM KHÔNG ĐỘ TRỄ (NO COOLDOWN)
+_G.NoCooldown = false
+local moddedTools = {}
+CombatSec:Toggle({ Title = "Weapon No Cooldown", Desc = "Chém/Bắn không độ trễ (Nhớ cầm vũ khí lên tay)", Value = false, Callback = function(v) 
+    _G.NoCooldown = v 
+    if not v then moddedTools = {} end -- Xóa danh sách để có thể load lại nếu tắt đi bật lại
 end})
+
+RunService.Heartbeat:Connect(function()
+    if _G.NoCooldown then
+        pcall(function()
+            local char = LocalPlayer.Character
+            if char then
+                local tool = char:FindFirstChildOfClass("Tool")
+                -- Chỉ quét vũ khí 1 lần để tránh giật lag máy
+                if tool and not moddedTools[tool] then
+                    moddedTools[tool] = true
+                    for _, v in pairs(tool:GetDescendants()) do
+                        -- Sửa thông số trong ModuleScript
+                        if v:IsA("ModuleScript") then
+                            local success, stats = pcall(require, v)
+                            if success and type(stats) == "table" then
+                                for realStat, val in pairs(stats) do
+                                    local lowerStat = string.lower(realStat)
+                                    if lowerStat:match("cooldown") or lowerStat:match("delay") or lowerStat:match("rate") or lowerStat:match("debounce") or lowerStat:match("time") then
+                                        if type(val) == "number" and val > 0 then
+                                            stats[realStat] = 0
+                                        end
+                                    end
+                                end
+                            end
+                        -- Sửa thông số nếu game dùng ValueBase
+                        elseif v:IsA("NumberValue") or v:IsA("IntValue") then
+                            local lowerName = string.lower(v.Name)
+                            if lowerName:match("cooldown") or lowerName:match("delay") or lowerName:match("rate") or lowerName:match("debounce") then
+                                v.Value = 0
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    end
+end)
 
 CombatSec:Toggle({ Title = "Enable Anti-Slow", Desc = "Remove movement penalty", Value = false, Callback = function(v) _G.AntiSlow = v end})
 
@@ -433,6 +462,38 @@ task.spawn(function()
             task.wait(math.max(_G.AttackDelay, 0.1))
         end
     end
+end)
+
+local AimSec = CombatTab:Section({ Title = "Aimbot Configuration", Icon = "crosshair", Opened = true, Box = true })
+_G.AimbotMode = "None"
+_G.AimbotSmoothness = 1
+
+AimSec:Dropdown({ Title = "Select Aimbot Mode", Values = {"None", "Camera", "Character", "Camera & Character"}, Value = "None", Callback = function(v) _G.AimbotMode = v end})
+AimSec:Slider({ Title = "Smoothness (Camera)", Desc = "1 = Instant, Higher = Smoother", Value = {Min = 1, Max = 10, Default = 1}, Callback = function(v) _G.AimbotSmoothness = v end})
+
+RunService.RenderStepped:Connect(function()
+    if (_G.AimbotMode == "Camera" or _G.AimbotMode == "Camera & Character") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local target = getNearestTarget()
+        if target and target:FindFirstChild("HumanoidRootPart") then
+            local tPos = target.HumanoidRootPart.Position
+            local goalCFrame = CFrame.lookAt(Camera.CFrame.Position, tPos)
+            if _G.AimbotSmoothness == 1 then Camera.CFrame = goalCFrame else Camera.CFrame = Camera.CFrame:Lerp(goalCFrame, 1 / _G.AimbotSmoothness) end
+        end
+    end
+end)
+
+RunService.Heartbeat:Connect(function()
+    pcall(function()
+        if (_G.AimbotMode == "Character" or _G.AimbotMode == "Camera & Character") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local target = getNearestTarget()
+            if target and target:FindFirstChild("HumanoidRootPart") then
+                local myHrp = LocalPlayer.Character.HumanoidRootPart
+                local tPos = target.HumanoidRootPart.Position
+                local lookVec = Vector3.new(tPos.X, myHrp.Position.Y, tPos.Z)
+                if _G.DesyncGodMode and _G.LastSafeCFrame then _G.LastSafeCFrame = CFrame.lookAt(_G.LastSafeCFrame.Position, lookVec) else myHrp.CFrame = CFrame.lookAt(myHrp.Position, lookVec) end
+            end
+        end
+    end)
 end)
 
 local VisSec = VisTab:Section({ Title = "ESP Configurations", Icon = "eye", Opened = true, Box = true })

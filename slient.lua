@@ -51,27 +51,24 @@ _G.LastAttackTime = 0
 local oldNamecall
 oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
     local method = getnamecallmethod()
-    if not checkcaller() then
-        if _G.AntiKickEnabled and (method == "Kick" or method == "kick") then
-            return nil
-        end
-        if _G.AntiSlow and (method == "FireServer" or method == "InvokeServer") then
-            local args = {...}
-            if args[1] == "AttemptWeaponHit" and type(args[2]) == "table" then
-                args[2].shouldSlow = false
-                args[2].slowMult = 1
-                args[2].slowTime = 0
-                if args[2].attackCycleData then 
-                    args[2].attackCycleData.slowMult = 1 
-                    args[2].attackCycleData.slowTime = 0 
-                end
-                if args[2].weaponDefinition and args[2].weaponDefinition.attackCycle then
-                    for k, v in pairs(args[2].weaponDefinition.attackCycle) do 
-                        v.slowMult = 1
-                        v.slowTime = 0
-                    end
+    local args = {...}
+    if not checkcaller() and (method == "FireServer" or method == "InvokeServer") then
+        if _G.AntiSlow and args[1] == "AttemptWeaponHit" and type(args[2]) == "table" then
+            args[2].shouldSlow = false
+            args[2].slowMult = 1
+            args[2].slowTime = 0
+            if args[2].attackCycleData then 
+                args[2].attackCycleData.slowMult = 1 
+                args[2].attackCycleData.slowTime = 0 
+            end
+            if args[2].weaponDefinition and args[2].weaponDefinition.attackCycle then
+                for k, v in pairs(args[2].weaponDefinition.attackCycle) do 
+                    v.slowMult = 1
+                    v.slowTime = 0
                 end
             end
+            -- FIX: unpack -> table.unpack
+            return oldNamecall(self, table.unpack(args))
         end
     end
     return oldNamecall(self, ...)
@@ -628,7 +625,7 @@ end})
 CombatSec:Divider()
 
 _G.KillMultiplier = 20
-CombatSec:Slider({ Title = "Kill Multiplier", Desc = "", Value = {Min = 1, Max = 100, Default = 20}, Callback = function(v) _G.KillMultiplier = v end})
+CombatSec:Slider({ Title = "Kill Multiplier (Stat Farm)", Desc = "Số Kill ảo nhận được khi hạ 1 mục tiêu (Tối ưu: 20-50)", Value = {Min = 1, Max = 100, Default = 20}, Callback = function(v) _G.KillMultiplier = v end})
 
 CombatSec:Divider()
 
@@ -665,16 +662,11 @@ CombatSec:Slider({
 CombatSec:Divider()
 
 local function BuildHitData(TargetChar)
-    local Char = LocalPlayer.Character
-    -- Đã bọc an toàn: Kiểm tra nếu bạn chết thì không lấy dữ liệu để tránh lỗi
-    if not Char or not Char:FindFirstChild("HumanoidRootPart") then return {} end
-    if not TargetChar or not TargetChar:FindFirstChild("HumanoidRootPart") then return {} end
-    
-    local myHrp = Char.HumanoidRootPart
+    local myHrp = LocalPlayer.Character.HumanoidRootPart
     local tHrp = TargetChar.HumanoidRootPart
     local dist = (tHrp.Position - myHrp.Position).Magnitude
     local dir = (tHrp.Position - myHrp.Position).Unit
-    if dist == 0 or dist ~= dist then dir = Vector3.new(0, 0, 1) end
+    if dist == 0 then dir = Vector3.new(0, 0, 1) end
     
     local targetArray = {}
     for i = 1, _G.HitsPerPacket do
@@ -706,7 +698,6 @@ local function FireCombatRequest(targetArray)
             hitboxOffset = Vector3.new(0, 0, 0), isCritical = true, shouldSlow = isSlow,
             attackCooldown = 0, damage = 9e9, lungeKnockback = 0, cycleIndex = 1,
             slowMult = slowMul, 
-            -- HACK HITBOX VÔ CỰC ĐỂ QUA MẶT SERVER (CHÉM TOÀN MAP)
             hitboxSize = Vector3.new(9e9, 9e9, 9e9), 
             weaponDefinition = { 
                 attackCycle = { ["1"] = {knockbackMul=0, slowMult=slowMul, attackTime=0, lungeMul=0, slowTime=slowTim, hitboxSizeAdd = Vector3.new(9e9, 9e9, 9e9)} }, 
@@ -716,7 +707,8 @@ local function FireCombatRequest(targetArray)
         },
         targetArray
     }
-    task.spawn(function() pcall(function() GameRemote:InvokeServer(unpack(Args)) end) end)
+    -- FIX: unpack -> table.unpack
+    task.spawn(function() pcall(function() GameRemote:InvokeServer(table.unpack(Args)) end) end)
 end
 
 _G.KillAll = false
@@ -725,27 +717,70 @@ CombatSec:Toggle({ Title = "Kill All Players", Desc = "Well I Must Touch Some Gr
     if v then
         task.spawn(function()
             while _G.KillAll do
-                pcall(function() -- BỌC PCALL: Chống gãy vòng lặp vĩnh viễn dù nhân vật có chết
-                    local fullArray = {}
-                    local Char = LocalPlayer.Character
-                    if Char and Char:FindFirstChild("HumanoidRootPart") then
-                        for _, p in ipairs(Players:GetPlayers()) do
-                            if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                                local hum = p.Character:FindFirstChild("Humanoid")
-                                if hum and hum.Health > 0 then
-                                    local data = BuildHitData(p.Character)
-                                    for _, hit in ipairs(data) do table.insert(fullArray, hit) end
-                                end
-                            end
+                local fullArray = {}
+                for _, p in ipairs(Players:GetPlayers()) do
+                    if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                        local hum = p.Character:FindFirstChild("Humanoid")
+                        if hum and hum.Health > 0 then
+                            local data = BuildHitData(p.Character)
+                            for _, hit in ipairs(data) do table.insert(fullArray, hit) end
                         end
-                        if #fullArray > 0 then FireCombatRequest(fullArray) end
                     end
-                end)
+                end
+                
+                if #fullArray > 0 then FireCombatRequest(fullArray) end
                 if _G.AttackDelay > 0 then task.wait(_G.AttackDelay) else task.wait() end
             end
         end)
     end
 end})
+
+local function AttemptWeaponHit(TargetChar)
+    local Char = LocalPlayer.Character
+    if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
+    if not TargetChar or not TargetChar:FindFirstChild("HumanoidRootPart") then return end
+    
+    local MyTool = Char:FindFirstChildOfClass("Tool") or LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
+    if not MyTool then return end
+    
+    local isSlow = not _G.AntiSlow
+    local slowMul = _G.AntiSlow and 1 or 0.2
+    local slowTim = _G.AntiSlow and 0 or 1.5
+    local fakeOrigin = TargetChar.HumanoidRootPart.Position
+    local targetArray = {}
+    for i = 1, 10 do
+        table.insert(targetArray, {
+            knockback = 0,
+            isClosestEnemy = true, 
+            origin = fakeOrigin, 
+            enemyModel = TargetChar, 
+            distance = 0.1, 
+            direction = Vector3.new(0, -1, 0)
+        })
+    end
+    
+    local Args = {
+        "AttemptWeaponHit",
+        {
+            attackCycleData = {knockbackMul=0, slowMult=slowMul, attackTime=0, lungeMul=0, slowTime=slowTim},
+            knockback = 0, shouldLock = true, shouldLunge = false,
+            hitboxOffset = Vector3.new(0, 0, 0), isCritical = true, shouldSlow = isSlow,
+            attackCooldown = 0, damage = 9e9, lungeKnockback = 0, cycleIndex = 1,
+            slowMult = slowMul, hitboxSize = Vector3.new(2048, 2048, 2048),
+            weaponDefinition = { 
+                attackCycle = { ["1"] = {knockbackMul=0, slowMult=slowMul, attackTime=0, lungeMul=0, slowTime=slowTim} }, 
+                attackOrder = {"1", "2", "3", "4"} 
+            },
+            tool = MyTool, slowTime = slowTim
+        },
+        targetArray
+    }
+    
+    task.spawn(function()
+        -- FIX: unpack -> table.unpack
+        pcall(function() GameRemote:InvokeServer(table.unpack(Args)) end)
+    end)
+end
 
 CombatSec:Divider()
 
@@ -764,16 +799,13 @@ task.spawn(function()
         task.wait()
         if _G.AutoHit and not _G.KillAll then
             pcall(function()
-                local Char = LocalPlayer.Character
-                if Char and Char:FindFirstChild("HumanoidRootPart") then
+                if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
                     local target = getNearestTarget()
                     if target and target:FindFirstChild("HumanoidRootPart") then
-                        local myPos = (_G.DesyncGodMode and _G.LastSafeCFrame) and _G.LastSafeCFrame.Position or Char.HumanoidRootPart.Position
+                        local myPos = (_G.DesyncGodMode and _G.LastSafeCFrame) and _G.LastSafeCFrame.Position or LocalPlayer.Character.HumanoidRootPart.Position
                         local dist = (target.HumanoidRootPart.Position - myPos).Magnitude
                         if dist <= _G.HitRange then 
-                            -- Dùng chung lõi FireCombatRequest để có Hitbox vô cực
-                            local data = BuildHitData(target)
-                            if #data > 0 then FireCombatRequest(data) end
+                            task.spawn(AttemptWeaponHit, target)
                         end
                     end
                 end
@@ -795,11 +827,10 @@ task.spawn(function()
         task.wait()
         if _G.AutoFarm then
             pcall(function()
-                local Char = LocalPlayer.Character
-                if Char and Char:FindFirstChild("HumanoidRootPart") then
+                if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
                     local target = getNearestTarget()
                     if target and target:FindFirstChild("HumanoidRootPart") then
-                        local hrp = Char.HumanoidRootPart
+                        local hrp = LocalPlayer.Character.HumanoidRootPart
                         local tHrp = target.HumanoidRootPart
                         
                         if _G.DesyncGodMode and _G.LastSafeCFrame then
@@ -808,8 +839,7 @@ task.spawn(function()
                             hrp.CFrame = tHrp.CFrame * CFrame.new(0, 0, 3)
                         end
                         
-                        local data = BuildHitData(target)
-                        if #data > 0 then FireCombatRequest(data) end
+                        task.spawn(AttemptWeaponHit, target)
                         
                         if _G.DesyncGodMode and _G.LastSafeCFrame then
                             _G.LastSafeCFrame = tHrp.CFrame * CFrame.new(0, 25, 0)

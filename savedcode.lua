@@ -2,7 +2,7 @@ print("Loading script maybe take a few seconds to complete")
 game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Purium On Top!", Text = "Loading Script...", Duration = 3 })
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 local Window = WindUI:CreateWindow({
-    Title = "Purium Hub [By @hlck49] | Silent Assassin |", Icon = "door-open", Author = "Version : 3.1 Safe-Slash", Folder = "Purium_Silent-Assassin",
+    Title = "Purium Hub [By @hlck49] | Silent Assassin |", Icon = "door-open", Author = "Version : 3.2 Combo-Lock", Folder = "Purium_Silent-Assassin",
     Size = UDim2.fromOffset(580, 460), MinSize = Vector2.new(560, 350), MaxSize = Vector2.new(850, 560),
     Transparent = true, Theme = "Dark", Resizable = true, SideBarWidth = 200, BackgroundImageTransparency = 0.42,
     HideSearchBar = true, ScrollBarEnabled = false,
@@ -14,7 +14,7 @@ Window:EditOpenButton({ Title = "Open UI", Icon = "monitor", CornerRadius = UDim
 WindUI:AddTheme({ Name = "Amethyst", Accent = Color3.fromHex("7E2CB6"), Dialog = Color3.fromHex("321E46"), Outline = Color3.fromHex("552D78"), Text = Color3.fromHex("F0F0F0"), Placeholder = Color3.fromHex("AAAAAA"), Background = Color3.fromHex("280C47"), Button = Color3.fromHex("733796"), Icon = Color3.fromHex("AAAAAA"), Toggle = Color3.fromHex("7E2CB6"), Slider = Color3.fromHex("7E2CB6"), Checkbox = Color3.fromHex("7E2CB6"), PanelBackground = Color3.fromHex("FFFFFF"), PanelBackgroundTransparency = 0.95, SliderIcon = Color3.fromHex("AAAAAA"), Primary = Color3.fromHex("7E2CB6"), LabelBackground = Color3.fromHex("000000"), LabelBackgroundTransparency = 0.85 })
 WindUI:AddTheme({ Name = "AMOLED", Accent = Color3.fromHex("FFFFFF"), Dialog = Color3.fromHex("000000"), Outline = Color3.fromHex("141414"), Text = Color3.fromHex("FFFFFF"), Placeholder = Color3.fromHex("AAAAAA"), Background = Color3.fromHex("000000"), Button = Color3.fromHex("0F0F0F"), Icon = Color3.fromHex("FFFFFF"), Toggle = Color3.fromHex("FFFFFF"), Slider = Color3.fromHex("FFFFFF"), Checkbox = Color3.fromHex("FFFFFF"), PanelBackground = Color3.fromHex("000000"), PanelBackgroundTransparency = 0, SliderIcon = Color3.fromHex("AAAAAA"), Primary = Color3.fromHex("FFFFFF"), LabelBackground = Color3.fromHex("000000"), LabelBackgroundTransparency = 0 })
 
-Window:Tag({ Title = "v3.1 (Safe Fast Slash 0.2s)", Icon = "zap", Color = Color3.fromRGB(100, 255, 100), Radius = 10 })
+Window:Tag({ Title = "v3.2 (M1 Combo Lock)", Icon = "lock", Color = Color3.fromRGB(255, 150, 50), Radius = 10 })
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -30,7 +30,7 @@ _G.AntiKickEnabled = false
 _G.InfiniteInvis = false
 _G.LastAttackTime = 0
 
--- LÕI HOOK (TỐC ĐỘ 0.2 GIÂY AN TOÀN)
+-- LÕI HOOK BẢO VỆ CHUNG & LỌC GÓI TIN M1
 local oldNamecall
 oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
     local method = getnamecallmethod()
@@ -43,15 +43,22 @@ oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
             if (_G.AntiSlow or _G.FastSlash) and args[1] == "AttemptWeaponHit" and type(args[2]) == "table" then
                 if _G.AntiSlow then args[2].shouldSlow = false end
                 
+                -- ÉP LUÔN LUÔN BÁO CÁO SERVER RẰNG MÌNH ĐANG DÙNG CHIÊU 1
+                args[2].cycleIndex = 1 
+                
                 if args[2].attackCycleData then 
                     if _G.AntiSlow then args[2].attackCycleData.slowMult = 1; args[2].attackCycleData.slowTime = 0 end
                     if _G.FastSlash then args[2].attackCycleData.attackTime = 0.2 end
                 end
                 
-                if args[2].weaponDefinition and args[2].weaponDefinition.attackCycle then
-                    for k, v in pairs(args[2].weaponDefinition.attackCycle) do 
-                        if _G.AntiSlow then v.slowMult = 1; v.slowTime = 0 end
-                        if _G.FastSlash then v.attackTime = 0.2 end
+                if args[2].weaponDefinition then
+                    -- Tẩy não gói tin báo cáo
+                    args[2].weaponDefinition.attackOrder = {"1", "1", "1", "1"}
+                    if args[2].weaponDefinition.attackCycle then
+                        for k, v in pairs(args[2].weaponDefinition.attackCycle) do 
+                            if _G.AntiSlow then v.slowMult = 1; v.slowTime = 0 end
+                            if _G.FastSlash then v.attackTime = 0.2 end
+                        end
                     end
                 end
                 return oldNamecall(self, table.unpack(args))
@@ -86,101 +93,25 @@ local function getNearestTarget()
     return nearest
 end
 
--- =====================================
--- TAB AUTO GACHA
--- =====================================
 local GachaSec = GachaTab:Section({ Title = "Auto Open Chests", Icon = "shopping-cart", Opened = true, Box = true })
-_G.AutoGacha = false
-_G.GachaType = "Basic" 
-
+_G.AutoGacha = false; _G.GachaType = "Basic" 
 GachaSec:Dropdown({ Title = "Select Chest Type", Values = {"Basic", "Divine"}, Value = "Basic", Callback = function(v) _G.GachaType = v end})
-GachaSec:Toggle({ Title = "Enable Auto Gacha", Desc = "Tự động mua rương liên tục", Value = false, Callback = function(v) 
+GachaSec:Toggle({ Title = "Enable Auto Gacha", Value = false, Callback = function(v) 
     _G.AutoGacha = v 
-    if v then
-        task.spawn(function()
-            while _G.AutoGacha do
-                pcall(function() GameRemote:InvokeServer("AttemptRollGachaChest", _G.GachaType) end)
-                task.wait(1.5)
-            end
-        end)
-    end
+    if v then task.spawn(function() while _G.AutoGacha do pcall(function() GameRemote:InvokeServer("AttemptRollGachaChest", _G.GachaType) end); task.wait(1.5) end end) end
 end})
 
--- =====================================
--- TAB MOVEMENT & FLING
--- =====================================
 local MoveSec = MoveTab:Section({ Title = "Character Modification", Icon = "user", Opened = true, Box = true })
 local noclipLoop
-MoveSec:Toggle({ Title = "Enable Noclip", Value = false, Callback = function(v)
-    if v then noclipLoop = RunService.Stepped:Connect(function() pcall(function() if LocalPlayer.Character then for _, p in pairs(LocalPlayer.Character:GetDescendants()) do if p:IsA("BasePart") and p.CanCollide then p.CanCollide = false end end end end) end) else if noclipLoop then noclipLoop:Disconnect(); noclipLoop = nil end end
-end})
-
+MoveSec:Toggle({ Title = "Enable Noclip", Value = false, Callback = function(v) if v then noclipLoop = RunService.Stepped:Connect(function() pcall(function() if LocalPlayer.Character then for _, p in pairs(LocalPlayer.Character:GetDescendants()) do if p:IsA("BasePart") and p.CanCollide then p.CanCollide = false end end end end) end) else if noclipLoop then noclipLoop:Disconnect(); noclipLoop = nil end end end})
 _G.WsEnabled, _G.WsValue = false, 25
 MoveSec:Toggle({ Title = "Enable WalkSpeed", Value = false, Callback = function(v) _G.WsEnabled = v; if not v then pcall(function() LocalPlayer.Character.Humanoid.WalkSpeed = 16 end) end end})
 MoveSec:Slider({ Title = "Speed Amount", Value = {Min = 16, Max = 1500, Default = 25}, Callback = function(v) _G.WsValue = v end})
-
 _G.JpEnabled, _G.JpValue = false, 100
 MoveSec:Toggle({ Title = "Enable JumpPower", Value = false, Callback = function(v) _G.JpEnabled = v; if not v then pcall(function() LocalPlayer.Character.Humanoid.JumpPower = 50 end) end end})
 MoveSec:Slider({ Title = "Jump Amount", Value = {Min = 50, Max = 1500, Default = 100}, Callback = function(v) _G.JpValue = v end})
 
-RunService.Heartbeat:Connect(function()
-    pcall(function()
-        local char = LocalPlayer.Character
-        if char and char:FindFirstChild("Humanoid") then
-            local hum = char.Humanoid
-            if _G.WsEnabled then hum.WalkSpeed = _G.WsValue elseif _G.AntiSlow and hum.WalkSpeed < 16 then hum.WalkSpeed = 16 end
-            if _G.JpEnabled then hum.JumpPower = _G.JpValue end
-        end
-    end)
-end)
-
-local FlingSec = MoveTab:Section({ Title = "Physics Fling Exploits", Icon = "wind", Opened = true, Box = true })
-_G.AntiFling = false
-FlingSec:Toggle({ Title = "Anti Fling (God Collision)", Value = false, Callback = function(v) _G.AntiFling = v end})
-_G.FlingMode = "Spin Fling"
-FlingSec:Dropdown({ Title = "Select Fling Mode", Values = {"Spin Fling", "Teleport & Fling", "Touch Fling"}, Value = "Spin Fling", Callback = function(v) _G.FlingMode = v end})
-_G.FlingTarget = ""
-FlingSec:Input({ Title = "Target Name (For Teleport)", Value = "", Callback = function(v) _G.FlingTarget = v end})
-_G.FlingPower = 50000
-FlingSec:Slider({ Title = "Fling Power", Value = {Min = 1000, Max = 100000, Default = 50000}, Callback = function(v) _G.FlingPower = v end})
-_G.FlingActive = false
-FlingSec:Toggle({ Title = "Enable Fling", Value = false, Callback = function(v) 
-    _G.FlingActive = v 
-    if not v then pcall(function() local hrp = LocalPlayer.Character.HumanoidRootPart; hrp.AssemblyAngularVelocity = Vector3.new(0,0,0); local bav = hrp:FindFirstChild("PuriumFlingBAV"); if bav then bav:Destroy() end end) end
-end})
-
-RunService.Stepped:Connect(function() pcall(function() if _G.AntiFling and not _G.FlingActive and LocalPlayer.Character then for _, p in ipairs(Players:GetPlayers()) do if p ~= LocalPlayer and p.Character then for _, part in ipairs(p.Character:GetChildren()) do if part:IsA("BasePart") then part.CanCollide = false end end end end end end) end)
-
-RunService.Heartbeat:Connect(function()
-    pcall(function()
-        if _G.FlingActive and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            local hrp = LocalPlayer.Character.HumanoidRootPart
-            if LocalPlayer.Character:FindFirstChild("Humanoid") then LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Physics) end
-
-            if _G.FlingMode == "Spin Fling" then
-                local bav = hrp:FindFirstChild("PuriumFlingBAV")
-                if not bav then bav = Instance.new("BodyAngularVelocity"); bav.Name = "PuriumFlingBAV"; bav.MaxTorque = Vector3.new(0, math.huge, 0); bav.P = math.huge; bav.Parent = hrp end
-                bav.AngularVelocity = Vector3.new(0, _G.FlingPower, 0)
-            elseif _G.FlingMode == "Touch Fling" then
-                local bav = hrp:FindFirstChild("PuriumFlingBAV"); if bav then bav:Destroy() end
-                hrp.AssemblyAngularVelocity = Vector3.new(0, _G.FlingPower, 0); hrp.AssemblyLinearVelocity = Vector3.new(0, hrp.AssemblyLinearVelocity.Y, 0)
-            elseif _G.FlingMode == "Teleport & Fling" then
-                local bav = hrp:FindFirstChild("PuriumFlingBAV"); if bav then bav:Destroy() end
-                if _G.FlingTarget ~= "" then
-                    local tPlayer = nil
-                    for _, p in ipairs(Players:GetPlayers()) do if p ~= LocalPlayer and string.find(string.lower(p.Name), string.lower(_G.FlingTarget)) then tPlayer = p; break end end
-                    if tPlayer and tPlayer.Character and tPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                        hrp.CFrame = tPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(math.random(-1,1), math.random(-1,1), math.random(-1,1))
-                        hrp.AssemblyAngularVelocity = Vector3.new(math.random(-_G.FlingPower, _G.FlingPower), math.random(-_G.FlingPower, _G.FlingPower), math.random(-_G.FlingPower, _G.FlingPower))
-                        hrp.AssemblyLinearVelocity = Vector3.new(math.random(-_G.FlingPower, _G.FlingPower), math.random(-_G.FlingPower, _G.FlingPower), math.random(-_G.FlingPower, _G.FlingPower))
-                    end
-                end
-            end
-        else
-            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") and LocalPlayer.Character.Humanoid:GetState() == Enum.HumanoidStateType.Physics then LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.GettingUp) end
-        end
-    end)
-end)
+RunService.Heartbeat:Connect(function() pcall(function() local char = LocalPlayer.Character; if char and char:FindFirstChild("Humanoid") then local hum = char.Humanoid; if _G.WsEnabled then hum.WalkSpeed = _G.WsValue elseif _G.AntiSlow and hum.WalkSpeed < 16 then hum.WalkSpeed = 16 end; if _G.JpEnabled then hum.JumpPower = _G.JpValue end end end) end)
 
 local GodModeSec = BypassTab:Section({ Title = "God Mode & Heal", Icon = "heart", Opened = true, Box = true })
 _G.DesyncGodMode = false
@@ -190,38 +121,27 @@ GodModeSec:Toggle({ Title = "God Mode (Desync)", Value = false, Callback = funct
         if not v then
             local cp = Workspace:FindFirstChild("PuriumCamPart"); if cp then cp:Destroy() end
             if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then Camera.CameraSubject = LocalPlayer.Character.Humanoid end
-            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                local hrp = LocalPlayer.Character.HumanoidRootPart
-                if hrp.Position.Y > 20000 then hrp.CFrame = hrp.CFrame - Vector3.new(0, 50000, 0) end
-            end
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then local hrp = LocalPlayer.Character.HumanoidRootPart; if hrp.Position.Y > 20000 then hrp.CFrame = hrp.CFrame - Vector3.new(0, 50000, 0) end end
         end
     end)
 end})
 
-local function getFakeCamPart()
-    local cp = Workspace:FindFirstChild("PuriumCamPart")
-    if not cp then cp = Instance.new("Part"); cp.Name = "PuriumCamPart"; cp.Transparency = 1; cp.CanCollide = false; cp.Anchored = true; cp.Massless = true; cp.Size = Vector3.new(1, 1, 1); cp.Parent = Workspace end
-    return cp
-end
-
+local function getFakeCamPart() local cp = Workspace:FindFirstChild("PuriumCamPart"); if not cp then cp = Instance.new("Part"); cp.Name = "PuriumCamPart"; cp.Transparency = 1; cp.CanCollide = false; cp.Anchored = true; cp.Massless = true; cp.Size = Vector3.new(1, 1, 1); cp.Parent = Workspace end; return cp end
 RunService.Heartbeat:Connect(function() pcall(function() if _G.DesyncGodMode and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then local hrp = LocalPlayer.Character.HumanoidRootPart; if tick() - _G.LastAttackTime > 0.2 then if hrp.Position.Y < 20000 then local vel, rot = hrp.AssemblyLinearVelocity, hrp.AssemblyAngularVelocity; hrp.CFrame = hrp.CFrame + Vector3.new(0, 50000, 0); hrp.AssemblyLinearVelocity = vel; hrp.AssemblyAngularVelocity = rot end else if hrp.Position.Y > 20000 then local vel, rot = hrp.AssemblyLinearVelocity, hrp.AssemblyAngularVelocity; hrp.CFrame = hrp.CFrame - Vector3.new(0, 50000, 0); hrp.AssemblyLinearVelocity = vel; hrp.AssemblyAngularVelocity = rot end end end end) end)
 RunService.RenderStepped:Connect(function() pcall(function() if _G.DesyncGodMode and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then local hrp = LocalPlayer.Character.HumanoidRootPart; if hrp.Position.Y > 20000 then local vel, rot = hrp.AssemblyLinearVelocity, hrp.AssemblyAngularVelocity; hrp.CFrame = hrp.CFrame - Vector3.new(0, 50000, 0); hrp.AssemblyLinearVelocity = vel; hrp.AssemblyAngularVelocity = rot end; local cp = getFakeCamPart(); cp.CFrame = hrp.CFrame; Camera.CameraSubject = cp end end) end)
 
 _G.GodModeEnabled = false; _G.HealthValue = 5000
 GodModeSec:Toggle({ Title = "Auto Heal (Custom HP Bypass)", Value = false, Callback = function(v) _G.GodModeEnabled = v end})
 GodModeSec:Slider({ Title = "Health Amount", Value = {Min = 100, Max = 100000, Default = 5000}, Callback = function(v) _G.HealthValue = v end})
-
-RunService.Heartbeat:Connect(function()
-    if _G.GodModeEnabled then pcall(function() local char = LocalPlayer.Character; if char and char:FindFirstChild("Humanoid") then local hum = char.Humanoid; if hum.MaxHealth < _G.HealthValue then hum.MaxHealth = _G.HealthValue end; if hum.Health < _G.HealthValue then hum.Health = _G.HealthValue end end; local function healCustom(parentObj) if not parentObj then return end; for _, v in pairs(parentObj:GetDescendants()) do if v:IsA("ValueBase") or v:IsA("NumberValue") or v:IsA("IntValue") then local n = string.lower(v.Name); if n == "health" or n == "hp" or n == "currenthealth" or n == "maxhealth" or n == "maxhp" then if type(v.Value) == "number" and v.Value < _G.HealthValue then v.Value = _G.HealthValue end end end end end; healCustom(LocalPlayer.Character); healCustom(LocalPlayer) end) end
-end)
+RunService.Heartbeat:Connect(function() if _G.GodModeEnabled then pcall(function() local char = LocalPlayer.Character; if char and char:FindFirstChild("Humanoid") then local hum = char.Humanoid; if hum.MaxHealth < _G.HealthValue then hum.MaxHealth = _G.HealthValue end; if hum.Health < _G.HealthValue then hum.Health = _G.HealthValue end end; local function healCustom(parentObj) if not parentObj then return end; for _, v in pairs(parentObj:GetDescendants()) do if v:IsA("ValueBase") or v:IsA("NumberValue") or v:IsA("IntValue") then local n = string.lower(v.Name); if n == "health" or n == "hp" or n == "currenthealth" or n == "maxhealth" or n == "maxhp" then if type(v.Value) == "number" and v.Value < _G.HealthValue then v.Value = _G.HealthValue end end end end end; healCustom(LocalPlayer.Character); healCustom(LocalPlayer) end) end end)
 
 local CombatSec = CombatTab:Section({ Title = "Weapon Control", Icon = "crosshair", Opened = true, Box = true })
 
 -- =====================================
--- FAST SLASH (SAFE 0.2s)
+-- COMBO LOCK & FAST SLASH (Ý TƯỞNG CỦA BẠN)
 -- =====================================
 local moddedTools = {}
-CombatSec:Toggle({ Title = "Fast Slash (Safe 0.2s)", Desc = "Chém nhanh an toàn (5 nhát/giây) tránh bị Kick/Lỗi", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "M1 Combo Lock + Fast Slash", Desc = "Khóa chuỗi đánh ở chiêu nhanh nhất (M1) và ép tốc 0.2s để khỏi kẹt", Value = false, Callback = function(v) 
     _G.FastSlash = v 
     if not v then moddedTools = {} end 
 end})
@@ -238,10 +158,23 @@ RunService.Heartbeat:Connect(function()
                         if v:IsA("ModuleScript") then
                             local success, stats = pcall(require, v)
                             if success and type(stats) == "table" then
+                                -- TẨY NÃO GÓI TIN LOCAL
+                                if stats.attackOrder then
+                                    stats.attackOrder = {"1", "1", "1", "1"} -- KHÓA M1
+                                end
+                                
                                 for realStat, val in pairs(stats) do
                                     local lowerStat = string.lower(realStat)
                                     if lowerStat == "attacktime" or lowerStat == "swingtime" or lowerStat == "windup" then
                                         if type(val) == "number" then stats[realStat] = 0.2 end
+                                    end
+                                end
+                                
+                                if stats.attackCycle then
+                                    for k, cycle in pairs(stats.attackCycle) do
+                                        if type(cycle) == "table" and cycle.attackTime then
+                                            cycle.attackTime = 0.2
+                                        end
                                     end
                                 end
                             end
@@ -260,7 +193,6 @@ local KillSec = CombatTab:Section({ Title = "Kill Functions", Icon = "skull", Op
 
 _G.AttackDelay = 0
 KillSec:Slider({ Title = "Attack Delay (Seconds)", Value = {Min = 0, Max = 10, Default = 0}, Callback = function(v) _G.AttackDelay = v end})
-
 _G.HitsPerPacket = 50 
 KillSec:Slider({ Title = "Hits Per Seconds", Desc = "Multiplier (50-150)", Value = {Min = 1, Max = 1000, Default = 50}, Callback = function(v) _G.HitsPerPacket = v end})
 
@@ -307,110 +239,22 @@ end
 _G.KillAll = false
 KillSec:Toggle({ Title = "Kill All Players (Perfect Nuke)", Value = false, Callback = function(v) 
     _G.KillAll = v 
-    if v then
-        task.spawn(function()
-            while _G.KillAll do
-                pcall(function()
-                    local fullArray = {}
-                    local Char = LocalPlayer.Character
-                    if Char and Char:FindFirstChild("HumanoidRootPart") then
-                        for _, p in ipairs(Players:GetPlayers()) do
-                            if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                                local hum = p.Character:FindFirstChild("Humanoid")
-                                if hum and hum.Health > 0 then
-                                    local data = BuildHitData(p.Character)
-                                    for _, hit in ipairs(data) do table.insert(fullArray, hit) end
-                                end
-                            end
-                        end
-                        if #fullArray > 0 then FireCombatRequest(fullArray) end
-                    end
-                end)
-                if _G.AttackDelay > 0 then task.wait(_G.AttackDelay) else task.wait(0.1) end
-            end
-        end)
-    end
+    if v then task.spawn(function() while _G.KillAll do pcall(function() local fullArray = {}; local Char = LocalPlayer.Character; if Char and Char:FindFirstChild("HumanoidRootPart") then for _, p in ipairs(Players:GetPlayers()) do if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then local hum = p.Character:FindFirstChild("Humanoid"); if hum and hum.Health > 0 then local data = BuildHitData(p.Character); for _, hit in ipairs(data) do table.insert(fullArray, hit) end end end end; if #fullArray > 0 then FireCombatRequest(fullArray) end end end); if _G.AttackDelay > 0 then task.wait(_G.AttackDelay) else task.wait(0.1) end end end) end
 end})
 
-_G.AutoHit = false
-_G.HitRange = 15
+_G.AutoHit = false; _G.HitRange = 15
 KillSec:Toggle({ Title = "Auto Hit By Distance", Value = false, Callback = function(v) _G.AutoHit = v end})
 KillSec:Slider({ Title = "Auto Hit Range", Value = {Min = 5, Max = 1000, Default = 15}, Callback = function(v) _G.HitRange = v end})
-
-task.spawn(function()
-    while true do
-        task.wait()
-        if _G.AutoHit and not _G.KillAll then
-            pcall(function()
-                local Char = LocalPlayer.Character
-                if Char and Char:FindFirstChild("HumanoidRootPart") then
-                    local target = getNearestTarget()
-                    if target and target:FindFirstChild("HumanoidRootPart") then
-                        local myPos = (_G.DesyncGodMode and _G.LastSafeCFrame) and _G.LastSafeCFrame.Position or Char.HumanoidRootPart.Position
-                        local dist = (target.HumanoidRootPart.Position - myPos).Magnitude
-                        if dist <= _G.HitRange then 
-                            local data = BuildHitData(target)
-                            if #data > 0 then FireCombatRequest(data) end
-                        end
-                    end
-                end
-            end)
-            task.wait(math.max(_G.AttackDelay, 0.03))
-        end
-    end
-end)
+task.spawn(function() while true do task.wait() if _G.AutoHit and not _G.KillAll then pcall(function() local Char = LocalPlayer.Character; if Char and Char:FindFirstChild("HumanoidRootPart") then local target = getNearestTarget(); if target and target:FindFirstChild("HumanoidRootPart") then local myPos = (_G.DesyncGodMode and _G.LastSafeCFrame) and _G.LastSafeCFrame.Position or Char.HumanoidRootPart.Position; local dist = (target.HumanoidRootPart.Position - myPos).Magnitude; if dist <= _G.HitRange then local data = BuildHitData(target); if #data > 0 then FireCombatRequest(data) end end end end end); task.wait(math.max(_G.AttackDelay, 0.03)) end end end)
 
 local VisSec = VisTab:Section({ Title = "ESP Configurations", Icon = "eye", Opened = true, Box = true })
 _G.ESP_Box, _G.ESP_Name, _G.ESP_Chams = false, false, false
 VisSec:Toggle({ Title = "Enable 2D Box", Value = false, Callback = function(v) _G.ESP_Box = v end})
 VisSec:Toggle({ Title = "Enable Names & Distance", Value = false, Callback = function(v) _G.ESP_Name = v end})
 VisSec:Toggle({ Title = "Enable Chams (Highlight)", Value = false, Callback = function(v) _G.ESP_Chams = v end})
-
 local espElements = {}
 local function cleanEsp(player) if espElements[player] then pcall(function() espElements[player].Name:Remove(); espElements[player].Box:Remove(); espElements[player].Highlight:Destroy() end); espElements[player] = nil end end
-
-RunService.RenderStepped:Connect(function()
-    pcall(function()
-        local activePlayers = {}
-        if _G.ESP_Box or _G.ESP_Name or _G.ESP_Chams then
-            for _, player in ipairs(Players:GetPlayers()) do
-                if player ~= LocalPlayer then
-                    activePlayers[player] = true
-                    local char = player.Character
-                    local hrp = char and char:FindFirstChild("HumanoidRootPart")
-                    local hum = char and char:FindFirstChild("Humanoid")
-                    local head = char and char:FindFirstChild("Head")
-                    if char and hrp and hum and head and hum.Health > 0 then
-                        if not espElements[player] then
-                            local d = { Name = Drawing.new("Text"), Box = Drawing.new("Square"), Highlight = Instance.new("Highlight") }
-                            d.Name.Size = 16; d.Name.Center = true; d.Name.Outline = true; d.Name.Font = 2
-                            d.Box.Thickness = 1; d.Box.Filled = false
-                            d.Highlight.FillTransparency = 0.5; d.Highlight.OutlineTransparency = 0; d.Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop; d.Highlight.Parent = char
-                            espElements[player] = d
-                        end
-                        local d = espElements[player]
-                        local rootPos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
-                        if onScreen then
-                            local headPos = Camera:WorldToViewportPoint(head.Position + Vector3.new(0, 0.5, 0))
-                            local legPos = Camera:WorldToViewportPoint(hrp.Position - Vector3.new(0, 3, 0))
-                            local boxHeight = math.abs(headPos.Y - legPos.Y)
-                            local boxWidth = boxHeight * 0.6
-                            local boxPos = Vector2.new(rootPos.X - boxWidth / 2, headPos.Y)
-                            local dist = (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")) and (LocalPlayer.Character.HumanoidRootPart.Position - hrp.Position).Magnitude or 0
-                            local teamColor = player.TeamColor and player.TeamColor.Color or Color3.fromRGB(255, 50, 50)
-                            d.Box.Size = Vector2.new(boxWidth, boxHeight); d.Box.Position = boxPos; d.Box.Color = teamColor; d.Box.Visible = _G.ESP_Box
-                            d.Name.Color = teamColor; d.Name.Text = player.Name .. " ["..math.floor(dist).."m]"; d.Name.Position = Vector2.new(rootPos.X, headPos.Y - 20); d.Name.Visible = _G.ESP_Name
-                            d.Highlight.FillColor = teamColor; d.Highlight.Parent = char; d.Highlight.Enabled = _G.ESP_Chams
-                        else 
-                            d.Name.Visible = false; d.Box.Visible = false; d.Highlight.Enabled = false
-                        end
-                    else cleanEsp(player) end
-                end
-            end
-        end
-        for player, _ in pairs(espElements) do if not activePlayers[player] then cleanEsp(player) end end
-    end)
-end)
+RunService.RenderStepped:Connect(function() pcall(function() local activePlayers = {}; if _G.ESP_Box or _G.ESP_Name or _G.ESP_Chams then for _, player in ipairs(Players:GetPlayers()) do if player ~= LocalPlayer then activePlayers[player] = true; local char = player.Character; local hrp = char and char:FindFirstChild("HumanoidRootPart"); local hum = char and char:FindFirstChild("Humanoid"); local head = char and char:FindFirstChild("Head"); if char and hrp and hum and head and hum.Health > 0 then if not espElements[player] then local d = { Name = Drawing.new("Text"), Box = Drawing.new("Square"), Highlight = Instance.new("Highlight") }; d.Name.Size = 16; d.Name.Center = true; d.Name.Outline = true; d.Name.Font = 2; d.Box.Thickness = 1; d.Box.Filled = false; d.Highlight.FillTransparency = 0.5; d.Highlight.OutlineTransparency = 0; d.Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop; d.Highlight.Parent = char; espElements[player] = d end; local d = espElements[player]; local rootPos, onScreen = Camera:WorldToViewportPoint(hrp.Position); if onScreen then local headPos = Camera:WorldToViewportPoint(head.Position + Vector3.new(0, 0.5, 0)); local legPos = Camera:WorldToViewportPoint(hrp.Position - Vector3.new(0, 3, 0)); local boxHeight = math.abs(headPos.Y - legPos.Y); local boxWidth = boxHeight * 0.6; local boxPos = Vector2.new(rootPos.X - boxWidth / 2, headPos.Y); local dist = (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")) and (LocalPlayer.Character.HumanoidRootPart.Position - hrp.Position).Magnitude or 0; local teamColor = player.TeamColor and player.TeamColor.Color or Color3.fromRGB(255, 50, 50); d.Box.Size = Vector2.new(boxWidth, boxHeight); d.Box.Position = boxPos; d.Box.Color = teamColor; d.Box.Visible = _G.ESP_Box; d.Name.Color = teamColor; d.Name.Text = player.Name .. " ["..math.floor(dist).."m]"; d.Name.Position = Vector2.new(rootPos.X, headPos.Y - 20); d.Name.Visible = _G.ESP_Name; d.Highlight.FillColor = teamColor; d.Highlight.Parent = char; d.Highlight.Enabled = _G.ESP_Chams else d.Name.Visible = false; d.Box.Visible = false; d.Highlight.Enabled = false end else cleanEsp(player) end end end end; for player, _ in pairs(espElements) do if not activePlayers[player] then cleanEsp(player) end end end) end)
 
 local PlayerSec = PlayerTab:Section({ Title = "Server Players", Icon = "users", Opened = true, Box = true })
 local playerNames = {}
@@ -438,10 +282,8 @@ local function setAutoLoad(name) pcall(function() if writefile then writefile("A
 
 if #savedConfigs == 0 then table.insert(savedConfigs, "Configs") end
 local ConfigInput = ConfigSection:Input({ Title = "Config Name", Value = configName, Callback = function(value) configName = value or "Configs" end })
-local AutoLoadToggle
+local AutoLoadToggle = ConfigSection:Toggle({ Title = "Auto-Load Config", Value = (getAutoLoad() == configName), Callback = function(Value) if Value then setAutoLoad(configName) else setAutoLoad("none") end end })
 local ConfigDropdown = ConfigSection:Dropdown({ Title = "Choose Saved Config", Values = savedConfigs, Value = configName, AllowNone = false, Callback = function(value) configName = value or "Configs"; ConfigInput:Set(configName); if AutoLoadToggle then AutoLoadToggle:Set(getAutoLoad() == configName) end end })
-
-AutoLoadToggle = ConfigSection:Toggle({ Title = "Auto-Load Config", Value = (getAutoLoad() == configName), Callback = function(Value) if Value then setAutoLoad(configName) else setAutoLoad("none") end end })
 ConfigSection:Button({ Title = "Save Config", Icon = "check", Callback = function() configFile = ConfigManager:CreateConfig(configName); if configFile:Save() then local newList = ConfigManager:AllConfigs(); if #newList == 0 then table.insert(newList, "Configs") end; ConfigDropdown:Refresh(newList); WindUI:Notify({ Title = "Save Config", Content = "Saved: " .. configName, Duration = 3 }) end end })
 ConfigSection:Button({ Title = "Load Config", Icon = "refresh-cw", Callback = function() configFile = ConfigManager:CreateConfig(configName); if configFile:Load() then WindUI:Notify({ Title = "Load Config", Content = "Loaded: " .. configName, Duration = 3 }) end end })
 
@@ -457,9 +299,6 @@ task.spawn(function()
     task.wait(0.5)
     pcall(function() Window:Minimize() end)
     pcall(function() Window:Toggle() end)
-    WindUI:Notify({ Title = "UI Minimized", Content = "Click open UI button to reopen.", Duration = 5 })
 end)
 
 ThemeSection:Keybind({ Title = "Keybind", Value = "G", Callback = function(v) Window:SetToggleKey(Enum.KeyCode[v]) end })
-
-print("Successfully loaded all assets! Purium on Top!")

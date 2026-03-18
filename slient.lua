@@ -636,24 +636,24 @@ end})
 
 CombatSec:Divider()
 
+_G.KillMultiplier = 20
+CombatSec:Slider({ Title = "Kill Multiplier (Stat Farm)", Desc = "Số Kill ảo nhận được khi hạ 1 mục tiêu (Tối ưu: 20-50)", Value = {Min = 1, Max = 100, Default = 20}, Callback = function(v) _G.KillMultiplier = v end})
+
+CombatSec:Divider()
+
 local function getNearestTarget()
     local nearest = nil
     local minDist = math.huge
     local char = LocalPlayer.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") then return nil end
-    
     local myPos = (_G.DesyncGodMode and _G.LastSafeCFrame) and _G.LastSafeCFrame.Position or char.HumanoidRootPart.Position
-    
     for _, p in ipairs(Players:GetPlayers()) do
         if p ~= LocalPlayer and p.Character then
             local hrp = p.Character:FindFirstChild("HumanoidRootPart")
             local hum = p.Character:FindFirstChild("Humanoid")
             if hrp and hum and hum.Health > 0 then
                 local dist = (hrp.Position - myPos).Magnitude
-                if dist < minDist then
-                    minDist = dist
-                    nearest = p.Character
-                end
+                if dist < minDist then minDist = dist; nearest = p.Character end
             end
         end
     end
@@ -665,94 +665,83 @@ _G.HitsPerPacket = 50 -- Mặc định nhồi 50 nhát chém vào 1 gói tin
 CombatSec:Slider({ 
     Title = "Hits Per Seconds", 
     Desc = "Stack How Many Slash In A Second( Recommend 50-150 )", 
-    Value = {Min = 1, Max = 800, Default = 50}, 
+    Value = {Min = 1, Max = 1000, Default = 50}, 
     Callback = function(v) 
         _G.HitsPerPacket = v 
     end
 })
 
-local function FireExtremeNuke()
+CombatSec:Divider()
+
+local function BuildHitData(TargetChar)
+    local myHrp = LocalPlayer.Character.HumanoidRootPart
+    local tHrp = TargetChar.HumanoidRootPart
+    local dist = (tHrp.Position - myHrp.Position).Magnitude
+    local dir = (tHrp.Position - myHrp.Position).Unit
+    if dist == 0 then dir = Vector3.new(0, 0, 1) end
+    
+    local targetArray = {}
+    -- Chạy vòng lặp nhồi sát thương theo số lượng bạn chọn trên UI
+    for i = 1, _G.HitsPerPacket do
+        table.insert(targetArray, {
+            knockback = 0, isClosestEnemy = true, 
+            origin = myHrp.Position, enemyModel = TargetChar, 
+            distance = dist, direction = dir 
+        })
+    end
+    return targetArray
+end
+
+local function FireCombatRequest(targetArray)
     local Char = LocalPlayer.Character
     if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
-    
     local MyTool = Char:FindFirstChildOfClass("Tool") or LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
     if not MyTool then return end
-    
-    local myHrp = Char.HumanoidRootPart
-    local targetArray = {}
-    local hasTargets = false
 
-    for _, p in ipairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-            local hum = p.Character:FindFirstChild("Humanoid")
-            local tHrp = p.Character.HumanoidRootPart
-            
-            if hum and hum.Health > 0 then
-                hasTargets = true
-                local dist = (tHrp.Position - myHrp.Position).Magnitude
-                local dir = (tHrp.Position - myHrp.Position).Unit
-                if dist == 0 then dir = Vector3.new(0, 0, 1) end
+    _G.LastAttackTime = tick()
+    local isSlow = not _G.AntiSlow
+    local slowMul = _G.AntiSlow and 1 or 0.2
+    local slowTim = _G.AntiSlow and 0 or 1.5
 
-                table.insert(targetArray, {
-                    knockback = 0,
-                    isClosestEnemy = true, 
-                    origin = myHrp.Position, -- Vị trí CHUẨN của bạn
-                    enemyModel = p.Character, 
-                    distance = dist,
-                    direction = dir 
-                })
-            end
-        end
-    end
-    
-    if hasTargets then
-        local isSlow = not _G.AntiSlow
-        local slowMul = _G.AntiSlow and 1 or 0.2
-        local slowTim = _G.AntiSlow and 0 or 1.5
-        
-        local Args = {
-            "AttemptWeaponHit",
-            {
-                attackCycleData = {knockbackMul=0,slowMult=slowMul,attackTime=0,lungeMul=0,slowTime=slowTim},
-                knockback = 0, shouldLock = true, shouldLunge = false,
-                hitboxOffset = Vector3.new(0, 0, -1.5), isCritical = true, shouldSlow = isSlow,
-                attackCooldown = 0, damage = 9e9, lungeKnockback = 0, cycleIndex = 1,
-                slowMult = slowMul, 
-                
-                hitboxSize = Vector3.new(9e9, 9e9, 9e9), 
-                weaponDefinition = { 
-                    attackCycle = { 
-                        ["1"] = {
-                            knockbackMul=0, slowMult=slowMul, attackTime=0, lungeMul=0, slowTime=slowTim,
-                            hitboxSizeAdd = Vector3.new(9e9, 9e9, 9e9) -- Bù thêm Hitbox vô cực
-                        } 
-                    }, 
-                    attackOrder = {"1", "2", "3", "4"} 
-                },
-                tool = MyTool, slowTime = slowTim
+    local Args = {
+        "AttemptWeaponHit",
+        {
+            attackCycleData = {knockbackMul=0,slowMult=slowMul,attackTime=0,lungeMul=0,slowTime=slowTim},
+            knockback = 0, shouldLock = true, shouldLunge = false,
+            hitboxOffset = Vector3.new(0, 0, 0), isCritical = true, shouldSlow = isSlow,
+            attackCooldown = 0, damage = 9e9, lungeKnockback = 0, cycleIndex = 1,
+            slowMult = slowMul, 
+            hitboxSize = Vector3.new(9e9, 9e9, 9e9), 
+            weaponDefinition = { 
+                attackCycle = { ["1"] = {knockbackMul=0, slowMult=slowMul, attackTime=0, lungeMul=0, slowTime=slowTim, hitboxSizeAdd = Vector3.new(9e9, 9e9, 9e9)} }, 
+                attackOrder = {"1", "1", "1", "1"} 
             },
-            targetArray
-        }
-        
-        task.spawn(function()
-            pcall(function() GameRemote:InvokeServer(unpack(Args)) end)
-        end)
-    end
+            tool = MyTool, slowTime = slowTim
+        },
+        targetArray
+    }
+    task.spawn(function() pcall(function() GameRemote:InvokeServer(unpack(Args)) end) end)
 end
 
 _G.KillAll = false
-CombatSec:Toggle({ Title = "Kill All Players", Desc = "It Now Is Actually Better Than Ever.", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Kill All Players", Desc = "Well I Must Touch Some Grass.", Value = false, Callback = function(v) 
     _G.KillAll = v 
     if v then
         task.spawn(function()
             while _G.KillAll do
-                FireExtremeNuke()
-                
-                if _G.AttackDelay > 0 then
-                    task.wait(_G.AttackDelay)
-                else
-                    task.wait()
+                local fullArray = {}
+                for _, p in ipairs(Players:GetPlayers()) do
+                    if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                        local hum = p.Character:FindFirstChild("Humanoid")
+                        if hum and hum.Health > 0 then
+                            local data = BuildHitData(p.Character)
+                            for _, hit in ipairs(data) do table.insert(fullArray, hit) end
+                        end
+                    end
                 end
+                
+                if #fullArray > 0 then FireCombatRequest(fullArray) end
+                if _G.AttackDelay > 0 then task.wait(_G.AttackDelay) else task.wait() end
             end
         end)
     end

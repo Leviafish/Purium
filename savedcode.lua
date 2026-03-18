@@ -1,20 +1,19 @@
 print("Loading script maybe take a few seconds to complete")
-game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Purium On Top!", Text = "Loading Script...", Duration = 3 })
+game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Purium On Top!", Text = "Loading Ultimate Spam...", Duration = 3 })
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 local Window = WindUI:CreateWindow({
-    Title = "Purium Hub [By @hlck49] | Silent Assassin |", Icon = "door-open", Author = "Version : 3.2 Combo-Lock", Folder = "Purium_Silent-Assassin",
+    Title = "Purium Hub [By @hlck49] | Silent Assassin |", Icon = "door-open", Author = "Version : 4.2 Unlimited Spam", Folder = "Purium_Silent-Assassin",
     Size = UDim2.fromOffset(580, 460), MinSize = Vector2.new(560, 350), MaxSize = Vector2.new(850, 560),
     Transparent = true, Theme = "Dark", Resizable = true, SideBarWidth = 200, BackgroundImageTransparency = 0.42,
     HideSearchBar = true, ScrollBarEnabled = false,
-    User = { Enabled = true, Anonymous = true, Callback = function() print("Purium") end }
+    User = { Enabled = true, Anonymous = true, Callback = function() print("Purium Premium") end }
 })
 
 Window:EditOpenButton({ Title = "Open UI", Icon = "monitor", CornerRadius = UDim.new(0,16), StrokeThickness = 2, Color = ColorSequence.new(Color3.fromHex("1e1e1e"), Color3.fromHex("000000")), OnlyMobile = false, Enabled = true, Draggable = true })
-
 WindUI:AddTheme({ Name = "Amethyst", Accent = Color3.fromHex("7E2CB6"), Dialog = Color3.fromHex("321E46"), Outline = Color3.fromHex("552D78"), Text = Color3.fromHex("F0F0F0"), Placeholder = Color3.fromHex("AAAAAA"), Background = Color3.fromHex("280C47"), Button = Color3.fromHex("733796"), Icon = Color3.fromHex("AAAAAA"), Toggle = Color3.fromHex("7E2CB6"), Slider = Color3.fromHex("7E2CB6"), Checkbox = Color3.fromHex("7E2CB6"), PanelBackground = Color3.fromHex("FFFFFF"), PanelBackgroundTransparency = 0.95, SliderIcon = Color3.fromHex("AAAAAA"), Primary = Color3.fromHex("7E2CB6"), LabelBackground = Color3.fromHex("000000"), LabelBackgroundTransparency = 0.85 })
 WindUI:AddTheme({ Name = "AMOLED", Accent = Color3.fromHex("FFFFFF"), Dialog = Color3.fromHex("000000"), Outline = Color3.fromHex("141414"), Text = Color3.fromHex("FFFFFF"), Placeholder = Color3.fromHex("AAAAAA"), Background = Color3.fromHex("000000"), Button = Color3.fromHex("0F0F0F"), Icon = Color3.fromHex("FFFFFF"), Toggle = Color3.fromHex("FFFFFF"), Slider = Color3.fromHex("FFFFFF"), Checkbox = Color3.fromHex("FFFFFF"), PanelBackground = Color3.fromHex("000000"), PanelBackgroundTransparency = 0, SliderIcon = Color3.fromHex("AAAAAA"), Primary = Color3.fromHex("FFFFFF"), LabelBackground = Color3.fromHex("000000"), LabelBackgroundTransparency = 0 })
 
-Window:Tag({ Title = "v3.2 (M1 Combo Lock)", Icon = "lock", Color = Color3.fromRGB(255, 150, 50), Radius = 10 })
+Window:Tag({ Title = "v4.2 (Zero-Lag Spam Nuke)", Icon = "flame", Color = Color3.fromRGB(255, 100, 0), Radius = 10 })
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -24,13 +23,9 @@ local Camera = Workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 local GameRemote = ReplicatedStorage:WaitForChild("Events"):WaitForChild("GameRemoteFunction")
 
-_G.AntiSlow = false
-_G.FastSlash = false
-_G.AntiKickEnabled = false
-_G.InfiniteInvis = false
-_G.LastAttackTime = 0
+_G.AntiSlow = false; _G.FastSlash = false; _G.AntiKickEnabled = false; _G.InfiniteInvis = false; _G.LastAttackTime = 0
 
--- LÕI HOOK BẢO VỆ CHUNG & LỌC GÓI TIN M1
+-- LÕI HOOK BẢO VỆ
 local oldNamecall
 oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
     local method = getnamecallmethod()
@@ -42,17 +37,12 @@ oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
             
             if (_G.AntiSlow or _G.FastSlash) and args[1] == "AttemptWeaponHit" and type(args[2]) == "table" then
                 if _G.AntiSlow then args[2].shouldSlow = false end
-                
-                -- ÉP LUÔN LUÔN BÁO CÁO SERVER RẰNG MÌNH ĐANG DÙNG CHIÊU 1
                 args[2].cycleIndex = 1 
-                
                 if args[2].attackCycleData then 
                     if _G.AntiSlow then args[2].attackCycleData.slowMult = 1; args[2].attackCycleData.slowTime = 0 end
                     if _G.FastSlash then args[2].attackCycleData.attackTime = 0.2 end
                 end
-                
                 if args[2].weaponDefinition then
-                    -- Tẩy não gói tin báo cáo
                     args[2].weaponDefinition.attackOrder = {"1", "1", "1", "1"}
                     if args[2].weaponDefinition.attackCycle then
                         for k, v in pairs(args[2].weaponDefinition.attackCycle) do 
@@ -76,23 +66,9 @@ local VisTab = Window:Tab({ Title = "Visuals (ESP)", Icon = "eye" })
 local PlayerTab = Window:Tab({ Title = "Players List", Icon = "users" })
 local SettingTab = Window:Tab({ Title = "Settings", Icon = "settings" })
 
-local function getNearestTarget()
-    local nearest, minDist = nil, math.huge
-    local char = LocalPlayer.Character
-    if not char or not char:FindFirstChild("HumanoidRootPart") then return nil end
-    for _, p in ipairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and p.Character then
-            local hrp = p.Character:FindFirstChild("HumanoidRootPart")
-            local hum = p.Character:FindFirstChild("Humanoid")
-            if hrp and hum and hum.Health > 0 then
-                local dist = (hrp.Position - char.HumanoidRootPart.Position).Magnitude
-                if dist < minDist then minDist = dist; nearest = p.Character end
-            end
-        end
-    end
-    return nearest
-end
-
+-- =====================================
+-- TAB AUTO GACHA
+-- =====================================
 local GachaSec = GachaTab:Section({ Title = "Auto Open Chests", Icon = "shopping-cart", Opened = true, Box = true })
 _G.AutoGacha = false; _G.GachaType = "Basic" 
 GachaSec:Dropdown({ Title = "Select Chest Type", Values = {"Basic", "Divine"}, Value = "Basic", Callback = function(v) _G.GachaType = v end})
@@ -101,17 +77,17 @@ GachaSec:Toggle({ Title = "Enable Auto Gacha", Value = false, Callback = functio
     if v then task.spawn(function() while _G.AutoGacha do pcall(function() GameRemote:InvokeServer("AttemptRollGachaChest", _G.GachaType) end); task.wait(1.5) end end) end
 end})
 
+-- =====================================
+-- TAB MOVEMENT
+-- =====================================
 local MoveSec = MoveTab:Section({ Title = "Character Modification", Icon = "user", Opened = true, Box = true })
 local noclipLoop
 MoveSec:Toggle({ Title = "Enable Noclip", Value = false, Callback = function(v) if v then noclipLoop = RunService.Stepped:Connect(function() pcall(function() if LocalPlayer.Character then for _, p in pairs(LocalPlayer.Character:GetDescendants()) do if p:IsA("BasePart") and p.CanCollide then p.CanCollide = false end end end end) end) else if noclipLoop then noclipLoop:Disconnect(); noclipLoop = nil end end end})
 _G.WsEnabled, _G.WsValue = false, 25
 MoveSec:Toggle({ Title = "Enable WalkSpeed", Value = false, Callback = function(v) _G.WsEnabled = v; if not v then pcall(function() LocalPlayer.Character.Humanoid.WalkSpeed = 16 end) end end})
 MoveSec:Slider({ Title = "Speed Amount", Value = {Min = 16, Max = 1500, Default = 25}, Callback = function(v) _G.WsValue = v end})
-_G.JpEnabled, _G.JpValue = false, 100
-MoveSec:Toggle({ Title = "Enable JumpPower", Value = false, Callback = function(v) _G.JpEnabled = v; if not v then pcall(function() LocalPlayer.Character.Humanoid.JumpPower = 50 end) end end})
-MoveSec:Slider({ Title = "Jump Amount", Value = {Min = 50, Max = 1500, Default = 100}, Callback = function(v) _G.JpValue = v end})
 
-RunService.Heartbeat:Connect(function() pcall(function() local char = LocalPlayer.Character; if char and char:FindFirstChild("Humanoid") then local hum = char.Humanoid; if _G.WsEnabled then hum.WalkSpeed = _G.WsValue elseif _G.AntiSlow and hum.WalkSpeed < 16 then hum.WalkSpeed = 16 end; if _G.JpEnabled then hum.JumpPower = _G.JpValue end end end) end)
+RunService.Heartbeat:Connect(function() pcall(function() local char = LocalPlayer.Character; if char and char:FindFirstChild("Humanoid") then local hum = char.Humanoid; if _G.WsEnabled then hum.WalkSpeed = _G.WsValue elseif _G.AntiSlow and hum.WalkSpeed < 16 then hum.WalkSpeed = 16 end end end) end)
 
 local GodModeSec = BypassTab:Section({ Title = "God Mode & Heal", Icon = "heart", Opened = true, Box = true })
 _G.DesyncGodMode = false
@@ -130,122 +106,91 @@ local function getFakeCamPart() local cp = Workspace:FindFirstChild("PuriumCamPa
 RunService.Heartbeat:Connect(function() pcall(function() if _G.DesyncGodMode and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then local hrp = LocalPlayer.Character.HumanoidRootPart; if tick() - _G.LastAttackTime > 0.2 then if hrp.Position.Y < 20000 then local vel, rot = hrp.AssemblyLinearVelocity, hrp.AssemblyAngularVelocity; hrp.CFrame = hrp.CFrame + Vector3.new(0, 50000, 0); hrp.AssemblyLinearVelocity = vel; hrp.AssemblyAngularVelocity = rot end else if hrp.Position.Y > 20000 then local vel, rot = hrp.AssemblyLinearVelocity, hrp.AssemblyAngularVelocity; hrp.CFrame = hrp.CFrame - Vector3.new(0, 50000, 0); hrp.AssemblyLinearVelocity = vel; hrp.AssemblyAngularVelocity = rot end end end end) end)
 RunService.RenderStepped:Connect(function() pcall(function() if _G.DesyncGodMode and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then local hrp = LocalPlayer.Character.HumanoidRootPart; if hrp.Position.Y > 20000 then local vel, rot = hrp.AssemblyLinearVelocity, hrp.AssemblyAngularVelocity; hrp.CFrame = hrp.CFrame - Vector3.new(0, 50000, 0); hrp.AssemblyLinearVelocity = vel; hrp.AssemblyAngularVelocity = rot end; local cp = getFakeCamPart(); cp.CFrame = hrp.CFrame; Camera.CameraSubject = cp end end) end)
 
-_G.GodModeEnabled = false; _G.HealthValue = 5000
-GodModeSec:Toggle({ Title = "Auto Heal (Custom HP Bypass)", Value = false, Callback = function(v) _G.GodModeEnabled = v end})
-GodModeSec:Slider({ Title = "Health Amount", Value = {Min = 100, Max = 100000, Default = 5000}, Callback = function(v) _G.HealthValue = v end})
-RunService.Heartbeat:Connect(function() if _G.GodModeEnabled then pcall(function() local char = LocalPlayer.Character; if char and char:FindFirstChild("Humanoid") then local hum = char.Humanoid; if hum.MaxHealth < _G.HealthValue then hum.MaxHealth = _G.HealthValue end; if hum.Health < _G.HealthValue then hum.Health = _G.HealthValue end end; local function healCustom(parentObj) if not parentObj then return end; for _, v in pairs(parentObj:GetDescendants()) do if v:IsA("ValueBase") or v:IsA("NumberValue") or v:IsA("IntValue") then local n = string.lower(v.Name); if n == "health" or n == "hp" or n == "currenthealth" or n == "maxhealth" or n == "maxhp" then if type(v.Value) == "number" and v.Value < _G.HealthValue then v.Value = _G.HealthValue end end end end end; healCustom(LocalPlayer.Character); healCustom(LocalPlayer) end) end end)
-
 local CombatSec = CombatTab:Section({ Title = "Weapon Control", Icon = "crosshair", Opened = true, Box = true })
-
--- =====================================
--- COMBO LOCK & FAST SLASH (Ý TƯỞNG CỦA BẠN)
--- =====================================
-local moddedTools = {}
-CombatSec:Toggle({ Title = "M1 Combo Lock + Fast Slash", Desc = "Khóa chuỗi đánh ở chiêu nhanh nhất (M1) và ép tốc 0.2s để khỏi kẹt", Value = false, Callback = function(v) 
-    _G.FastSlash = v 
-    if not v then moddedTools = {} end 
-end})
-
+CombatSec:Toggle({ Title = "M1 Combo Lock + Fast Slash", Desc = "Khóa combo và tăng tốc chém tay an toàn", Value = false, Callback = function(v) _G.FastSlash = v end})
 RunService.Heartbeat:Connect(function()
-    if _G.FastSlash then
-        pcall(function()
-            local char = LocalPlayer.Character
-            if char then
-                local tool = char:FindFirstChildOfClass("Tool")
-                if tool and not moddedTools[tool] then
-                    moddedTools[tool] = true
-                    for _, v in pairs(tool:GetDescendants()) do
-                        if v:IsA("ModuleScript") then
-                            local success, stats = pcall(require, v)
-                            if success and type(stats) == "table" then
-                                -- TẨY NÃO GÓI TIN LOCAL
-                                if stats.attackOrder then
-                                    stats.attackOrder = {"1", "1", "1", "1"} -- KHÓA M1
-                                end
+    if _G.FastSlash then pcall(function() local char = LocalPlayer.Character; if char then for _, v in ipairs(char:GetDescendants()) do if v:IsA("ModuleScript") then if string.find(string.lower(v.Name), "weapon") or string.find(string.lower(v.Name), "attack") or string.find(string.lower(v.Name), "stats") then local success, stats = pcall(require, v); if success and type(stats) == "table" and stats.attackCycle then if stats.attackOrder then stats.attackOrder = {"1", "1", "1", "1"} end; for realStat, val in pairs(stats) do local lowerStat = string.lower(realStat); if lowerStat == "attacktime" or lowerStat == "swingtime" or lowerStat == "windup" then if type(val) == "number" and val ~= 0.2 then stats[realStat] = 0.2 end end end; for k, cycle in pairs(stats.attackCycle) do if type(cycle) == "table" and cycle.attackTime and cycle.attackTime ~= 0.2 then cycle.attackTime = 0.2 end end end end end end end end) end
+end)
+CombatSec:Toggle({ Title = "Enable Anti-Slow", Value = false, Callback = function(v) _G.AntiSlow = v end})
+CombatSec:Toggle({ Title = "Ghost Mode (Infinite Invis)", Value = false, Callback = function(v) _G.InfiniteInvis = v end})
+
+local KillSec = CombatTab:Section({ Title = "Ultimate Spam Nuke", Icon = "skull", Opened = true, Box = true })
+
+-- =====================================
+-- BỘ MÁY NUKE SPAM KHÔNG GIỚI HẠN (ZERO-LAG)
+-- =====================================
+local NukeWeaponDef = { 
+    attackCycle = { ["1"] = {knockbackMul=0, slowMult=1, attackTime=0, lungeMul=0, slowTime=0, hitboxSizeAdd = Vector3.new(9e9, 9e9, 9e9)} }, 
+    attackOrder = {"1"} 
+}
+local NukeCycleData = {knockbackMul=0, slowMult=1, attackTime=0, lungeMul=0, slowTime=0}
+
+_G.SpamAmount = 50
+_G.AttackDelay = 0
+KillSec:Slider({ Title = "Spam Amount per Packet", Desc = "Bao nhiêu nhát chém gửi đi trong 1 gói tin? (Kéo tẹt ga không lag)", Value = {Min = 1, Max = 200, Default = 50}, Callback = function(v) _G.SpamAmount = v end})
+KillSec:Slider({ Title = "Attack Delay (Seconds)", Desc = "0 = Spam liên tục không nghỉ", Value = {Min = 0, Max = 5, Default = 0}, Callback = function(v) _G.AttackDelay = v end})
+
+_G.KillAll = false
+KillSec:Toggle({ Title = "Enable Ultimate Nuke (Kill All)", Desc = "Spam hàng ngàn nhát chém nhưng không tụt FPS", Value = false, Callback = function(v) 
+    _G.KillAll = v 
+    if v then
+        task.spawn(function()
+            while _G.KillAll do
+                pcall(function()
+                    local Char = LocalPlayer.Character
+                    local MyTool = Char and Char:FindFirstChildOfClass("Tool") or LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
+                    if not Char or not MyTool or not Char:FindFirstChild("HumanoidRootPart") then return end
+                    
+                    local myPos = (_G.DesyncGodMode and _G.LastSafeCFrame) and _G.LastSafeCFrame.Position or Char.HumanoidRootPart.Position
+                    local hitArray = {}
+                    
+                    for _, p in ipairs(Players:GetPlayers()) do
+                        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                            local hum = p.Character:FindFirstChild("Humanoid")
+                            if hum and hum.Health > 0 then
+                                local tPos = p.Character.HumanoidRootPart.Position
+                                local dist = (tPos - myPos).Magnitude
+                                local dir = dist > 0 and (tPos - myPos).Unit or Vector3.new(0,0,1)
                                 
-                                for realStat, val in pairs(stats) do
-                                    local lowerStat = string.lower(realStat)
-                                    if lowerStat == "attacktime" or lowerStat == "swingtime" or lowerStat == "windup" then
-                                        if type(val) == "number" then stats[realStat] = 0.2 end
-                                    end
-                                end
+                                -- TẠO ĐÚNG 1 BẢNG DUY NHẤT LÀM MẪU (CHỐNG LAG BỘ NHỚ)
+                                local singleHit = {
+                                    knockback = 0, isClosestEnemy = true, origin = myPos, 
+                                    enemyModel = p.Character, distance = dist, direction = dir
+                                }
                                 
-                                if stats.attackCycle then
-                                    for k, cycle in pairs(stats.attackCycle) do
-                                        if type(cycle) == "table" and cycle.attackTime then
-                                            cycle.attackTime = 0.2
-                                        end
-                                    end
+                                -- NHÂN BẢN THAM CHIẾU (COPY REFERENCE) - ZERO MEMORY COST!
+                                for i = 1, _G.SpamAmount do
+                                    table.insert(hitArray, singleHit)
                                 end
                             end
                         end
                     end
-                end
+                    
+                    if #hitArray > 0 then
+                        _G.LastAttackTime = tick()
+                        local Args = {
+                            "AttemptWeaponHit",
+                            {
+                                attackCycleData = NukeCycleData, knockback = 0, shouldLock = true, shouldLunge = false, 
+                                hitboxOffset = Vector3.new(0, 0, 0), isCritical = true, shouldSlow = false, 
+                                attackCooldown = 0, damage = 9e9, lungeKnockback = 0, cycleIndex = 1, slowMult = 1, 
+                                hitboxSize = Vector3.new(9e9, 9e9, 9e9), weaponDefinition = NukeWeaponDef, 
+                                tool = MyTool, slowTime = 0
+                            },
+                            hitArray
+                        }
+                        -- Dùng task.spawn để gói tin bắn đi lập tức mà không chặn vòng lặp
+                        task.spawn(function() GameRemote:InvokeServer(table.unpack(Args)) end)
+                    end
+                end)
+                
+                -- Thời gian nghỉ giữa các lần Spam. Nếu AttackDelay = 0, nó sẽ chạy mượt theo FPS game.
+                if _G.AttackDelay > 0 then task.wait(_G.AttackDelay) else task.wait() end
             end
         end)
     end
-end)
-
-CombatSec:Toggle({ Title = "Enable Anti-Slow", Desc = "Chém không bị chậm tốc độ chạy", Value = false, Callback = function(v) _G.AntiSlow = v end})
-CombatSec:Toggle({ Title = "Ghost Mode (Infinite Invis)", Desc = "Chặn server lột tàng hình", Value = false, Callback = function(v) _G.InfiniteInvis = v end})
-
-local KillSec = CombatTab:Section({ Title = "Kill Functions", Icon = "skull", Opened = true, Box = true })
-
-_G.AttackDelay = 0
-KillSec:Slider({ Title = "Attack Delay (Seconds)", Value = {Min = 0, Max = 10, Default = 0}, Callback = function(v) _G.AttackDelay = v end})
-_G.HitsPerPacket = 50 
-KillSec:Slider({ Title = "Hits Per Seconds", Desc = "Multiplier (50-150)", Value = {Min = 1, Max = 1000, Default = 50}, Callback = function(v) _G.HitsPerPacket = v end})
-
-local function BuildHitData(TargetChar)
-    local Char = LocalPlayer.Character
-    if not Char or not Char:FindFirstChild("HumanoidRootPart") then return {} end
-    if not TargetChar or not TargetChar:FindFirstChild("HumanoidRootPart") then return {} end
-    local myHrp = Char.HumanoidRootPart
-    local tHrp = TargetChar.HumanoidRootPart
-    local dist = (tHrp.Position - myHrp.Position).Magnitude
-    local dir = (tHrp.Position - myHrp.Position).Unit
-    if dist == 0 then dir = Vector3.new(0, 0, 1) end
-    local targetArray = {}
-    for i = 1, _G.HitsPerPacket do table.insert(targetArray, {knockback = 0, isClosestEnemy = true, origin = myHrp.Position, enemyModel = TargetChar, distance = dist, direction = dir}) end
-    return targetArray
-end
-
-local function FireCombatRequest(targetArray)
-    if #targetArray == 0 then return end
-    local Char = LocalPlayer.Character
-    local MyTool = Char:FindFirstChildOfClass("Tool") or LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
-    if not MyTool then return end
-
-    _G.LastAttackTime = tick()
-    local isSlow = not _G.AntiSlow
-    local slowMul = _G.AntiSlow and 1 or 0.2
-    local slowTim = _G.AntiSlow and 0 or 1.5
-
-    local Args = {
-        "AttemptWeaponHit",
-        {
-            attackCycleData = {knockbackMul=0,slowMult=slowMul,attackTime=0,lungeMul=0,slowTime=slowTim},
-            knockback = 0, shouldLock = true, shouldLunge = false, hitboxOffset = Vector3.new(0, 0, 0), isCritical = true, shouldSlow = isSlow,
-            attackCooldown = 0, damage = 9e9, lungeKnockback = 0, cycleIndex = 1, slowMult = slowMul, 
-            hitboxSize = Vector3.new(9e9, 9e9, 9e9), 
-            weaponDefinition = { attackCycle = { ["1"] = {knockbackMul=0, slowMult=slowMul, attackTime=0, lungeMul=0, slowTime=slowTim, hitboxSizeAdd = Vector3.new(9e9, 9e9, 9e9)} }, attackOrder = {"1", "1", "1", "1"} },
-            tool = MyTool, slowTime = slowTim
-        },
-        targetArray
-    }
-    task.spawn(function() pcall(function() GameRemote:InvokeServer(table.unpack(Args)) end) end)
-end
-
-_G.KillAll = false
-KillSec:Toggle({ Title = "Kill All Players (Perfect Nuke)", Value = false, Callback = function(v) 
-    _G.KillAll = v 
-    if v then task.spawn(function() while _G.KillAll do pcall(function() local fullArray = {}; local Char = LocalPlayer.Character; if Char and Char:FindFirstChild("HumanoidRootPart") then for _, p in ipairs(Players:GetPlayers()) do if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then local hum = p.Character:FindFirstChild("Humanoid"); if hum and hum.Health > 0 then local data = BuildHitData(p.Character); for _, hit in ipairs(data) do table.insert(fullArray, hit) end end end end; if #fullArray > 0 then FireCombatRequest(fullArray) end end end); if _G.AttackDelay > 0 then task.wait(_G.AttackDelay) else task.wait(0.1) end end end) end
 end})
 
-_G.AutoHit = false; _G.HitRange = 15
-KillSec:Toggle({ Title = "Auto Hit By Distance", Value = false, Callback = function(v) _G.AutoHit = v end})
-KillSec:Slider({ Title = "Auto Hit Range", Value = {Min = 5, Max = 1000, Default = 15}, Callback = function(v) _G.HitRange = v end})
-task.spawn(function() while true do task.wait() if _G.AutoHit and not _G.KillAll then pcall(function() local Char = LocalPlayer.Character; if Char and Char:FindFirstChild("HumanoidRootPart") then local target = getNearestTarget(); if target and target:FindFirstChild("HumanoidRootPart") then local myPos = (_G.DesyncGodMode and _G.LastSafeCFrame) and _G.LastSafeCFrame.Position or Char.HumanoidRootPart.Position; local dist = (target.HumanoidRootPart.Position - myPos).Magnitude; if dist <= _G.HitRange then local data = BuildHitData(target); if #data > 0 then FireCombatRequest(data) end end end end end); task.wait(math.max(_G.AttackDelay, 0.03)) end end end)
 
 local VisSec = VisTab:Section({ Title = "ESP Configurations", Icon = "eye", Opened = true, Box = true })
 _G.ESP_Box, _G.ESP_Name, _G.ESP_Chams = false, false, false

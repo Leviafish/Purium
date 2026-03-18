@@ -2,7 +2,7 @@ print("Loading script maybe take a few seconds to complete")
 game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Purium On Top!", Text = "Loading Script...", Duration = 3 })
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 local Window = WindUI:CreateWindow({
-    Title = "Purium Hub [By @hlck49] | Silent Assassin |", Icon = "door-open", Author = "Version : 2.8.0 Fast-CD", Folder = "Purium_Silent-Assassin",
+    Title = "Purium Hub [By @hlck49] | Silent Assassin |", Icon = "door-open", Author = "Version : 3.0 Instant-Strike", Folder = "Purium_Silent-Assassin",
     Size = UDim2.fromOffset(580, 460), MinSize = Vector2.new(560, 350), MaxSize = Vector2.new(850, 560),
     Transparent = true, Theme = "Dark", Resizable = true, SideBarWidth = 200, BackgroundImageTransparency = 0.42,
     HideSearchBar = true, ScrollBarEnabled = false,
@@ -14,7 +14,7 @@ Window:EditOpenButton({ Title = "Open UI", Icon = "monitor", CornerRadius = UDim
 WindUI:AddTheme({ Name = "Amethyst", Accent = Color3.fromHex("7E2CB6"), Dialog = Color3.fromHex("321E46"), Outline = Color3.fromHex("552D78"), Text = Color3.fromHex("F0F0F0"), Placeholder = Color3.fromHex("AAAAAA"), Background = Color3.fromHex("280C47"), Button = Color3.fromHex("733796"), Icon = Color3.fromHex("AAAAAA"), Toggle = Color3.fromHex("7E2CB6"), Slider = Color3.fromHex("7E2CB6"), Checkbox = Color3.fromHex("7E2CB6"), PanelBackground = Color3.fromHex("FFFFFF"), PanelBackgroundTransparency = 0.95, SliderIcon = Color3.fromHex("AAAAAA"), Primary = Color3.fromHex("7E2CB6"), LabelBackground = Color3.fromHex("000000"), LabelBackgroundTransparency = 0.85 })
 WindUI:AddTheme({ Name = "AMOLED", Accent = Color3.fromHex("FFFFFF"), Dialog = Color3.fromHex("000000"), Outline = Color3.fromHex("141414"), Text = Color3.fromHex("FFFFFF"), Placeholder = Color3.fromHex("AAAAAA"), Background = Color3.fromHex("000000"), Button = Color3.fromHex("0F0F0F"), Icon = Color3.fromHex("FFFFFF"), Toggle = Color3.fromHex("FFFFFF"), Slider = Color3.fromHex("FFFFFF"), Checkbox = Color3.fromHex("FFFFFF"), PanelBackground = Color3.fromHex("000000"), PanelBackgroundTransparency = 0, SliderIcon = Color3.fromHex("AAAAAA"), Primary = Color3.fromHex("FFFFFF"), LabelBackground = Color3.fromHex("000000"), LabelBackgroundTransparency = 0 })
 
-Window:Tag({ Title = "v2.8.0 (Fast CD & Gacha Fix)", Icon = "zap", Color = Color3.fromRGB(0, 255, 150), Radius = 10 })
+Window:Tag({ Title = "v3.0 (Instant Strike - Max Speed)", Icon = "zap", Color = Color3.fromRGB(0, 255, 255), Radius = 10 })
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -25,37 +25,34 @@ local LocalPlayer = Players.LocalPlayer
 local GameRemote = ReplicatedStorage:WaitForChild("Events"):WaitForChild("GameRemoteFunction")
 
 _G.AntiSlow = false
-_G.FastCooldown = false
+_G.InstantStrike = false
 _G.AntiKickEnabled = false
 _G.InfiniteInvis = false
 _G.LastAttackTime = 0
 
--- LÕI HOOK (CHỈNH SỬA TỐC ĐỘ CHÉM THÀNH 0.05 THAY VÌ 0)
+-- LÕI HOOK BẢO VỆ CHUNG
 local oldNamecall
 oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
     local method = getnamecallmethod()
     local args = {...}
-    
     if not checkcaller() then
         if _G.AntiKickEnabled and (method == "Kick" or method == "kick") then return nil end
-        
         if method == "InvokeServer" or method == "FireServer" then
-            -- Chặn lột tàng hình
             if _G.InfiniteInvis and args[1] == "SendMessage" and args[2] == "WeaponSwung" then return nil end
             
-            -- Ép tốc độ chém và chống chậm
-            if (_G.FastCooldown or _G.AntiSlow) and args[1] == "AttemptWeaponHit" and type(args[2]) == "table" then
+            -- Can thiệp gói tin gửi lên máy chủ khi chém
+            if (_G.AntiSlow or _G.InstantStrike) and args[1] == "AttemptWeaponHit" and type(args[2]) == "table" then
                 if _G.AntiSlow then args[2].shouldSlow = false end
                 
                 if args[2].attackCycleData then 
                     if _G.AntiSlow then args[2].attackCycleData.slowMult = 1; args[2].attackCycleData.slowTime = 0 end
-                    if _G.FastCooldown then args[2].attackCycleData.attackTime = 0.05 end
+                    if _G.InstantStrike then args[2].attackCycleData.attackTime = 0.01 end
                 end
                 
                 if args[2].weaponDefinition and args[2].weaponDefinition.attackCycle then
                     for k, v in pairs(args[2].weaponDefinition.attackCycle) do 
                         if _G.AntiSlow then v.slowMult = 1; v.slowTime = 0 end
-                        if _G.FastCooldown then v.attackTime = 0.05 end
+                        if _G.InstantStrike then v.attackTime = 0.01 end
                     end
                 end
                 return oldNamecall(self, table.unpack(args))
@@ -91,29 +88,20 @@ local function getNearestTarget()
 end
 
 -- =====================================
--- TAB AUTO GACHA (CHUẨN 100%)
+-- TAB AUTO GACHA
 -- =====================================
 local GachaSec = GachaTab:Section({ Title = "Auto Open Chests", Icon = "shopping-cart", Opened = true, Box = true })
 _G.AutoGacha = false
 _G.GachaType = "Basic" 
 
-GachaSec:Dropdown({ Title = "Select Chest Type", Values = {"Basic", "Divine"}, Value = "Basic", Callback = function(v) 
-    _G.GachaType = v 
-end})
-
+GachaSec:Dropdown({ Title = "Select Chest Type", Values = {"Basic", "Divine"}, Value = "Basic", Callback = function(v) _G.GachaType = v end})
 GachaSec:Toggle({ Title = "Enable Auto Gacha", Desc = "Tự động mua rương liên tục", Value = false, Callback = function(v) 
     _G.AutoGacha = v 
     if v then
         task.spawn(function()
             while _G.AutoGacha do
-                pcall(function()
-                    local args = {
-                        [1] = "AttemptRollGachaChest",
-                        [2] = _G.GachaType
-                    }
-                    GameRemote:InvokeServer(table.unpack(args))
-                end)
-                task.wait(1.5) -- Trễ 1.5 giây để tránh sập game hoặc bị kick
+                pcall(function() GameRemote:InvokeServer("AttemptRollGachaChest", _G.GachaType) end)
+                task.wait(1.5)
             end
         end)
     end
@@ -124,7 +112,7 @@ end})
 -- =====================================
 local MoveSec = MoveTab:Section({ Title = "Character Modification", Icon = "user", Opened = true, Box = true })
 local noclipLoop
-MoveSec:Toggle({ Title = "Enable Noclip", Desc = "Walk through walls", Value = false, Callback = function(v)
+MoveSec:Toggle({ Title = "Enable Noclip", Value = false, Callback = function(v)
     if v then noclipLoop = RunService.Stepped:Connect(function() pcall(function() if LocalPlayer.Character then for _, p in pairs(LocalPlayer.Character:GetDescendants()) do if p:IsA("BasePart") and p.CanCollide then p.CanCollide = false end end end end) end) else if noclipLoop then noclipLoop:Disconnect(); noclipLoop = nil end end
 end})
 
@@ -230,14 +218,18 @@ end)
 
 local CombatSec = CombatTab:Section({ Title = "Weapon Control", Icon = "crosshair", Opened = true, Box = true })
 
+-- =====================================
+-- ÉP NHÁT CHÉM HOÀN THÀNH TỨC THÌ (INSTANT STRIKE)
+-- Ý tưởng vĩ đại: Không đụng vào Cooldown/Debounce để chống kẹt, chỉ ép AttackTime và tăng tốc độ hoạt ảnh!
+-- =====================================
 local moddedTools = {}
-CombatSec:Toggle({ Title = "Fast Cooldown (Chém siêu tốc)", Desc = "Giảm độ trễ vũ khí xuống 0.05s thay vì 0 để chống kẹt", Value = false, Callback = function(v) 
-    _G.FastCooldown = v 
+CombatSec:Toggle({ Title = "Instant Strike (Chém tốc độ ánh sáng)", Desc = "Ép thời gian thực hiện nhát chém về 0.01 giây, không đụng cooldown để chống kẹt", Value = false, Callback = function(v) 
+    _G.InstantStrike = v 
     if not v then moddedTools = {} end 
 end})
 
 RunService.Heartbeat:Connect(function()
-    if _G.FastCooldown then
+    if _G.InstantStrike then
         pcall(function()
             local char = LocalPlayer.Character
             if char then
@@ -250,17 +242,14 @@ RunService.Heartbeat:Connect(function()
                             if success and type(stats) == "table" then
                                 for realStat, val in pairs(stats) do
                                     local lowerStat = string.lower(realStat)
-                                    if lowerStat:match("cooldown") or lowerStat:match("delay") or lowerStat:match("rate") or lowerStat:match("debounce") or lowerStat:match("time") then
-                                        if type(val) == "number" and val > 0 then
-                                            stats[realStat] = 0.05 -- Gán mức 0.05 để tránh lỗi Divide by zero
-                                        end
+                                    -- BỎ QUA Cooldown/Debounce, CHỈ ÉP AttackTime/SwingTime
+                                    if lowerStat == "attacktime" or lowerStat == "swingtime" or lowerStat == "windup" then
+                                        if type(val) == "number" then stats[realStat] = 0.01 end
+                                    -- Ép tốc độ hoạt ảnh lên cực nhanh
+                                    elseif lowerStat == "animationspeed" or lowerStat == "swingspeed" or lowerStat == "speed" then
+                                        if type(val) == "number" then stats[realStat] = 100 end
                                     end
                                 end
-                            end
-                        elseif v:IsA("NumberValue") or v:IsA("IntValue") then
-                            local lowerName = string.lower(v.Name)
-                            if lowerName:match("cooldown") or lowerName:match("delay") or lowerName:match("rate") or lowerName:match("debounce") then
-                                v.Value = 0.05
                             end
                         end
                     end

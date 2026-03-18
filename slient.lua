@@ -2,7 +2,7 @@ print("Loading script maybe take a few seconds to complete")
 game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Purium On Top!", Text = "Loading Script...", Duration = 3 })
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 local Window = WindUI:CreateWindow({
-    Title = "Purium Hub [By @hlck49] | Silent Assassin |", Icon = "door-open", Author = "Version : 1.7.1", Folder = "Purium_Silent-Assassin",
+    Title = "Purium Hub [By @hlck49] | Silent Assassin |", Icon = "door-open", Author = "Version : 1.7.5", Folder = "Purium_Silent-Assassin",
     Size = UDim2.fromOffset(580, 460), MinSize = Vector2.new(560, 350), MaxSize = Vector2.new(850, 560),
     Transparent = true, Theme = "Dark", Resizable = true, SideBarWidth = 200, BackgroundImageTransparency = 0.42,
     HideSearchBar = true, ScrollBarEnabled = false,
@@ -28,7 +28,7 @@ WindUI:AddTheme({ Name = "Arctic", Accent = Color3.fromHex("40E0FF"), Dialog = C
 WindUI:AddTheme({ Name = "Cloud", Accent = Color3.fromHex("6DB0FF"), Dialog = Color3.fromHex("FFFFFF"), Outline = Color3.fromHex("C8DCF0"), Text = Color3.fromHex("1E1E1E"), Placeholder = Color3.fromHex("828282"), Background = Color3.fromHex("F0F8FF"), Button = Color3.fromHex("DCEBFA"), Icon = Color3.fromHex("1E1E1E"), Toggle = Color3.fromHex("6DB0FF"), Slider = Color3.fromHex("6DB0FF"), Checkbox = Color3.fromHex("6DB0FF"), PanelBackground = Color3.fromHex("FFFFFF"), PanelBackgroundTransparency = 0, SliderIcon = Color3.fromHex("828282"), Primary = Color3.fromHex("6DB0FF"), LabelBackground = Color3.fromHex("FFFFFF"), LabelBackgroundTransparency = 0 })
 WindUI:AddTheme({ Name = "Sapphire", Accent = Color3.fromHex("0F52BA"), Dialog = Color3.fromHex("0F192D"), Outline = Color3.fromHex("1E2D50"), Text = Color3.fromHex("E6E6E6"), Placeholder = Color3.fromHex("8C8C8C"), Background = Color3.fromHex("0A0F1E"), Button = Color3.fromHex("14233C"), Icon = Color3.fromHex("E6E6E6"), Toggle = Color3.fromHex("0F52BA"), Slider = Color3.fromHex("0F52BA"), Checkbox = Color3.fromHex("0F52BA"), PanelBackground = Color3.fromHex("0F192D"), PanelBackgroundTransparency = 0.5, SliderIcon = Color3.fromHex("8C8C8C"), Primary = Color3.fromHex("0F52BA"), LabelBackground = Color3.fromHex("0F192D"), LabelBackgroundTransparency = 0 })
 
-Window:Tag({ Title = "v1.7.1 (Perfect Nuke)", Icon = "github", Color = Color3.fromRGB(48, 255, 106), Radius = 10 })
+Window:Tag({ Title = "v1.7.5 (Stable)", Icon = "shield-check", Color = Color3.fromRGB(48, 255, 106), Radius = 10 })
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -46,14 +46,12 @@ _G.LastAttackTime = 0
 local oldNamecall
 oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
     local method = getnamecallmethod()
-    local args = {...}
-
     if not checkcaller() then
         if _G.AntiKickEnabled and (method == "Kick" or method == "kick") then
-            return nil
+            return
         end
-        
         if _G.AntiSlow and (method == "FireServer" or method == "InvokeServer") then
+            local args = {...}
             if args[1] == "AttemptWeaponHit" and type(args[2]) == "table" then
                 args[2].shouldSlow = false
                 args[2].slowMult = 1
@@ -68,11 +66,9 @@ oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
                         v.slowTime = 0
                     end
                 end
-                return oldNamecall(self, unpack(args))
             end
         end
     end
-
     return oldNamecall(self, ...)
 end)
 
@@ -437,7 +433,7 @@ local function FireCombatRequest(targetArray)
 end
 
 _G.KillAll = false
-CombatSec:Toggle({ Title = "Kill All Players", Desc = "", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Kill All Players (Perfect Nuke)", Desc = "Unlimited range, gather virtual kills", Value = false, Callback = function(v) 
     _G.KillAll = v 
     if v then
         task.spawn(function()
@@ -793,11 +789,12 @@ local configFile = ConfigManager:CreateConfig(configName)
 local savedConfigs = ConfigManager:AllConfigs()
 
 local function getAutoLoad()
-    pcall(function()
+    local success, result = pcall(function()
         if isfile and isfile("AutoLoad.txt") then
             return readfile("AutoLoad.txt")
         end
     end)
+    if success and result then return result end
     return "none"
 end
 
@@ -877,7 +874,7 @@ task.spawn(function()
             WindUI:Notify({ Title = "Auto-Load Enabled", Content = "Loaded config: " .. configName, Duration = 3 })
         end)
     end
-    
+
 ThemeSection:Keybind({ Title = "Keybind", Desc = "Keybind to hide/open UI", Value = "G", Callback = function(v) Window:SetToggleKey(Enum.KeyCode[v]) end })
 
 print("Successfully loaded all assets! Purium on Top!")

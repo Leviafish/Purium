@@ -630,14 +630,21 @@ end})
 CombatSec:Divider()
 
 _G.AttackDelay = 0
-CombatSec:Slider({ Title = "Attack Delay (Seconds)", Desc = "Choose your kill speed ( for auto hit & kill all )", Value = {Min = 0, Max = 10, Default = 0}, Callback = function(v) 
+CombatSec:Slider({ Title = "Attack Delay (Seconds)", Desc = "Choose your kill speed", Value = {Min = 0, Max = 10, Default = 0}, Callback = function(v) 
     _G.AttackDelay = v 
 end})
 
 CombatSec:Divider()
 
-_G.KillMultiplier = 20
-CombatSec:Slider({ Title = "Kill Multiplier (Stat Farm)", Desc = "Số Kill ảo nhận được khi hạ 1 mục tiêu (Tối ưu: 20-50)", Value = {Min = 1, Max = 100, Default = 20}, Callback = function(v) _G.KillMultiplier = v end})
+_G.HitsPerPacket = 50 
+CombatSec:Slider({ 
+    Title = "Modification Hit ( For Kill All )", 
+    Desc = "Stack A lot of slash in one hit", 
+    Value = {Min = 1, Max = 1000, Default = 50}, 
+    Callback = function(v) 
+        _G.HitsPerPacket = v 
+    end
+})
 
 CombatSec:Divider()
 
@@ -660,28 +667,18 @@ local function getNearestTarget()
     return nearest
 end
 
-_G.HitsPerPacket = 50 -- Mặc định nhồi 50 nhát chém vào 1 gói tin
-
-CombatSec:Slider({ 
-    Title = "Hits Per Seconds", 
-    Desc = "Stack How Many Slash In A Second( Recommend 50-150 )", 
-    Value = {Min = 1, Max = 1000, Default = 50}, 
-    Callback = function(v) 
-        _G.HitsPerPacket = v 
-    end
-})
-
-CombatSec:Divider()
-
 local function BuildHitData(TargetChar)
-    local myHrp = LocalPlayer.Character.HumanoidRootPart
+    local Char = LocalPlayer.Character
+    -- Thêm chốt chặn an toàn: Tránh lỗi khi người chơi chết
+    if not Char or not Char:FindFirstChild("HumanoidRootPart") then return {} end
+    
+    local myHrp = Char.HumanoidRootPart
     local tHrp = TargetChar.HumanoidRootPart
     local dist = (tHrp.Position - myHrp.Position).Magnitude
     local dir = (tHrp.Position - myHrp.Position).Unit
     if dist == 0 then dir = Vector3.new(0, 0, 1) end
     
     local targetArray = {}
-    -- Chạy vòng lặp nhồi sát thương theo số lượng bạn chọn trên UI
     for i = 1, _G.HitsPerPacket do
         table.insert(targetArray, {
             knockback = 0, isClosestEnemy = true, 
@@ -724,99 +721,57 @@ local function FireCombatRequest(targetArray)
 end
 
 _G.KillAll = false
-CombatSec:Toggle({ Title = "Kill All Players", Desc = "Well I Must Touch Some Grass.", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Kill All Players", Desc = "I Must Touch Some Grass.", Value = false, Callback = function(v) 
     _G.KillAll = v 
     if v then
         task.spawn(function()
             while _G.KillAll do
-                local fullArray = {}
-                for _, p in ipairs(Players:GetPlayers()) do
-                    if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                        local hum = p.Character:FindFirstChild("Humanoid")
-                        if hum and hum.Health > 0 then
-                            local data = BuildHitData(p.Character)
-                            for _, hit in ipairs(data) do table.insert(fullArray, hit) end
+                pcall(function() -- Bọc pcall chống gãy vòng lặp khi chết
+                    local fullArray = {}
+                    local Char = LocalPlayer.Character
+                    if Char and Char:FindFirstChild("HumanoidRootPart") then
+                        for _, p in ipairs(Players:GetPlayers()) do
+                            if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                                local hum = p.Character:FindFirstChild("Humanoid")
+                                if hum and hum.Health > 0 then
+                                    local data = BuildHitData(p.Character)
+                                    for _, hit in ipairs(data) do table.insert(fullArray, hit) end
+                                end
+                            end
                         end
+                        if #fullArray > 0 then FireCombatRequest(fullArray) end
                     end
-                end
-                
-                if #fullArray > 0 then FireCombatRequest(fullArray) end
+                end)
                 if _G.AttackDelay > 0 then task.wait(_G.AttackDelay) else task.wait() end
             end
         end)
     end
 end})
 
-local function AttemptWeaponHit(TargetChar)
-    local Char = LocalPlayer.Character
-    if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
-    if not TargetChar or not TargetChar:FindFirstChild("HumanoidRootPart") then return end
-    
-    local MyTool = Char:FindFirstChildOfClass("Tool") or LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
-    if not MyTool then return end
-    
-    local isSlow = not _G.AntiSlow
-    local slowMul = _G.AntiSlow and 1 or 0.2
-    local slowTim = _G.AntiSlow and 0 or 1.5
-    local fakeOrigin = TargetChar.HumanoidRootPart.Position
-    local targetArray = {}
-    for i = 1, 10 do
-        table.insert(targetArray, {
-            knockback = 0,
-            isClosestEnemy = true, 
-            origin = fakeOrigin, 
-            enemyModel = TargetChar, 
-            distance = 0.1, 
-            direction = Vector3.new(0, -1, 0)
-        })
-    end
-    
-    local Args = {
-        "AttemptWeaponHit",
-        {
-            attackCycleData = {knockbackMul=0, slowMult=slowMul, attackTime=0, lungeMul=0, slowTime=slowTim},
-            knockback = 0, shouldLock = true, shouldLunge = false,
-            hitboxOffset = Vector3.new(0, 0, 0), isCritical = true, shouldSlow = isSlow,
-            attackCooldown = 0, damage = 9e9, lungeKnockback = 0, cycleIndex = 1,
-            slowMult = slowMul, hitboxSize = Vector3.new(2048, 2048, 2048),
-            weaponDefinition = { 
-                attackCycle = { ["1"] = {knockbackMul=0, slowMult=slowMul, attackTime=0, lungeMul=0, slowTime=slowTim} }, 
-                attackOrder = {"1", "2", "3", "4"} 
-            },
-            tool = MyTool, slowTime = slowTim
-        },
-        targetArray
-    }
-    
-    task.spawn(function()
-        pcall(function() GameRemote:InvokeServer(unpack(Args)) end)
-    end)
-end
-
 CombatSec:Divider()
 
 _G.AutoHit = false
 _G.HitRange = 15
-CombatSec:Toggle({ Title = "Auto Hit By Distance", Desc = "Automatically attack enemies in hit range you", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Auto Hit By Distance", Desc = "", Value = false, Callback = function(v) 
     _G.AutoHit = v 
 end})
-
-CombatSec:Slider({ Title = "Auto Hit Range", Value = {Min = 5, Max = 1000, Default = 15}, Callback = function(v) 
-    _G.HitRange = v 
-end})
+CombatSec:Slider({ Title = "Auto Hit Range", Value = {Min = 5, Max = 1000, Default = 15}, Callback = function(v) _G.HitRange = v end})
 
 task.spawn(function()
     while true do
         task.wait()
         if _G.AutoHit and not _G.KillAll then
             pcall(function()
-                if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                local Char = LocalPlayer.Character
+                if Char and Char:FindFirstChild("HumanoidRootPart") then
                     local target = getNearestTarget()
                     if target and target:FindFirstChild("HumanoidRootPart") then
-                        local myPos = (_G.DesyncGodMode and _G.LastSafeCFrame) and _G.LastSafeCFrame.Position or LocalPlayer.Character.HumanoidRootPart.Position
+                        local myPos = (_G.DesyncGodMode and _G.LastSafeCFrame) and _G.LastSafeCFrame.Position or Char.HumanoidRootPart.Position
                         local dist = (target.HumanoidRootPart.Position - myPos).Magnitude
                         if dist <= _G.HitRange then 
-                            task.spawn(AttemptWeaponHit, target)
+                            -- Đã cập nhật dùng hàm Hitbox Vô cực
+                            local data = BuildHitData(target)
+                            if #data > 0 then FireCombatRequest(data) end
                         end
                     end
                 end
@@ -829,7 +784,7 @@ end)
 CombatSec:Divider()
 
 _G.AutoFarm = false
-CombatSec:Toggle({ Title = "Auto Farm", Desc = "Teleport behind targets and eliminate them", Value = false, Callback = function(v) 
+CombatSec:Toggle({ Title = "Auto Farm", Desc = "Ts Is Useless Think, Use Kill All Instead of this", Value = false, Callback = function(v) 
     _G.AutoFarm = v 
 end})
 
@@ -838,10 +793,11 @@ task.spawn(function()
         task.wait()
         if _G.AutoFarm then
             pcall(function()
-                if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                local Char = LocalPlayer.Character
+                if Char and Char:FindFirstChild("HumanoidRootPart") then
                     local target = getNearestTarget()
                     if target and target:FindFirstChild("HumanoidRootPart") then
-                        local hrp = LocalPlayer.Character.HumanoidRootPart
+                        local hrp = Char.HumanoidRootPart
                         local tHrp = target.HumanoidRootPart
                         
                         if _G.DesyncGodMode and _G.LastSafeCFrame then
@@ -850,7 +806,9 @@ task.spawn(function()
                             hrp.CFrame = tHrp.CFrame * CFrame.new(0, 0, 3)
                         end
                         
-                        task.spawn(AttemptWeaponHit, target)
+                        -- Cập nhật dùng hàm Hitbox Vô cực
+                        local data = BuildHitData(target)
+                        if #data > 0 then FireCombatRequest(data) end
                         
                         if _G.DesyncGodMode and _G.LastSafeCFrame then
                             _G.LastSafeCFrame = tHrp.CFrame * CFrame.new(0, 25, 0)

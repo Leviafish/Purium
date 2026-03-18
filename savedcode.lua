@@ -2,23 +2,19 @@ print("Loading script maybe take a few seconds to complete")
 game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Purium On Top!", Text = "Loading Script...", Duration = 3 })
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 local Window = WindUI:CreateWindow({
-    Title = "Purium Hub [By @hlck49] | Silent Assassin |", Icon = "door-open", Author = "Version : 2.6.0 No-CD", Folder = "Purium_Silent-Assassin",
+    Title = "Purium Hub [By @hlck49] | Silent Assassin |", Icon = "door-open", Author = "Version : 2.7.0", Folder = "Purium_Silent-Assassin",
     Size = UDim2.fromOffset(580, 460), MinSize = Vector2.new(560, 350), MaxSize = Vector2.new(850, 560),
     Transparent = true, Theme = "Dark", Resizable = true, SideBarWidth = 200, BackgroundImageTransparency = 0.42,
     HideSearchBar = true, ScrollBarEnabled = false,
     User = { Enabled = true, Anonymous = true, Callback = function() print("Purium") end }
 })
 
-Window:EditOpenButton({
-    Title = "Open UI", Icon = "monitor", CornerRadius = UDim.new(0,16), StrokeThickness = 2,
-    Color = ColorSequence.new(Color3.fromHex("1e1e1e"), Color3.fromHex("000000")),
-    OnlyMobile = false, Enabled = true, Draggable = true,
-})
+Window:EditOpenButton({ Title = "Open UI", Icon = "monitor", CornerRadius = UDim.new(0,16), StrokeThickness = 2, Color = ColorSequence.new(Color3.fromHex("1e1e1e"), Color3.fromHex("000000")), OnlyMobile = false, Enabled = true, Draggable = true })
 
 WindUI:AddTheme({ Name = "Amethyst", Accent = Color3.fromHex("7E2CB6"), Dialog = Color3.fromHex("321E46"), Outline = Color3.fromHex("552D78"), Text = Color3.fromHex("F0F0F0"), Placeholder = Color3.fromHex("AAAAAA"), Background = Color3.fromHex("280C47"), Button = Color3.fromHex("733796"), Icon = Color3.fromHex("AAAAAA"), Toggle = Color3.fromHex("7E2CB6"), Slider = Color3.fromHex("7E2CB6"), Checkbox = Color3.fromHex("7E2CB6"), PanelBackground = Color3.fromHex("FFFFFF"), PanelBackgroundTransparency = 0.95, SliderIcon = Color3.fromHex("AAAAAA"), Primary = Color3.fromHex("7E2CB6"), LabelBackground = Color3.fromHex("000000"), LabelBackgroundTransparency = 0.85 })
 WindUI:AddTheme({ Name = "AMOLED", Accent = Color3.fromHex("FFFFFF"), Dialog = Color3.fromHex("000000"), Outline = Color3.fromHex("141414"), Text = Color3.fromHex("FFFFFF"), Placeholder = Color3.fromHex("AAAAAA"), Background = Color3.fromHex("000000"), Button = Color3.fromHex("0F0F0F"), Icon = Color3.fromHex("FFFFFF"), Toggle = Color3.fromHex("FFFFFF"), Slider = Color3.fromHex("FFFFFF"), Checkbox = Color3.fromHex("FFFFFF"), PanelBackground = Color3.fromHex("000000"), PanelBackgroundTransparency = 0, SliderIcon = Color3.fromHex("AAAAAA"), Primary = Color3.fromHex("FFFFFF"), LabelBackground = Color3.fromHex("000000"), LabelBackgroundTransparency = 0 })
 
-Window:Tag({ Title = "v2.6.0 (No-Cooldown)", Icon = "zap", Color = Color3.fromRGB(255, 255, 0), Radius = 10 })
+Window:Tag({ Title = "v2.7.0 (Auto Gacha & Split Code)", Icon = "box", Color = Color3.fromRGB(0, 255, 150), Radius = 10 })
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -29,9 +25,12 @@ local LocalPlayer = Players.LocalPlayer
 local GameRemote = ReplicatedStorage:WaitForChild("Events"):WaitForChild("GameRemoteFunction")
 
 _G.AntiSlow = false
+_G.NoCooldown = false
 _G.AntiKickEnabled = false
+_G.InfiniteInvis = false
 _G.LastAttackTime = 0
 
+-- LÕI HOOK TỐI THƯỢNG ĐÃ ĐƯỢC TÁCH (Xử lý chém tay NO-CD riêng biệt)
 local oldNamecall
 oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
     local method = getnamecallmethod()
@@ -43,19 +42,32 @@ oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
         end
         
         if method == "InvokeServer" or method == "FireServer" then
-            if _G.AntiSlow and args[1] == "AttemptWeaponHit" and type(args[2]) == "table" then
-                args[2].shouldSlow = false
-                args[2].slowMult = 1
-                args[2].slowTime = 0
+            -- Chặn lột tàng hình
+            if _G.InfiniteInvis and args[1] == "SendMessage" and args[2] == "WeaponSwung" then
+                return nil 
+            end
+            
+            -- CHỈNH SỬA NHÁT CHÉM TAY THÔNG THƯỜNG (NO CD + ANTI SLOW)
+            if (_G.NoCooldown or _G.AntiSlow) and args[1] == "AttemptWeaponHit" and type(args[2]) == "table" then
+                if _G.AntiSlow then args[2].shouldSlow = false end
+                
                 if args[2].attackCycleData then 
-                    args[2].attackCycleData.slowMult = 1 
-                    args[2].attackCycleData.slowTime = 0 
-                end
-                if args[2].weaponDefinition and args[2].weaponDefinition.attackCycle then
-                    for k, v in pairs(args[2].weaponDefinition.attackCycle) do 
-                        v.slowMult = 1; v.slowTime = 0
+                    if _G.AntiSlow then
+                        args[2].attackCycleData.slowMult = 1 
+                        args[2].attackCycleData.slowTime = 0 
+                    end
+                    if _G.NoCooldown then
+                        args[2].attackCycleData.attackTime = 0
                     end
                 end
+                
+                if args[2].weaponDefinition and args[2].weaponDefinition.attackCycle then
+                    for k, v in pairs(args[2].weaponDefinition.attackCycle) do 
+                        if _G.AntiSlow then v.slowMult = 1; v.slowTime = 0 end
+                        if _G.NoCooldown then v.attackTime = 0 end
+                    end
+                end
+                -- Giữ nguyên Hitbox gốc, chỉ sửa thời gian chém -> Gửi đi
                 return oldNamecall(self, table.unpack(args))
             end
         end
@@ -65,6 +77,7 @@ end)
 
 local BypassTab = Window:Tab({ Title = "Server Modification", Icon = "shield-alert" })
 local CombatTab = Window:Tab({ Title = "Combat & Farm", Icon = "swords" })
+local GachaTab = Window:Tab({ Title = "Auto Gacha", Icon = "box" })
 local MoveTab = Window:Tab({ Title = "Movement & Fling", Icon = "move" })
 local VisTab = Window:Tab({ Title = "Visuals (ESP)", Icon = "eye" })
 local PlayerTab = Window:Tab({ Title = "Players List", Icon = "users" })
@@ -87,22 +100,44 @@ local function getNearestTarget()
     return nearest
 end
 
+-- =====================================
+-- TAB AUTO GACHA MỚI
+-- =====================================
+local GachaSec = GachaTab:Section({ Title = "Auto Open Chests", Icon = "shopping-cart", Opened = true, Box = true })
+_G.AutoGacha = false
+_G.GachaType = "Basic" -- Mặc định là Basic (50 coins)
+
+GachaSec:Dropdown({ Title = "Select Chest Type", Values = {"Basic", "Divine"}, Value = "Basic", Callback = function(v) 
+    _G.GachaType = v 
+end})
+
+GachaSec:Toggle({ Title = "Enable Auto Gacha", Desc = "Tự động mua rương liên tục", Value = false, Callback = function(v) 
+    _G.AutoGacha = v 
+    if v then
+        task.spawn(function()
+            while _G.AutoGacha do
+                pcall(function()
+                    -- DỰ ĐOÁN LỆNH GACHA: Tùy game có thể là OpenChest, BuyCrate, v.v.
+                    -- Nếu không chạy, ta sẽ dùng máy nghe lén để đổi tên lệnh
+                    GameRemote:InvokeServer("OpenChest", _G.GachaType)
+                end)
+                task.wait(1.5) -- Đợi 1.5s mỗi lần mở để không bị kick vì spam
+            end
+        end)
+    end
+end})
+
+GachaSec:Button({ Title = "Click Nếu Auto Gacha Không Mua Được", Icon = "alert-circle", Callback = function()
+    WindUI:Notify({ Title = "Cách tìm Lệnh Gacha", Content = "1. Tắt Auto Gacha\n2. Mở F9 dán máy nghe lén\n3. Bấm mua rương bằng tay 1 lần\n4. Nhắn lệnh in ra ở F9 cho Dev để vá lại!", Duration = 8 })
+end})
+
+-- =====================================
+-- TAB MOVEMENT & FLING
+-- =====================================
 local MoveSec = MoveTab:Section({ Title = "Character Modification", Icon = "user", Opened = true, Box = true })
 local noclipLoop
 MoveSec:Toggle({ Title = "Enable Noclip", Desc = "Walk through walls", Value = false, Callback = function(v)
-    if v then 
-        noclipLoop = RunService.Stepped:Connect(function() 
-            pcall(function()
-                if LocalPlayer.Character then 
-                    for _, p in pairs(LocalPlayer.Character:GetDescendants()) do 
-                        if p:IsA("BasePart") and p.CanCollide then p.CanCollide = false end 
-                    end 
-                end 
-            end)
-        end) 
-    else 
-        if noclipLoop then noclipLoop:Disconnect(); noclipLoop = nil end 
-    end
+    if v then noclipLoop = RunService.Stepped:Connect(function() pcall(function() if LocalPlayer.Character then for _, p in pairs(LocalPlayer.Character:GetDescendants()) do if p:IsA("BasePart") and p.CanCollide then p.CanCollide = false end end end end) end) else if noclipLoop then noclipLoop:Disconnect(); noclipLoop = nil end end
 end})
 
 _G.WsEnabled, _G.WsValue = false, 25
@@ -126,7 +161,7 @@ end)
 
 local FlingSec = MoveTab:Section({ Title = "Physics Fling Exploits", Icon = "wind", Opened = true, Box = true })
 _G.AntiFling = false
-FlingSec:Toggle({ Title = "Anti Fling (God Collision)", Desc = "Chống bị hất văng", Value = false, Callback = function(v) _G.AntiFling = v end})
+FlingSec:Toggle({ Title = "Anti Fling (God Collision)", Value = false, Callback = function(v) _G.AntiFling = v end})
 _G.FlingMode = "Spin Fling"
 FlingSec:Dropdown({ Title = "Select Fling Mode", Values = {"Spin Fling", "Teleport & Fling", "Touch Fling"}, Value = "Spin Fling", Callback = function(v) _G.FlingMode = v end})
 _G.FlingTarget = ""
@@ -136,29 +171,10 @@ FlingSec:Slider({ Title = "Fling Power", Value = {Min = 1000, Max = 100000, Defa
 _G.FlingActive = false
 FlingSec:Toggle({ Title = "Enable Fling", Value = false, Callback = function(v) 
     _G.FlingActive = v 
-    if not v then
-        pcall(function()
-            local hrp = LocalPlayer.Character.HumanoidRootPart
-            hrp.AssemblyAngularVelocity = Vector3.new(0,0,0)
-            local bav = hrp:FindFirstChild("PuriumFlingBAV")
-            if bav then bav:Destroy() end
-        end)
-    end
+    if not v then pcall(function() local hrp = LocalPlayer.Character.HumanoidRootPart; hrp.AssemblyAngularVelocity = Vector3.new(0,0,0); local bav = hrp:FindFirstChild("PuriumFlingBAV"); if bav then bav:Destroy() end end) end
 end})
 
-RunService.Stepped:Connect(function()
-    pcall(function()
-        if _G.AntiFling and not _G.FlingActive and LocalPlayer.Character then
-            for _, p in ipairs(Players:GetPlayers()) do
-                if p ~= LocalPlayer and p.Character then
-                    for _, part in ipairs(p.Character:GetChildren()) do
-                        if part:IsA("BasePart") then part.CanCollide = false end
-                    end
-                end
-            end
-        end
-    end)
-end)
+RunService.Stepped:Connect(function() pcall(function() if _G.AntiFling and not _G.FlingActive and LocalPlayer.Character then for _, p in ipairs(Players:GetPlayers()) do if p ~= LocalPlayer and p.Character then for _, part in ipairs(p.Character:GetChildren()) do if part:IsA("BasePart") then part.CanCollide = false end end end end end end) end)
 
 RunService.Heartbeat:Connect(function()
     pcall(function()
@@ -168,23 +184,16 @@ RunService.Heartbeat:Connect(function()
 
             if _G.FlingMode == "Spin Fling" then
                 local bav = hrp:FindFirstChild("PuriumFlingBAV")
-                if not bav then
-                    bav = Instance.new("BodyAngularVelocity"); bav.Name = "PuriumFlingBAV"; bav.MaxTorque = Vector3.new(0, math.huge, 0); bav.P = math.huge; bav.Parent = hrp
-                end
+                if not bav then bav = Instance.new("BodyAngularVelocity"); bav.Name = "PuriumFlingBAV"; bav.MaxTorque = Vector3.new(0, math.huge, 0); bav.P = math.huge; bav.Parent = hrp end
                 bav.AngularVelocity = Vector3.new(0, _G.FlingPower, 0)
             elseif _G.FlingMode == "Touch Fling" then
-                local bav = hrp:FindFirstChild("PuriumFlingBAV")
-                if bav then bav:Destroy() end
-                hrp.AssemblyAngularVelocity = Vector3.new(0, _G.FlingPower, 0)
-                hrp.AssemblyLinearVelocity = Vector3.new(0, hrp.AssemblyLinearVelocity.Y, 0)
+                local bav = hrp:FindFirstChild("PuriumFlingBAV"); if bav then bav:Destroy() end
+                hrp.AssemblyAngularVelocity = Vector3.new(0, _G.FlingPower, 0); hrp.AssemblyLinearVelocity = Vector3.new(0, hrp.AssemblyLinearVelocity.Y, 0)
             elseif _G.FlingMode == "Teleport & Fling" then
-                local bav = hrp:FindFirstChild("PuriumFlingBAV")
-                if bav then bav:Destroy() end
+                local bav = hrp:FindFirstChild("PuriumFlingBAV"); if bav then bav:Destroy() end
                 if _G.FlingTarget ~= "" then
                     local tPlayer = nil
-                    for _, p in ipairs(Players:GetPlayers()) do
-                        if p ~= LocalPlayer and string.find(string.lower(p.Name), string.lower(_G.FlingTarget)) then tPlayer = p; break end
-                    end
+                    for _, p in ipairs(Players:GetPlayers()) do if p ~= LocalPlayer and string.find(string.lower(p.Name), string.lower(_G.FlingTarget)) then tPlayer = p; break end end
                     if tPlayer and tPlayer.Character and tPlayer.Character:FindFirstChild("HumanoidRootPart") then
                         hrp.CFrame = tPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(math.random(-1,1), math.random(-1,1), math.random(-1,1))
                         hrp.AssemblyAngularVelocity = Vector3.new(math.random(-_G.FlingPower, _G.FlingPower), math.random(-_G.FlingPower, _G.FlingPower), math.random(-_G.FlingPower, _G.FlingPower))
@@ -193,21 +202,18 @@ RunService.Heartbeat:Connect(function()
                 end
             end
         else
-            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") and LocalPlayer.Character.Humanoid:GetState() == Enum.HumanoidStateType.Physics then
-                LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
-            end
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") and LocalPlayer.Character.Humanoid:GetState() == Enum.HumanoidStateType.Physics then LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.GettingUp) end
         end
     end)
 end)
 
 local GodModeSec = BypassTab:Section({ Title = "God Mode & Heal", Icon = "heart", Opened = true, Box = true })
 _G.DesyncGodMode = false
-GodModeSec:Toggle({ Title = "God Mode (Desync)", Desc = "Tàng hình vật lý, bất tử trước đòn chém", Value = false, Callback = function(v) 
+GodModeSec:Toggle({ Title = "God Mode (Desync)", Value = false, Callback = function(v) 
     _G.DesyncGodMode = v 
     pcall(function()
         if not v then
-            local cp = Workspace:FindFirstChild("PuriumCamPart")
-            if cp then cp:Destroy() end
+            local cp = Workspace:FindFirstChild("PuriumCamPart"); if cp then cp:Destroy() end
             if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then Camera.CameraSubject = LocalPlayer.Character.Humanoid end
             if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
                 local hrp = LocalPlayer.Character.HumanoidRootPart
@@ -219,130 +225,35 @@ end})
 
 local function getFakeCamPart()
     local cp = Workspace:FindFirstChild("PuriumCamPart")
-    if not cp then
-        cp = Instance.new("Part"); cp.Name = "PuriumCamPart"; cp.Transparency = 1; cp.CanCollide = false; cp.Anchored = true; cp.Massless = true; cp.Size = Vector3.new(1, 1, 1); cp.Parent = Workspace
-    end
+    if not cp then cp = Instance.new("Part"); cp.Name = "PuriumCamPart"; cp.Transparency = 1; cp.CanCollide = false; cp.Anchored = true; cp.Massless = true; cp.Size = Vector3.new(1, 1, 1); cp.Parent = Workspace end
     return cp
 end
 
-RunService.Heartbeat:Connect(function()
-    pcall(function()
-        if _G.DesyncGodMode and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            local hrp = LocalPlayer.Character.HumanoidRootPart
-            if tick() - _G.LastAttackTime > 0.2 then
-                if hrp.Position.Y < 20000 then
-                    local vel, rot = hrp.AssemblyLinearVelocity, hrp.AssemblyAngularVelocity
-                    hrp.CFrame = hrp.CFrame + Vector3.new(0, 50000, 0); hrp.AssemblyLinearVelocity = vel; hrp.AssemblyAngularVelocity = rot
-                end
-            else
-                if hrp.Position.Y > 20000 then
-                    local vel, rot = hrp.AssemblyLinearVelocity, hrp.AssemblyAngularVelocity
-                    hrp.CFrame = hrp.CFrame - Vector3.new(0, 50000, 0); hrp.AssemblyLinearVelocity = vel; hrp.AssemblyAngularVelocity = rot
-                end
-            end
-        end
-    end)
-end)
+RunService.Heartbeat:Connect(function() pcall(function() if _G.DesyncGodMode and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then local hrp = LocalPlayer.Character.HumanoidRootPart; if tick() - _G.LastAttackTime > 0.2 then if hrp.Position.Y < 20000 then local vel, rot = hrp.AssemblyLinearVelocity, hrp.AssemblyAngularVelocity; hrp.CFrame = hrp.CFrame + Vector3.new(0, 50000, 0); hrp.AssemblyLinearVelocity = vel; hrp.AssemblyAngularVelocity = rot end else if hrp.Position.Y > 20000 then local vel, rot = hrp.AssemblyLinearVelocity, hrp.AssemblyAngularVelocity; hrp.CFrame = hrp.CFrame - Vector3.new(0, 50000, 0); hrp.AssemblyLinearVelocity = vel; hrp.AssemblyAngularVelocity = rot end end end end) end)
+RunService.RenderStepped:Connect(function() pcall(function() if _G.DesyncGodMode and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then local hrp = LocalPlayer.Character.HumanoidRootPart; if hrp.Position.Y > 20000 then local vel, rot = hrp.AssemblyLinearVelocity, hrp.AssemblyAngularVelocity; hrp.CFrame = hrp.CFrame - Vector3.new(0, 50000, 0); hrp.AssemblyLinearVelocity = vel; hrp.AssemblyAngularVelocity = rot end; local cp = getFakeCamPart(); cp.CFrame = hrp.CFrame; Camera.CameraSubject = cp end end) end)
 
-RunService.RenderStepped:Connect(function()
-    pcall(function()
-        if _G.DesyncGodMode and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            local hrp = LocalPlayer.Character.HumanoidRootPart
-            if hrp.Position.Y > 20000 then
-                local vel, rot = hrp.AssemblyLinearVelocity, hrp.AssemblyAngularVelocity
-                hrp.CFrame = hrp.CFrame - Vector3.new(0, 50000, 0); hrp.AssemblyLinearVelocity = vel; hrp.AssemblyAngularVelocity = rot
-            end
-            local cp = getFakeCamPart()
-            cp.CFrame = hrp.CFrame
-            Camera.CameraSubject = cp
-        end
-    end)
-end)
-
-_G.GodModeEnabled = false
-_G.HealthValue = 5000
+_G.GodModeEnabled = false; _G.HealthValue = 5000
 GodModeSec:Toggle({ Title = "Auto Heal (Custom HP Bypass)", Value = false, Callback = function(v) _G.GodModeEnabled = v end})
 GodModeSec:Slider({ Title = "Health Amount", Value = {Min = 100, Max = 100000, Default = 5000}, Callback = function(v) _G.HealthValue = v end})
 
 RunService.Heartbeat:Connect(function()
-    if _G.GodModeEnabled then
-        pcall(function()
-            local char = LocalPlayer.Character
-            if char and char:FindFirstChild("Humanoid") then
-                local hum = char.Humanoid
-                if hum.MaxHealth < _G.HealthValue then hum.MaxHealth = _G.HealthValue end
-                if hum.Health < _G.HealthValue then hum.Health = _G.HealthValue end
-            end
-            local function healCustom(parentObj)
-                if not parentObj then return end
-                for _, v in pairs(parentObj:GetDescendants()) do
-                    if v:IsA("ValueBase") or v:IsA("NumberValue") or v:IsA("IntValue") then
-                        local n = string.lower(v.Name)
-                        if n == "health" or n == "hp" or n == "currenthealth" or n == "maxhealth" or n == "maxhp" then
-                            if type(v.Value) == "number" and v.Value < _G.HealthValue then v.Value = _G.HealthValue end
-                        end
-                    end
-                end
-            end
-            healCustom(LocalPlayer.Character); healCustom(LocalPlayer)
-        end)
-    end
+    if _G.GodModeEnabled then pcall(function() local char = LocalPlayer.Character; if char and char:FindFirstChild("Humanoid") then local hum = char.Humanoid; if hum.MaxHealth < _G.HealthValue then hum.MaxHealth = _G.HealthValue end; if hum.Health < _G.HealthValue then hum.Health = _G.HealthValue end end; local function healCustom(parentObj) if not parentObj then return end; for _, v in pairs(parentObj:GetDescendants()) do if v:IsA("ValueBase") or v:IsA("NumberValue") or v:IsA("IntValue") then local n = string.lower(v.Name); if n == "health" or n == "hp" or n == "currenthealth" or n == "maxhealth" or n == "maxhp" then if type(v.Value) == "number" and v.Value < _G.HealthValue then v.Value = _G.HealthValue end end end end end; healCustom(LocalPlayer.Character); healCustom(LocalPlayer) end) end
 end)
 
-local CombatSec = CombatTab:Section({ Title = "Assassin Skills", Icon = "crosshair", Opened = true, Box = true })
+local CombatSec = CombatTab:Section({ Title = "Weapon Control", Icon = "crosshair", Opened = true, Box = true })
 
--- LÕI CHÉM KHÔNG ĐỘ TRỄ (NO COOLDOWN)
-_G.NoCooldown = false
-local moddedTools = {}
-CombatSec:Toggle({ Title = "Weapon No Cooldown", Desc = "Chém/Bắn không độ trễ (Nhớ cầm vũ khí lên tay)", Value = false, Callback = function(v) 
-    _G.NoCooldown = v 
-    if not v then moddedTools = {} end -- Xóa danh sách để có thể load lại nếu tắt đi bật lại
-end})
+-- NO COOLDOWN VÀ ANTI SLOW (Cho chém tay)
+CombatSec:Toggle({ Title = "Weapon No Cooldown", Desc = "Chém bằng tay không có độ trễ", Value = false, Callback = function(v) _G.NoCooldown = v end})
+CombatSec:Toggle({ Title = "Enable Anti-Slow", Desc = "Chém không bị chậm tốc độ chạy", Value = false, Callback = function(v) _G.AntiSlow = v end})
+CombatSec:Toggle({ Title = "Ghost Mode (Infinite Invis)", Desc = "Chặn server lột tàng hình", Value = false, Callback = function(v) _G.InfiniteInvis = v end})
 
-RunService.Heartbeat:Connect(function()
-    if _G.NoCooldown then
-        pcall(function()
-            local char = LocalPlayer.Character
-            if char then
-                local tool = char:FindFirstChildOfClass("Tool")
-                -- Chỉ quét vũ khí 1 lần để tránh giật lag máy
-                if tool and not moddedTools[tool] then
-                    moddedTools[tool] = true
-                    for _, v in pairs(tool:GetDescendants()) do
-                        -- Sửa thông số trong ModuleScript
-                        if v:IsA("ModuleScript") then
-                            local success, stats = pcall(require, v)
-                            if success and type(stats) == "table" then
-                                for realStat, val in pairs(stats) do
-                                    local lowerStat = string.lower(realStat)
-                                    if lowerStat:match("cooldown") or lowerStat:match("delay") or lowerStat:match("rate") or lowerStat:match("debounce") or lowerStat:match("time") then
-                                        if type(val) == "number" and val > 0 then
-                                            stats[realStat] = 0
-                                        end
-                                    end
-                                end
-                            end
-                        -- Sửa thông số nếu game dùng ValueBase
-                        elseif v:IsA("NumberValue") or v:IsA("IntValue") then
-                            local lowerName = string.lower(v.Name)
-                            if lowerName:match("cooldown") or lowerName:match("delay") or lowerName:match("rate") or lowerName:match("debounce") then
-                                v.Value = 0
-                            end
-                        end
-                    end
-                end
-            end
-        end)
-    end
-end)
-
-CombatSec:Toggle({ Title = "Enable Anti-Slow", Desc = "Remove movement penalty", Value = false, Callback = function(v) _G.AntiSlow = v end})
+local KillSec = CombatTab:Section({ Title = "Kill Functions", Icon = "skull", Opened = true, Box = true })
 
 _G.AttackDelay = 0
-CombatSec:Slider({ Title = "Attack Delay (Seconds)", Value = {Min = 0, Max = 10, Default = 0}, Callback = function(v) _G.AttackDelay = v end})
+KillSec:Slider({ Title = "Attack Delay (Seconds)", Value = {Min = 0, Max = 10, Default = 0}, Callback = function(v) _G.AttackDelay = v end})
 
 _G.HitsPerPacket = 50 
-CombatSec:Slider({ Title = "Hits Per Seconds", Desc = "Multiplier (50-150)", Value = {Min = 1, Max = 1000, Default = 50}, Callback = function(v) _G.HitsPerPacket = v end})
+KillSec:Slider({ Title = "Hits Per Seconds", Desc = "Multiplier (50-150)", Value = {Min = 1, Max = 1000, Default = 50}, Callback = function(v) _G.HitsPerPacket = v end})
 
 local function BuildHitData(TargetChar)
     local Char = LocalPlayer.Character
@@ -358,6 +269,7 @@ local function BuildHitData(TargetChar)
     return targetArray
 end
 
+-- HÀM GỬI LỆNH KILL ALL ĐỘC LẬP (Hitbox 9 Tỷ)
 local function FireCombatRequest(targetArray)
     if #targetArray == 0 then return end
     local Char = LocalPlayer.Character
@@ -374,7 +286,8 @@ local function FireCombatRequest(targetArray)
         {
             attackCycleData = {knockbackMul=0,slowMult=slowMul,attackTime=0,lungeMul=0,slowTime=slowTim},
             knockback = 0, shouldLock = true, shouldLunge = false, hitboxOffset = Vector3.new(0, 0, 0), isCritical = true, shouldSlow = isSlow,
-            attackCooldown = 0, damage = 9e9, lungeKnockback = 0, cycleIndex = 1, slowMult = slowMul, hitboxSize = Vector3.new(9e9, 9e9, 9e9), 
+            attackCooldown = 0, damage = 9e9, lungeKnockback = 0, cycleIndex = 1, slowMult = slowMul, 
+            hitboxSize = Vector3.new(9e9, 9e9, 9e9), -- HITBOX 9 TỶ CHỈ ÁP DỤNG KHI BẬT KILL ALL
             weaponDefinition = { attackCycle = { ["1"] = {knockbackMul=0, slowMult=slowMul, attackTime=0, lungeMul=0, slowTime=slowTim, hitboxSizeAdd = Vector3.new(9e9, 9e9, 9e9)} }, attackOrder = {"1", "1", "1", "1"} },
             tool = MyTool, slowTime = slowTim
         },
@@ -384,7 +297,7 @@ local function FireCombatRequest(targetArray)
 end
 
 _G.KillAll = false
-CombatSec:Toggle({ Title = "Kill All Players (Perfect Nuke)", Value = false, Callback = function(v) 
+KillSec:Toggle({ Title = "Kill All Players (Perfect Nuke)", Value = false, Callback = function(v) 
     _G.KillAll = v 
     if v then
         task.spawn(function()
@@ -413,8 +326,8 @@ end})
 
 _G.AutoHit = false
 _G.HitRange = 15
-CombatSec:Toggle({ Title = "Auto Hit By Distance", Value = false, Callback = function(v) _G.AutoHit = v end})
-CombatSec:Slider({ Title = "Auto Hit Range", Value = {Min = 5, Max = 1000, Default = 15}, Callback = function(v) _G.HitRange = v end})
+KillSec:Toggle({ Title = "Auto Hit By Distance", Value = false, Callback = function(v) _G.AutoHit = v end})
+KillSec:Slider({ Title = "Auto Hit Range", Value = {Min = 5, Max = 1000, Default = 15}, Callback = function(v) _G.HitRange = v end})
 
 task.spawn(function()
     while true do
@@ -437,63 +350,6 @@ task.spawn(function()
             task.wait(math.max(_G.AttackDelay, 0.03))
         end
     end
-end)
-
-_G.AutoFarm = false
-CombatSec:Toggle({ Title = "Auto Farm (Teleport behind)", Value = false, Callback = function(v) _G.AutoFarm = v end})
-
-task.spawn(function()
-    while true do
-        task.wait()
-        if _G.AutoFarm and not _G.KillAll then
-            pcall(function()
-                local Char = LocalPlayer.Character
-                if Char and Char:FindFirstChild("HumanoidRootPart") then
-                    local target = getNearestTarget()
-                    if target and target:FindFirstChild("HumanoidRootPart") then
-                        local hrp, tHrp = Char.HumanoidRootPart, target.HumanoidRootPart
-                        if _G.DesyncGodMode and _G.LastSafeCFrame then _G.LastSafeCFrame = tHrp.CFrame * CFrame.new(0, 0, 3) else hrp.CFrame = tHrp.CFrame * CFrame.new(0, 0, 3); hrp.Velocity = Vector3.new(0,0,0) end
-                        local data = BuildHitData(target)
-                        if #data > 0 then FireCombatRequest(data) end
-                        if _G.DesyncGodMode and _G.LastSafeCFrame then _G.LastSafeCFrame = tHrp.CFrame * CFrame.new(0, 25, 0) else hrp.CFrame = tHrp.CFrame * CFrame.new(0, 25, 0) end
-                    end
-                end
-            end)
-            task.wait(math.max(_G.AttackDelay, 0.1))
-        end
-    end
-end)
-
-local AimSec = CombatTab:Section({ Title = "Aimbot Configuration", Icon = "crosshair", Opened = true, Box = true })
-_G.AimbotMode = "None"
-_G.AimbotSmoothness = 1
-
-AimSec:Dropdown({ Title = "Select Aimbot Mode", Values = {"None", "Camera", "Character", "Camera & Character"}, Value = "None", Callback = function(v) _G.AimbotMode = v end})
-AimSec:Slider({ Title = "Smoothness (Camera)", Desc = "1 = Instant, Higher = Smoother", Value = {Min = 1, Max = 10, Default = 1}, Callback = function(v) _G.AimbotSmoothness = v end})
-
-RunService.RenderStepped:Connect(function()
-    if (_G.AimbotMode == "Camera" or _G.AimbotMode == "Camera & Character") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        local target = getNearestTarget()
-        if target and target:FindFirstChild("HumanoidRootPart") then
-            local tPos = target.HumanoidRootPart.Position
-            local goalCFrame = CFrame.lookAt(Camera.CFrame.Position, tPos)
-            if _G.AimbotSmoothness == 1 then Camera.CFrame = goalCFrame else Camera.CFrame = Camera.CFrame:Lerp(goalCFrame, 1 / _G.AimbotSmoothness) end
-        end
-    end
-end)
-
-RunService.Heartbeat:Connect(function()
-    pcall(function()
-        if (_G.AimbotMode == "Character" or _G.AimbotMode == "Camera & Character") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            local target = getNearestTarget()
-            if target and target:FindFirstChild("HumanoidRootPart") then
-                local myHrp = LocalPlayer.Character.HumanoidRootPart
-                local tPos = target.HumanoidRootPart.Position
-                local lookVec = Vector3.new(tPos.X, myHrp.Position.Y, tPos.Z)
-                if _G.DesyncGodMode and _G.LastSafeCFrame then _G.LastSafeCFrame = CFrame.lookAt(_G.LastSafeCFrame.Position, lookVec) else myHrp.CFrame = CFrame.lookAt(myHrp.Position, lookVec) end
-            end
-        end
-    end)
 end)
 
 local VisSec = VisTab:Section({ Title = "ESP Configurations", Icon = "eye", Opened = true, Box = true })
@@ -577,7 +433,7 @@ local ConfigInput = ConfigSection:Input({ Title = "Config Name", Value = configN
 local AutoLoadToggle
 local ConfigDropdown = ConfigSection:Dropdown({ Title = "Choose Saved Config", Values = savedConfigs, Value = configName, AllowNone = false, Callback = function(value) configName = value or "Configs"; ConfigInput:Set(configName); if AutoLoadToggle then AutoLoadToggle:Set(getAutoLoad() == configName) end end })
 
-AutoLoadToggle = ConfigSection:Toggle({ Title = "Auto-Load Config", Desc = "Enable to auto load this config on execution", Value = (getAutoLoad() == configName), Callback = function(Value) if Value then setAutoLoad(configName) else setAutoLoad("none") end end })
+AutoLoadToggle = ConfigSection:Toggle({ Title = "Auto-Load Config", Value = (getAutoLoad() == configName), Callback = function(Value) if Value then setAutoLoad(configName) else setAutoLoad("none") end end })
 ConfigSection:Button({ Title = "Save Config", Icon = "check", Callback = function() configFile = ConfigManager:CreateConfig(configName); if configFile:Save() then local newList = ConfigManager:AllConfigs(); if #newList == 0 then table.insert(newList, "Configs") end; ConfigDropdown:Refresh(newList); WindUI:Notify({ Title = "Save Config", Content = "Saved: " .. configName, Duration = 3 }) end end })
 ConfigSection:Button({ Title = "Load Config", Icon = "refresh-cw", Callback = function() configFile = ConfigManager:CreateConfig(configName); if configFile:Load() then WindUI:Notify({ Title = "Load Config", Content = "Loaded: " .. configName, Duration = 3 }) end end })
 
@@ -593,9 +449,9 @@ task.spawn(function()
     task.wait(0.5)
     pcall(function() Window:Minimize() end)
     pcall(function() Window:Toggle() end)
-    WindUI:Notify({ Title = "UI Minimized", Content = "The Ui Automatic Minimized You Can Open By Click The Ui On The Bottom", Duration = 5 })
+    WindUI:Notify({ Title = "UI Minimized", Content = "Click open UI button to reopen.", Duration = 5 })
 end)
 
-ThemeSection:Keybind({ Title = "Keybind", Desc = "Keybind to open ui", Value = "G", Callback = function(v) Window:SetToggleKey(Enum.KeyCode[v]) end })
+ThemeSection:Keybind({ Title = "Keybind", Value = "G", Callback = function(v) Window:SetToggleKey(Enum.KeyCode[v]) end })
 
 print("Successfully loaded all assets! Purium on Top!")

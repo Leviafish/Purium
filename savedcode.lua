@@ -13,11 +13,7 @@ local Window = WindUI:CreateWindow({
     User = { Enabled = true, Anonymous = true, Callback = function() print("Purium") end }
 })
 
-Window:EditOpenButton({
-    Title = "Open UI", Icon = "monitor", CornerRadius = UDim.new(0,16), StrokeThickness = 2,
-    Color = ColorSequence.new(Color3.fromHex("1e1e1e"), Color3.fromHex("000000")),
-    OnlyMobile = false, Enabled = true, Draggable = true,
-})
+Window:EditOpenButton({ Title = "Open Purium", Icon = "monitor", CornerRadius = UDim.new(0,16), Draggable = true })
 
 -- Tải Themes (Giữ nguyên của bạn)
 WindUI:AddTheme({ Name = "Amethyst", Accent = Color3.fromHex("7E2CB6"), Dialog = Color3.fromHex("321E46"), Outline = Color3.fromHex("552D78"), Text = Color3.fromHex("F0F0F0"), Placeholder = Color3.fromHex("AAAAAA"), Background = Color3.fromHex("280C47"), Button = Color3.fromHex("733796"), Icon = Color3.fromHex("AAAAAA"), Toggle = Color3.fromHex("7E2CB6"), Slider = Color3.fromHex("7E2CB6"), Checkbox = Color3.fromHex("7E2CB6"), PanelBackground = Color3.fromHex("FFFFFF"), PanelBackgroundTransparency = 0.95, SliderIcon = Color3.fromHex("AAAAAA"), Primary = Color3.fromHex("7E2CB6"), LabelBackground = Color3.fromHex("000000"), LabelBackgroundTransparency = 0.85 })
@@ -33,7 +29,7 @@ WindUI:AddTheme({ Name = "Arctic", Accent = Color3.fromHex("40E0FF"), Dialog = C
 WindUI:AddTheme({ Name = "Cloud", Accent = Color3.fromHex("6DB0FF"), Dialog = Color3.fromHex("FFFFFF"), Outline = Color3.fromHex("C8DCF0"), Text = Color3.fromHex("1E1E1E"), Placeholder = Color3.fromHex("828282"), Background = Color3.fromHex("F0F8FF"), Button = Color3.fromHex("DCEBFA"), Icon = Color3.fromHex("1E1E1E"), Toggle = Color3.fromHex("6DB0FF"), Slider = Color3.fromHex("6DB0FF"), Checkbox = Color3.fromHex("6DB0FF"), PanelBackground = Color3.fromHex("FFFFFF"), PanelBackgroundTransparency = 0, SliderIcon = Color3.fromHex("828282"), Primary = Color3.fromHex("6DB0FF"), LabelBackground = Color3.fromHex("FFFFFF"), LabelBackgroundTransparency = 0 })
 WindUI:AddTheme({ Name = "Sapphire", Accent = Color3.fromHex("0F52BA"), Dialog = Color3.fromHex("0F192D"), Outline = Color3.fromHex("1E2D50"), Text = Color3.fromHex("E6E6E6"), Placeholder = Color3.fromHex("8C8C8C"), Background = Color3.fromHex("0A0F1E"), Button = Color3.fromHex("14233C"), Icon = Color3.fromHex("E6E6E6"), Toggle = Color3.fromHex("0F52BA"), Slider = Color3.fromHex("0F52BA"), Checkbox = Color3.fromHex("0F52BA"), PanelBackground = Color3.fromHex("0F192D"), PanelBackgroundTransparency = 0.5, SliderIcon = Color3.fromHex("8C8C8C"), Primary = Color3.fromHex("0F52BA"), LabelBackground = Color3.fromHex("0F192D"), LabelBackgroundTransparency = 0 })
 
-Window:Tag({ Title = "Singularity Ultimate", Icon = "crown", Color = Color3.fromRGB(255, 215, 0), Radius = 10 })
+Window:Tag({ Title = "v2.0.0 Ultimate", Icon = "crown", Color = Color3.fromRGB(255, 215, 0), Radius = 10 })
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -44,13 +40,10 @@ local Camera = Workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 local GameRemote = ReplicatedStorage:WaitForChild("Events"):WaitForChild("GameRemoteFunction")
 
--- BIẾN TOÀN CỤC CỦA HỆ THỐNG
 _G.AntiSlow = false
 _G.AntiKickEnabled = false
 _G.InfiniteInvis = false
 _G.LastAttackTime = 0
-
--- BIẾN MỚI CHO LÕI SINGULARITY & HOOKING
 _G.MasterBypass = false
 _G.SpoofStats = false
 _G.BlockNewIndex = false
@@ -60,9 +53,6 @@ _G.AuraRadius = 5000
 _G.AuraSpam = 30
 _G.AuraDelay = 0.05
 
--- =======================================================
--- LÕI HOOK 3 LỚP (TÀNG HÌNH & CHỐNG ANTI-CHEAT)
--- =======================================================
 local mt = getrawmetatable(game)
 local oldIndex = mt.__index
 local oldNewIndex = mt.__newindex
@@ -105,8 +95,6 @@ mt.__namecall = newcclosure(function(self, ...)
 
         if method == "InvokeServer" or method == "FireServer" then
             if _G.InfiniteInvis and args[1] == "SendMessage" and args[2] == "WeaponSwung" then return nil end
-            
-            -- Anti-Slow Remote Masking
             if _G.AntiSlow and args[1] == "AttemptWeaponHit" and type(args[2]) == "table" then
                 args[2].shouldSlow = false
                 args[2].cycleIndex = 1 
@@ -125,7 +113,6 @@ mt.__namecall = newcclosure(function(self, ...)
     return oldNamecall(self, ...)
 end)
 setreadonly(mt, true)
--- =======================================================
 
 local BypassTab = Window:Tab({ Title = "Server Modification", Icon = "shield-alert" })
 local CombatTab = Window:Tab({ Title = "Combat & Farm", Icon = "swords" })
@@ -340,9 +327,6 @@ RunService.RenderStepped:Connect(function()
     end)
 end)
 
--- =======================================================
--- TAB MOVEMENT & FLING
--- =======================================================
 local MoveSec = MoveTab:Section({ Title = "Character Modification", Icon = "user", Opened = true, Box = true })
 local noclipLoop
 MoveSec:Toggle({ Title = "Enable Noclip", Desc = "Walk through walls and obstacles", Value = false, Callback = function(v)
@@ -376,7 +360,7 @@ end)
 
 local FlingSec = MoveTab:Section({ Title = "Physics Fling Exploits", Icon = "wind", Opened = true, Box = true })
 _G.AntiFling = false
-FlingSec:Toggle({ Title = "Anti Fling (God Collision)", Desc = "Ghost mode to prevent others from flinging you", Value = false, Callback = function(v) _G.AntiFling = v end})
+FlingSec:Toggle({ Title = "Anti Fling", Desc = "", Value = false, Callback = function(v) _G.AntiFling = v end})
 
 FlingSec:Divider()
 _G.FlingMode = "Spin Fling"
@@ -442,18 +426,12 @@ end)
 -- TAB COMBAT (TÍCH HỢP SINGULARITY)
 -- =======================================================
 local CombatSec = CombatTab:Section({ Title = "Attack Settings", Icon = "crosshair", Opened = true, Box = true })
-CombatSec:Toggle({ Title = "Ghost Mode (Infinite Invis)", Value = false, Callback = function(v) _G.InfiniteInvis = v end})
 CombatSec:Toggle({ Title = "Enable Anti-Slow", Desc = "Remove movement penalty while swinging weapon", Value = false, Callback = function(v) _G.AntiSlow = v end})
-CombatSec:Toggle({ Title = "Strip Idle Animations", Desc = "Xóa animation cầm kiếm để đánh mượt hơn", Value = false, Callback = function(v) _G.StripIdle = v end})
+CombatSec:Toggle({ Title = "Enable Kill All", Desc = "GRASS DO YOU HEAR ME? IM COMING FOR YOU", Value = false, Callback = function(v) _G.KillAll = v end})
+CombatSec:Slider({ Title = "Kill Radius", Value = {Min = 100, Max = 10000, Default = 5000}, Callback = function(v) _G.AuraRadius = v end})
+CombatSec:Slider({ Title = "Hits Per Target (Batch)", Value = {Min = 1, Max = 100, Default = 30}, Callback = function(v) _G.AuraSpam = v end})
+CombatSec:Slider({ Title = "Ping Stabilizer (Delay)", Value = {Min = 0.05, Max = 1, Default = 0.01}, Callback = function(v) _G.AuraDelay = v end})
 
-CombatSec:Divider()
-local KillSec = CombatTab:Section({ Title = "SINGULARITY KILL ALL (BATCHING)", Icon = "zap", Opened = true, Box = true })
-KillSec:Toggle({ Title = "Enable Kill All", Desc = "Tự động tiêu diệt diện rộng, không giật lag", Value = false, Callback = function(v) _G.KillAll = v end})
-KillSec:Slider({ Title = "Kill Radius", Value = {Min = 100, Max = 10000, Default = 5000}, Callback = function(v) _G.AuraRadius = v end})
-KillSec:Slider({ Title = "Hits Per Target (Batch)", Value = {Min = 1, Max = 100, Default = 30}, Callback = function(v) _G.AuraSpam = v end})
-KillSec:Slider({ Title = "Ping Stabilizer (Delay)", Value = {Min = 0.05, Max = 1, Default = 0.05}, Callback = function(v) _G.AuraDelay = v end})
-
--- LÕI SINGULARITY POSTSIMULATION
 local NukeWeaponDef = { attackCycle = { ["1"] = {knockbackMul=0, slowMult=1, attackTime=0, lungeMul=0, slowTime=0, hitboxSizeAdd = Vector3.new(9e9, 9e9, 9e9)} }, attackOrder = {"1", "1", "1", "1"} }
 local NukeCycleData = {knockbackMul=0, slowMult=1, attackTime=0, lungeMul=0, slowTime=0}
 local lastNukeTick = 0
@@ -586,9 +564,6 @@ RunService.Heartbeat:Connect(function()
     end)
 end)
 
--- =======================================================
--- TAB VISUALS & ESP
--- =======================================================
 local VisSec = VisTab:Section({ Title = "ESP Configurations", Icon = "eye", Opened = true, Box = true })
 local originalTrans = {}; local antiInvisLoop
 VisSec:Toggle({ Title = "Show Invisible Players", Desc = "Force hidden players to appear normally", Value = false, Callback = function(v)
@@ -641,9 +616,6 @@ RunService.RenderStepped:Connect(function()
     end)
 end)
 
--- =======================================================
--- TAB PLAYER LIST & SETTINGS
--- =======================================================
 local PlayerSec = PlayerTab:Section({ Title = "Server Players", Icon = "users", Opened = true, Box = true })
 local playerNames = {}
 local PlayerDropdown = PlayerSec:Dropdown({ Title = "Select Player", Values = {"None"}, Callback = function(sel) _G.SelectedPlayer = sel end})

@@ -264,7 +264,6 @@ local function FireBatch(payload)
     task.spawn(FastInvoke, GameRemote, "AttemptWeaponHit", { attackCycleData = NukeCycleData, weaponDefinition = NukeWeaponDef, tool = tool, damage = 9e9, hitboxSize = v3_new(9e9, 9e9, 9e9), isCritical = true, shouldSlow = false }, payload)
 end
 
--- LUỒNG 1: QUÉT MỤC TIÊU ĐÃ ĐƯỢC ĐỒNG BỘ HÓA
 local lastNukeTick = 0
 RunService.PostSimulation:Connect(function()
     if not _G.KillAll then return end
@@ -306,7 +305,6 @@ FarmSec:Slider({ Title = "Auto Hit Range", Value = {Min = 5, Max = 1000, Default
 _G.AutoFarm = false
 FarmSec:Toggle({ Title = "Auto Farm", Desc = "Teleport behind enemies and attack", Value = false, Callback = function(v) _G.AutoFarm = v end})
 
--- LUỒNG 2: AUTO FARM CŨNG ĐƯỢC ĐỒNG BỘ
 local lastFarmTick = 0
 RunService.Heartbeat:Connect(function()
     if not _G.AutoFarm and not _G.AutoHit then return end
@@ -337,10 +335,8 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
--- LUỒNG 3: GỬI MẠNG (Hoạt động không trượt phát nào)
 local lastNetTick = 0
 RunService.Heartbeat:Connect(function()
-    -- Cầu chì dung sai lớn, đảm bảo không tự hủy nhầm đòn đánh hợp lệ
     if #MultiplexQueue > 20000 then MultiplexQueue = {} end 
     
     if #MultiplexQueue == 0 then return end

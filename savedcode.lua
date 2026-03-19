@@ -13,9 +13,8 @@ local Window = WindUI:CreateWindow({
     User = { Enabled = true, Anonymous = true, Callback = function() print("Purium") end }
 })
 
-Window:EditOpenButton({ Title = "Open Purium", Icon = "monitor", CornerRadius = UDim.new(0,16), Draggable = true })
+Window:EditOpenButton({ Title = "Open Purium", Icon = "crown", CornerRadius = UDim.new(0,16), Draggable = true })
 
--- Tải Themes (Giữ nguyên của bạn)
 WindUI:AddTheme({ Name = "Amethyst", Accent = Color3.fromHex("7E2CB6"), Dialog = Color3.fromHex("321E46"), Outline = Color3.fromHex("552D78"), Text = Color3.fromHex("F0F0F0"), Placeholder = Color3.fromHex("AAAAAA"), Background = Color3.fromHex("280C47"), Button = Color3.fromHex("733796"), Icon = Color3.fromHex("AAAAAA"), Toggle = Color3.fromHex("7E2CB6"), Slider = Color3.fromHex("7E2CB6"), Checkbox = Color3.fromHex("7E2CB6"), PanelBackground = Color3.fromHex("FFFFFF"), PanelBackgroundTransparency = 0.95, SliderIcon = Color3.fromHex("AAAAAA"), Primary = Color3.fromHex("7E2CB6"), LabelBackground = Color3.fromHex("000000"), LabelBackgroundTransparency = 0.85 })
 WindUI:AddTheme({ Name = "Balloon", Accent = Color3.fromHex("64AAFF"), Dialog = Color3.fromHex("BDE6FF"), Outline = Color3.fromHex("82AAE6"), Text = Color3.fromHex("1E1E1E"), Placeholder = Color3.fromHex("5A5A5A"), Background = Color3.fromHex("BDE0FF"), Button = Color3.fromHex("A0C8FF"), Icon = Color3.fromHex("5A5A5A"), Toggle = Color3.fromHex("64AAFF"), Slider = Color3.fromHex("64AAFF"), Checkbox = Color3.fromHex("64AAFF"), PanelBackground = Color3.fromHex("FFFFFF"), PanelBackgroundTransparency = 0, SliderIcon = Color3.fromHex("5A5A5A"), Primary = Color3.fromHex("64AAFF"), LabelBackground = Color3.fromHex("FFFFFF"), LabelBackgroundTransparency = 0 })
 WindUI:AddTheme({ Name = "SoftCream", Accent = Color3.fromHex("CEA35A"), Dialog = Color3.fromHex("FFFFF0"), Outline = Color3.fromHex("FFE6C8"), Text = Color3.fromHex("1E1E1E"), Placeholder = Color3.fromHex("5A5A5A"), Background = Color3.fromHex("FFF5DC"), Button = Color3.fromHex("FFD8A1"), Icon = Color3.fromHex("5A5A5A"), Toggle = Color3.fromHex("CEA35A"), Slider = Color3.fromHex("CEA35A"), Checkbox = Color3.fromHex("CEA35A"), PanelBackground = Color3.fromHex("FFFFFF"), PanelBackgroundTransparency = 0, SliderIcon = Color3.fromHex("5A5A5A"), Primary = Color3.fromHex("CEA35A"), LabelBackground = Color3.fromHex("FFFFFF"), LabelBackgroundTransparency = 0 })
@@ -139,13 +138,9 @@ local function getNearestTarget()
     return nearest
 end
 
--- =======================================================
--- TAB BYPASS & SHIELD
--- =======================================================
 local AntiCheatSec = BypassTab:Section({ Title = "Anti-Cheat Protection", Icon = "shield", Opened = true, Box = true })
-AntiCheatSec:Toggle({ Title = "Master Bypass", Desc = "Bật/tắt toàn bộ hệ thống tàng hình trước Server.", Value = false, Callback = function(v) _G.MasterBypass = v end })
-AntiCheatSec:Toggle({ Title = "Spoof Stats (Index Trick)", Desc = "Lừa Server rằng bạn đang đi chậm (16).", Value = false, Callback = function(v) _G.SpoofStats = v end })
-AntiCheatSec:Toggle({ Title = "Block Server Edit (NewIndex)", Desc = "Chặn Admin/Hacker khác trói chân hoặc ép máu.", Value = false, Callback = function(v) _G.BlockNewIndex = v end })
+AntiCheatSec:Toggle({ Title = "Spoof Stats", Desc = "This Do Nothing.", Value = false, Callback = function(v) _G.SpoofStats = v end })
+AntiCheatSec:Toggle({ Title = "Block Server Edit", Desc = "This Do Nothing.", Value = false, Callback = function(v) _G.BlockNewIndex = v end })
 
 local GodSec = BypassTab:Section({ Title = "Modifications", Icon = "shield", Opened = true, Box = true })
 GodSec:Toggle({ Title = "Enable Anti-Kick", Desc = "Blocks server from kicking you", Value = false, Callback = function(v)
@@ -422,9 +417,6 @@ RunService.Heartbeat:Connect(function()
     end)
 end)
 
--- =======================================================
--- TAB COMBAT (TÍCH HỢP SINGULARITY)
--- =======================================================
 local CombatSec = CombatTab:Section({ Title = "Attack Settings", Icon = "crosshair", Opened = true, Box = true })
 CombatSec:Toggle({ Title = "Enable Anti-Slow", Desc = "Remove movement penalty while swinging weapon", Value = false, Callback = function(v) _G.AntiSlow = v end})
 CombatSec:Toggle({ Title = "Enable Kill All", Desc = "GRASS DO YOU HEAR ME? IM COMING FOR YOU", Value = false, Callback = function(v) _G.KillAll = v end})

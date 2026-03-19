@@ -416,12 +416,13 @@ end)
 local CombatSec = CombatTab:Section({ Title = "Attack Settings", Icon = "crosshair", Opened = true, Box = true })
 CombatSec:Toggle({ Title = "Enable Anti-Slow", Desc = "Remove movement penalty while swinging weapon", Value = false, Callback = function(v) _G.AntiSlow = v end})
 CombatSec:Toggle({ Title = "Enable Kill All", Desc = "GRASS DO YOU HEAR ME? IM COMING FOR YOU", Value = false, Callback = function(v) _G.KillAll = v end})
-CombatSec:Slider({ Title = "Kill Radius", Value = {Min = 100, Max = 10000, Default = 5000}, Callback = function(v) _G.AuraRadius = v end})
-CombatSec:Slider({ Title = "Hits Per Target (Batch)", Value = {Min = 1, Max = 100, Default = 30}, Callback = function(v) _G.AuraSpam = v end})
-CombatSec:Slider({ Title = "Ping Stabilizer (Delay)", Value = {Min = 0.05, Max = 1, Default = 0.01}, Callback = function(v) _G.AuraDelay = v end})
+KillSec:Slider({ Title = "Kill Radius", Value = {Min = 100, Max = 10000, Default = 5000}, Callback = function(v) _G.AuraRadius = v end})
+KillSec:Slider({ Title = "Hits Per Target", Value = {Min = 1, Max = 1000, Default = 100}, Callback = function(v) _G.AuraSpam = v end})
+KillSec:Slider({ Title = "Ping Stabilizer (Delay)", Value = {Min = 0.01, Max = 0.5, Default = 0.03}, Callback = function(v) _G.AuraDelay = v end})
 
 local MultiplexQueue = {}
-local MAX_PAYLOAD = 250
+local MAX_PAYLOAD = 300 
+
 local NukeWeaponDef = { attackCycle = { ["1"] = {knockbackMul=0, slowMult=1, attackTime=0, lungeMul=0, slowTime=0, hitboxSizeAdd = v3_new(9e9, 9e9, 9e9)} }, attackOrder = {"1", "1", "1", "1"} }
 local NukeCycleData = {knockbackMul=0, slowMult=1, attackTime=0, lungeMul=0, slowTime=0}
 
@@ -461,16 +462,17 @@ end)
 
 local FarmSec = CombatTab:Section({ Title = "Auto Farm & Target", Icon = "crosshair", Opened = true, Box = true })
 _G.AutoHit = false; _G.HitRange = 15
-FarmSec:Toggle({ Title = "Auto Hit By Distance", Desc = "Chém kẻ địch lại gần", Value = false, Callback = function(v) _G.AutoHit = v end})
+FarmSec:Toggle({ Title = "Auto Hit By Distance", Desc = "Automatically attack nearby enemies", Value = false, Callback = function(v) _G.AutoHit = v end})
 FarmSec:Slider({ Title = "Auto Hit Range", Value = {Min = 5, Max = 1000, Default = 15}, Callback = function(v) _G.HitRange = v end})
 
 _G.AutoFarm = false
-FarmSec:Toggle({ Title = "Auto Farm", Desc = "Dịch chuyển sau lưng quái", Value = false, Callback = function(v) _G.AutoFarm = v end})
+FarmSec:Toggle({ Title = "Auto Farm", Desc = "Teleport behind enemies and attack", Value = false, Callback = function(v) _G.AutoFarm = v end})
 
 local lastFarmTick = 0
 RunService.Heartbeat:Connect(function()
     if not _G.AutoFarm and not _G.AutoHit then return end
-    if _G.KillAll then return end 
+    if _G.KillAll then return end
+    
     if tick_now() - lastFarmTick < 0.03 then return end
     lastFarmTick = tick_now()
 
@@ -498,7 +500,7 @@ end)
 
 local lastNetTick = 0
 RunService.Heartbeat:Connect(function()
-    if #MultiplexQueue > 5000 then MultiplexQueue = {} end 
+    if #MultiplexQueue > 10000 then MultiplexQueue = {} end 
     
     if #MultiplexQueue == 0 then return end
     if tick_now() - lastNetTick < _G.AuraDelay then return end

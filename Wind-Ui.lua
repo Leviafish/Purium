@@ -264,8 +264,15 @@ local function FireBatch(payload)
     task.spawn(FastInvoke, GameRemote, "AttemptWeaponHit", { attackCycleData = NukeCycleData, weaponDefinition = NukeWeaponDef, tool = tool, damage = 9e9, hitboxSize = v3_new(9e9, 9e9, 9e9), isCritical = true, shouldSlow = false }, payload)
 end
 
+-- LUỒNG 1: QUÉT MỤC TIÊU ĐÃ ĐƯỢC ĐỒNG BỘ HÓA
+local lastNukeTick = 0
 RunService.PostSimulation:Connect(function()
     if not _G.KillAll then return end
+    
+    -- ĐÂY LÀ CHÌA KHÓA: Hãm tốc độ tạo đòn đánh vừa bằng tốc độ gửi
+    if tick_now() - lastNukeTick < _G.AuraDelay then return end
+    lastNukeTick = tick_now()
+
     local Char = LocalPlayer.Character
     if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
     
@@ -299,12 +306,13 @@ FarmSec:Slider({ Title = "Auto Hit Range", Value = {Min = 5, Max = 1000, Default
 _G.AutoFarm = false
 FarmSec:Toggle({ Title = "Auto Farm", Desc = "Teleport behind enemies and attack", Value = false, Callback = function(v) _G.AutoFarm = v end})
 
+-- LUỒNG 2: AUTO FARM CŨNG ĐƯỢC ĐỒNG BỘ
 local lastFarmTick = 0
 RunService.Heartbeat:Connect(function()
     if not _G.AutoFarm and not _G.AutoHit then return end
     if _G.KillAll then return end
     
-    if tick_now() - lastFarmTick < 0.03 then return end
+    if tick_now() - lastFarmTick < _G.AuraDelay then return end
     lastFarmTick = tick_now()
 
     local Char = LocalPlayer.Character
@@ -329,9 +337,11 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
+-- LUỒNG 3: GỬI MẠNG (Hoạt động không trượt phát nào)
 local lastNetTick = 0
 RunService.Heartbeat:Connect(function()
-    if #MultiplexQueue > 10000 then MultiplexQueue = {} end 
+    -- Cầu chì dung sai lớn, đảm bảo không tự hủy nhầm đòn đánh hợp lệ
+    if #MultiplexQueue > 20000 then MultiplexQueue = {} end 
     
     if #MultiplexQueue == 0 then return end
     if tick_now() - lastNetTick < _G.AuraDelay then return end
@@ -340,6 +350,7 @@ RunService.Heartbeat:Connect(function()
     local payloadChunk = {}
     local processCount = math_min(#MultiplexQueue, MAX_PAYLOAD)
     for i = 1, processCount do t_insert(payloadChunk, t_remove(MultiplexQueue, 1)) end
+    
     if #payloadChunk > 0 then FireBatch(payloadChunk) end
 end)
 

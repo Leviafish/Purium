@@ -329,66 +329,88 @@ end)
 
 local FlingSec = MoveTab:Section({ Title = "Physics Fling Exploits", Icon = "wind", Opened = true, Box = true })
 _G.AntiFling = false
-FlingSec:Toggle({ Title = "Anti Fling", Desc = "", Value = false, Callback = function(v) _G.AntiFling = v end})
+FlingSec:Toggle({ Title = "Anti Fling", Desc = "Trở thành bóng ma chống bị hất văng", Value = false, Callback = function(v) _G.AntiFling = v end})
 
 FlingSec:Divider()
 _G.FlingMode = "Spin Fling"
 FlingSec:Dropdown({ Title = "Select Fling Mode", Values = {"Spin Fling", "Teleport & Fling", "Touch Fling"}, Value = "Spin Fling", Callback = function(v) _G.FlingMode = v end})
 _G.FlingTarget = ""
-FlingSec:Input({ Title = "Target Name (For Teleport)", Desc = "Enter part of the target's name", Value = "", Callback = function(v) _G.FlingTarget = v end})
+FlingSec:Input({ Title = "Target Name (For Teleport)", Desc = "Type Target Name", Value = "", Callback = function(v) _G.FlingTarget = v end})
 _G.FlingPower = 50000
-FlingSec:Slider({ Title = "Fling Power", Desc = "Rotation speed for maximum fling", Value = {Min = 1000, Max = 100000, Default = 50000}, Callback = function(v) _G.FlingPower = v end})
+FlingSec:Slider({ Title = "Fling Power", Desc = "", Value = {Min = 1000, Max = 100000, Default = 50000}, Callback = function(v) _G.FlingPower = v end})
 _G.FlingActive = false
-FlingSec:Toggle({ Title = "Enable Fling", Desc = "Activate physics destroyer", Value = false, Callback = function(v) 
+
+FlingSec:Toggle({ Title = "Enable Fling", Desc = "", Value = false, Callback = function(v) 
     _G.FlingActive = v 
-    if not v then
-        pcall(function()
-            local hrp = LocalPlayer.Character.HumanoidRootPart; hrp.AssemblyAngularVelocity = Vector3.new(0,0,0)
-            local bav = hrp:FindFirstChild("PuriumFlingBAV"); if bav then bav:Destroy() end
-        end)
+    if not v then 
+        pcall(function() 
+            local hrp = LocalPlayer.Character.HumanoidRootPart
+            hrp.AssemblyAngularVelocity = v3_new(0,0,0)
+            hrp.AssemblyLinearVelocity = v3_new(0,0,0)
+            local bav = hrp:FindFirstChild("PuriumFlingBAV"); if bav then bav:Destroy() end 
+        end) 
     end
 end})
 
 RunService.Stepped:Connect(function()
-    pcall(function()
-        if _G.AntiFling and not _G.FlingActive and LocalPlayer.Character then
-            for _, p in ipairs(Players:GetPlayers()) do
-                if p ~= LocalPlayer and p.Character then for _, part in ipairs(p.Character:GetChildren()) do if part:IsA("BasePart") then part.CanCollide = false end end end
+    if _G.AntiFling and not _G.FlingActive and LocalPlayer.Character then
+        for _, p in ipairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer and p.Character then 
+                for _, part in ipairs(p.Character:GetChildren()) do 
+                    if part:IsA("BasePart") then part.CanCollide = false end 
+                end 
             end
         end
-    end)
+    end
 end)
 
 RunService.Heartbeat:Connect(function()
-    pcall(function()
-        if _G.FlingActive and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            local hrp = LocalPlayer.Character.HumanoidRootPart
-            if LocalPlayer.Character:FindFirstChild("Humanoid") then LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Physics) end
+    if _G.FlingActive and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local hrp = LocalPlayer.Character.HumanoidRootPart
+        if LocalPlayer.Character:FindFirstChild("Humanoid") then 
+            LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Physics) 
+        end
 
-            if _G.FlingMode == "Spin Fling" then
-                local bav = hrp:FindFirstChild("PuriumFlingBAV")
-                if not bav then bav = Instance.new("BodyAngularVelocity"); bav.Name = "PuriumFlingBAV"; bav.MaxTorque = Vector3.new(0, math.huge, 0); bav.P = math.huge; bav.Parent = hrp end
-                bav.AngularVelocity = Vector3.new(0, _G.FlingPower, 0)
-            elseif _G.FlingMode == "Touch Fling" then
-                local bav = hrp:FindFirstChild("PuriumFlingBAV"); if bav then bav:Destroy() end
-                hrp.AssemblyAngularVelocity = Vector3.new(0, _G.FlingPower, 0); hrp.AssemblyLinearVelocity = Vector3.new(0, hrp.AssemblyLinearVelocity.Y, 0)
-            elseif _G.FlingMode == "Teleport & Fling" then
-                local bav = hrp:FindFirstChild("PuriumFlingBAV"); if bav then bav:Destroy() end
-                if _G.FlingTarget ~= "" then
-                    local tPlayer = nil
-                    for _, p in ipairs(Players:GetPlayers()) do if p ~= LocalPlayer and string.find(string.lower(p.Name), string.lower(_G.FlingTarget)) then tPlayer = p; break end end
-                    if tPlayer and tPlayer.Character and tPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                        local tHrp = tPlayer.Character.HumanoidRootPart
-                        hrp.CFrame = tHrp.CFrame * CFrame.new(math.random(-1,1), math.random(-1,1), math.random(-1,1))
-                        hrp.AssemblyAngularVelocity = Vector3.new(math.random(-_G.FlingPower, _G.FlingPower), math.random(-_G.FlingPower, _G.FlingPower), math.random(-_G.FlingPower, _G.FlingPower))
-                        hrp.AssemblyLinearVelocity = Vector3.new(math.random(-_G.FlingPower, _G.FlingPower), math.random(-_G.FlingPower, _G.FlingPower), math.random(-_G.FlingPower, _G.FlingPower))
-                    end
+        if _G.FlingMode == "Spin Fling" then
+            local bav = hrp:FindFirstChild("PuriumFlingBAV")
+            if not bav then 
+                bav = Instance.new("BodyAngularVelocity")
+                bav.Name = "PuriumFlingBAV"
+                bav.MaxTorque = v3_new(0, math.huge, 0)
+                bav.P = math.huge
+                bav.Parent = hrp 
+            end
+            bav.AngularVelocity = v3_new(0, _G.FlingPower, 0)
+
+        elseif _G.FlingMode == "Touch Fling" then
+            local bav = hrp:FindFirstChild("PuriumFlingBAV"); if bav then bav:Destroy() end
+            hrp.AssemblyAngularVelocity = v3_new(0, _G.FlingPower, 0)
+
+        elseif _G.FlingMode == "Teleport & Fling" then
+            local bav = hrp:FindFirstChild("PuriumFlingBAV"); if bav then bav:Destroy() end
+            if _G.FlingTarget ~= "" then
+                local tPlayer = nil
+                for _, p in ipairs(Players:GetPlayers()) do 
+                    if p ~= LocalPlayer and str_find(str_lower(p.Name), str_lower(_G.FlingTarget)) then 
+                        tPlayer = p; break 
+                    end 
+                end
+                
+                if tPlayer and tPlayer.Character and tPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    local tHrp = tPlayer.Character.HumanoidRootPart
+                    hrp.CFrame = tHrp.CFrame
+                    hrp.AssemblyAngularVelocity = v3_new(math.random(-_G.FlingPower, _G.FlingPower), math.random(-_G.FlingPower, _G.FlingPower), math.random(-_G.FlingPower, _G.FlingPower))
+                    hrp.AssemblyLinearVelocity = v3_new(0, 0, 0)
                 end
             end
-        else
-            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then if LocalPlayer.Character.Humanoid:GetState() == Enum.HumanoidStateType.Physics then LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.GettingUp) end end
         end
-    end)
+    else
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then 
+            if LocalPlayer.Character.Humanoid:GetState() == Enum.HumanoidStateType.Physics then 
+                LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.GettingUp) 
+            end 
+        end
+    end
 end)
 
 local CombatSec = CombatTab:Section({ Title = "Attack Settings", Icon = "crosshair", Opened = true, Box = true })
@@ -399,7 +421,7 @@ CombatSec:Slider({ Title = "Hits Per Target (Batch)", Value = {Min = 1, Max = 10
 CombatSec:Slider({ Title = "Ping Stabilizer (Delay)", Value = {Min = 0.05, Max = 1, Default = 0.01}, Callback = function(v) _G.AuraDelay = v end})
 
 local MultiplexQueue = {}
-local MAX_PAYLOAD = 80 
+local MAX_PAYLOAD = 250
 local NukeWeaponDef = { attackCycle = { ["1"] = {knockbackMul=0, slowMult=1, attackTime=0, lungeMul=0, slowTime=0, hitboxSizeAdd = v3_new(9e9, 9e9, 9e9)} }, attackOrder = {"1", "1", "1", "1"} }
 local NukeCycleData = {knockbackMul=0, slowMult=1, attackTime=0, lungeMul=0, slowTime=0}
 
@@ -445,27 +467,30 @@ FarmSec:Slider({ Title = "Auto Hit Range", Value = {Min = 5, Max = 1000, Default
 _G.AutoFarm = false
 FarmSec:Toggle({ Title = "Auto Farm", Desc = "Dịch chuyển sau lưng quái", Value = false, Callback = function(v) _G.AutoFarm = v end})
 
-task.spawn(function()
-    while true do
-        task.wait(0.05)
-        local Char = LocalPlayer.Character
-        if Char and Char:FindFirstChild("HumanoidRootPart") and not _G.KillAll then
-            local target = getNearestTarget()
-            if target and target:FindFirstChild("HumanoidRootPart") then
-                local hrp = Char.HumanoidRootPart
-                local tHrp = target.HumanoidRootPart
-                local myPos = (_G.DesyncGodMode and _G.LastSafeCFrame) and _G.LastSafeCFrame.Position or hrp.Position
-                local dist = (tHrp.Position - myPos).Magnitude
+local lastFarmTick = 0
+RunService.Heartbeat:Connect(function()
+    if not _G.AutoFarm and not _G.AutoHit then return end
+    if _G.KillAll then return end 
+    if tick_now() - lastFarmTick < 0.03 then return end
+    lastFarmTick = tick_now()
 
-                if _G.AutoFarm then
-                    if _G.DesyncGodMode and _G.LastSafeCFrame then _G.LastSafeCFrame = tHrp.CFrame * cf_new(0, 0, 3) else hrp.CFrame = tHrp.CFrame * cf_new(0, 0, 3); hrp.Velocity = v3_new(0,0,0) end
-                    for i = 1, _G.AuraSpam do t_insert(MultiplexQueue, { knockback = 0, isClosestEnemy = true, origin = hrp.Position, enemyModel = target, distance = 3, direction = Vector3.zAxis }) end
-                    if _G.DesyncGodMode and _G.LastSafeCFrame then _G.LastSafeCFrame = tHrp.CFrame * cf_new(0, 25, 0) else hrp.CFrame = tHrp.CFrame * cf_new(0, 25, 0) end
-                
-                elseif _G.AutoHit and dist <= _G.HitRange then
-                    local dir = dist > 0 and (tHrp.Position - myPos).Unit or Vector3.zAxis
-                    for i = 1, _G.AuraSpam do t_insert(MultiplexQueue, { knockback = 0, isClosestEnemy = true, origin = myPos, enemyModel = target, distance = dist, direction = dir }) end
-                end
+    local Char = LocalPlayer.Character
+    if Char and Char:FindFirstChild("HumanoidRootPart") then
+        local target = getNearestTarget()
+        if target and target:FindFirstChild("HumanoidRootPart") then
+            local hrp = Char.HumanoidRootPart
+            local tHrp = target.HumanoidRootPart
+            local myPos = (_G.DesyncGodMode and _G.LastSafeCFrame) and _G.LastSafeCFrame.Position or hrp.Position
+            local dist = (tHrp.Position - myPos).Magnitude
+
+            if _G.AutoFarm then
+                if _G.DesyncGodMode and _G.LastSafeCFrame then _G.LastSafeCFrame = tHrp.CFrame * cf_new(0, 0, 3) else hrp.CFrame = tHrp.CFrame * cf_new(0, 0, 3); hrp.Velocity = v3_new(0,0,0) end
+                for i = 1, _G.AuraSpam do t_insert(MultiplexQueue, { knockback = 0, isClosestEnemy = true, origin = hrp.Position, enemyModel = target, distance = 3, direction = Vector3.zAxis }) end
+                if _G.DesyncGodMode and _G.LastSafeCFrame then _G.LastSafeCFrame = tHrp.CFrame * cf_new(0, 25, 0) else hrp.CFrame = tHrp.CFrame * cf_new(0, 25, 0) end
+            
+            elseif _G.AutoHit and dist <= _G.HitRange then
+                local dir = dist > 0 and (tHrp.Position - myPos).Unit or Vector3.zAxis
+                for i = 1, _G.AuraSpam do t_insert(MultiplexQueue, { knockback = 0, isClosestEnemy = true, origin = myPos, enemyModel = target, distance = dist, direction = dir }) end
             end
         end
     end
@@ -473,7 +498,7 @@ end)
 
 local lastNetTick = 0
 RunService.Heartbeat:Connect(function()
-    if #MultiplexQueue > 3000 then MultiplexQueue = {} end 
+    if #MultiplexQueue > 5000 then MultiplexQueue = {} end 
     
     if #MultiplexQueue == 0 then return end
     if tick_now() - lastNetTick < _G.AuraDelay then return end

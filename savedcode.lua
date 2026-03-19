@@ -1,7 +1,16 @@
 print("Loading script maybe take a few seconds to complete")
 game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Purium On Top!", Text = "Loading...", Duration = 1.5 })
+local t_insert = table.insert
+local t_remove = table.remove
+local v3_new = Vector3.new
+local cf_new = CFrame.new
+local math_min = math.min
+local math_abs = math.abs
+local math_floor = math.floor
+local str_lower = string.lower
+local str_find = string.find
+local tick_now = tick
 
--- Ép FPS để mượt hơn
 pcall(function() if setfpscap then setfpscap(144) end end)
 
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
@@ -113,12 +122,14 @@ local function getNearestTarget()
     local minDist = math.huge
     local char = LocalPlayer.Character
     if not char or not char:FindFirstChild("HumanoidRootPart") then return nil end
+    local myPos = char.HumanoidRootPart.Position
+
     for _, p in ipairs(Players:GetPlayers()) do
         if p ~= LocalPlayer and p.Character then
             local hrp = p.Character:FindFirstChild("HumanoidRootPart")
             local hum = p.Character:FindFirstChild("Humanoid")
             if hrp and hum and hum.Health > 0 then
-                local dist = (hrp.Position - char.HumanoidRootPart.Position).Magnitude
+                local dist = (hrp.Position - myPos).Magnitude
                 if dist < minDist then minDist = dist; nearest = p.Character end
             end
         end
@@ -387,25 +398,26 @@ CombatSec:Slider({ Title = "Kill Radius", Value = {Min = 100, Max = 10000, Defau
 CombatSec:Slider({ Title = "Hits Per Target (Batch)", Value = {Min = 1, Max = 100, Default = 30}, Callback = function(v) _G.AuraSpam = v end})
 CombatSec:Slider({ Title = "Ping Stabilizer (Delay)", Value = {Min = 0.05, Max = 1, Default = 0.01}, Callback = function(v) _G.AuraDelay = v end})
 
-local NukeWeaponDef = { attackCycle = { ["1"] = {knockbackMul=0, slowMult=1, attackTime=0, lungeMul=0, slowTime=0, hitboxSizeAdd = Vector3.new(9e9, 9e9, 9e9)} }, attackOrder = {"1", "1", "1", "1"} }
+local MultiplexQueue = {}
+local MAX_PAYLOAD = 80 
+local NukeWeaponDef = { attackCycle = { ["1"] = {knockbackMul=0, slowMult=1, attackTime=0, lungeMul=0, slowTime=0, hitboxSizeAdd = v3_new(9e9, 9e9, 9e9)} }, attackOrder = {"1", "1", "1", "1"} }
 local NukeCycleData = {knockbackMul=0, slowMult=1, attackTime=0, lungeMul=0, slowTime=0}
-local lastNukeTick = 0
+
+local FastInvoke = GameRemote.InvokeServer
+local function FireBatch(payload)
+    local tool = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Tool") or LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
+    if not tool then return end
+    task.spawn(FastInvoke, GameRemote, "AttemptWeaponHit", { attackCycleData = NukeCycleData, weaponDefinition = NukeWeaponDef, tool = tool, damage = 9e9, hitboxSize = v3_new(9e9, 9e9, 9e9), isCritical = true, shouldSlow = false }, payload)
+end
 
 RunService.PostSimulation:Connect(function()
     if not _G.KillAll then return end
-    
-    local currentTime = tick()
-    if currentTime - lastNukeTick < _G.AuraDelay then return end
-    lastNukeTick = currentTime
-
     local Char = LocalPlayer.Character
-    local MyTool = Char and Char:FindFirstChildOfClass("Tool") or LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
-    if not Char or not MyTool or not Char:FindFirstChild("HumanoidRootPart") then return end
+    if not Char or not Char:FindFirstChild("HumanoidRootPart") then return end
     
     local myPos = Char.HumanoidRootPart.Position
 
     task.defer(function()
-        local hitArray = {}
         for _, p in ipairs(Players:GetPlayers()) do
             if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
                 local tChar = p.Character
@@ -417,81 +429,60 @@ RunService.PostSimulation:Connect(function()
                     if dist <= _G.AuraRadius then
                         local dir = dist > 0 and (hrp.Position - myPos).Unit or Vector3.zAxis
                         local singleHit = { knockback = 0, isClosestEnemy = true, origin = myPos, enemyModel = tChar, distance = dist, direction = dir }
-                        for i = 1, _G.AuraSpam do table.insert(hitArray, singleHit) end
+                        for i = 1, _G.AuraSpam do t_insert(MultiplexQueue, singleHit) end
                     end
                 end
             end
         end
-
-        if #hitArray > 0 then
-            task.spawn(function()
-                pcall(function() 
-                    GameRemote:InvokeServer("AttemptWeaponHit", { attackCycleData = NukeCycleData, weaponDefinition = NukeWeaponDef, tool = MyTool, damage = 9e9, hitboxSize = Vector3.new(9e9, 9e9, 9e9), isCritical = true, shouldSlow = false }, hitArray)
-                end)
-            end)
-        end
     end)
 end)
 
-CombatTab:Space()
-
 local FarmSec = CombatTab:Section({ Title = "Auto Farm & Target", Icon = "crosshair", Opened = true, Box = true })
 _G.AutoHit = false; _G.HitRange = 15
-FarmSec:Toggle({ Title = "Auto Hit By Distance", Desc = "Tự động chém kẻ địch lại gần", Value = false, Callback = function(v) _G.AutoHit = v end})
+FarmSec:Toggle({ Title = "Auto Hit By Distance", Desc = "Chém kẻ địch lại gần", Value = false, Callback = function(v) _G.AutoHit = v end})
 FarmSec:Slider({ Title = "Auto Hit Range", Value = {Min = 5, Max = 1000, Default = 15}, Callback = function(v) _G.HitRange = v end})
+
+_G.AutoFarm = false
+FarmSec:Toggle({ Title = "Auto Farm", Desc = "Dịch chuyển sau lưng quái", Value = false, Callback = function(v) _G.AutoFarm = v end})
 
 task.spawn(function()
     while true do
-        task.wait(0.1)
-        if _G.AutoHit and not _G.KillAll then
-            pcall(function()
-                local Char = LocalPlayer.Character
-                if Char and Char:FindFirstChild("HumanoidRootPart") then
-                    local target = getNearestTarget()
-                    if target and target:FindFirstChild("HumanoidRootPart") then
-                        local myPos = (_G.DesyncGodMode and _G.LastSafeCFrame) and _G.LastSafeCFrame.Position or Char.HumanoidRootPart.Position
-                        local dist = (target.HumanoidRootPart.Position - myPos).Magnitude
-                        if dist <= _G.HitRange then 
-                            local MyTool = Char:FindFirstChildOfClass("Tool")
-                            if MyTool then
-                                local hitArray = {}
-                                local dir = dist > 0 and (target.HumanoidRootPart.Position - myPos).Unit or Vector3.zAxis
-                                for i = 1, _G.AuraSpam do table.insert(hitArray, { knockback = 0, isClosestEnemy = true, origin = myPos, enemyModel = target, distance = dist, direction = dir }) end
-                                task.spawn(function() pcall(function() GameRemote:InvokeServer("AttemptWeaponHit", { attackCycleData = NukeCycleData, weaponDefinition = NukeWeaponDef, tool = MyTool, damage = 9e9, hitboxSize = Vector3.new(9e9, 9e9, 9e9), isCritical = true, shouldSlow = false }, hitArray) end) end)
-                            end
-                        end
-                    end
+        task.wait(0.05)
+        local Char = LocalPlayer.Character
+        if Char and Char:FindFirstChild("HumanoidRootPart") and not _G.KillAll then
+            local target = getNearestTarget()
+            if target and target:FindFirstChild("HumanoidRootPart") then
+                local hrp = Char.HumanoidRootPart
+                local tHrp = target.HumanoidRootPart
+                local myPos = (_G.DesyncGodMode and _G.LastSafeCFrame) and _G.LastSafeCFrame.Position or hrp.Position
+                local dist = (tHrp.Position - myPos).Magnitude
+
+                if _G.AutoFarm then
+                    if _G.DesyncGodMode and _G.LastSafeCFrame then _G.LastSafeCFrame = tHrp.CFrame * cf_new(0, 0, 3) else hrp.CFrame = tHrp.CFrame * cf_new(0, 0, 3); hrp.Velocity = v3_new(0,0,0) end
+                    for i = 1, _G.AuraSpam do t_insert(MultiplexQueue, { knockback = 0, isClosestEnemy = true, origin = hrp.Position, enemyModel = target, distance = 3, direction = Vector3.zAxis }) end
+                    if _G.DesyncGodMode and _G.LastSafeCFrame then _G.LastSafeCFrame = tHrp.CFrame * cf_new(0, 25, 0) else hrp.CFrame = tHrp.CFrame * cf_new(0, 25, 0) end
+                
+                elseif _G.AutoHit and dist <= _G.HitRange then
+                    local dir = dist > 0 and (tHrp.Position - myPos).Unit or Vector3.zAxis
+                    for i = 1, _G.AuraSpam do t_insert(MultiplexQueue, { knockback = 0, isClosestEnemy = true, origin = myPos, enemyModel = target, distance = dist, direction = dir }) end
                 end
-            end)
+            end
         end
     end
 end)
 
-_G.AutoFarm = false
-FarmSec:Toggle({ Title = "Auto Farm", Desc = "Teleport behind targets and eliminate them", Value = false, Callback = function(v) _G.AutoFarm = v end})
-task.spawn(function()
-    while true do
-        task.wait(0.1)
-        if _G.AutoFarm and not _G.KillAll then
-            pcall(function()
-                local Char = LocalPlayer.Character
-                if Char and Char:FindFirstChild("HumanoidRootPart") then
-                    local target = getNearestTarget()
-                    if target and target:FindFirstChild("HumanoidRootPart") then
-                        local hrp = Char.HumanoidRootPart; local tHrp = target.HumanoidRootPart
-                        if _G.DesyncGodMode and _G.LastSafeCFrame then _G.LastSafeCFrame = tHrp.CFrame * CFrame.new(0, 0, 3) else hrp.CFrame = tHrp.CFrame * CFrame.new(0, 0, 3); hrp.Velocity = Vector3.new(0,0,0) end
-                        local MyTool = Char:FindFirstChildOfClass("Tool")
-                        if MyTool then
-                            local hitArray = {}
-                            for i = 1, _G.AuraSpam do table.insert(hitArray, { knockback = 0, isClosestEnemy = true, origin = hrp.Position, enemyModel = target, distance = 3, direction = Vector3.zAxis }) end
-                            task.spawn(function() pcall(function() GameRemote:InvokeServer("AttemptWeaponHit", { attackCycleData = NukeCycleData, weaponDefinition = NukeWeaponDef, tool = MyTool, damage = 9e9, hitboxSize = Vector3.new(9e9, 9e9, 9e9), isCritical = true, shouldSlow = false }, hitArray) end) end)
-                        end
-                        if _G.DesyncGodMode and _G.LastSafeCFrame then _G.LastSafeCFrame = tHrp.CFrame * CFrame.new(0, 25, 0) else hrp.CFrame = tHrp.CFrame * CFrame.new(0, 25, 0) end
-                    end
-                end
-            end)
-        end
-    end
+local lastNetTick = 0
+RunService.Heartbeat:Connect(function()
+    if #MultiplexQueue > 3000 then MultiplexQueue = {} end 
+    
+    if #MultiplexQueue == 0 then return end
+    if tick_now() - lastNetTick < _G.AuraDelay then return end
+    lastNetTick = tick_now()
+
+    local payloadChunk = {}
+    local processCount = math_min(#MultiplexQueue, MAX_PAYLOAD)
+    for i = 1, processCount do t_insert(payloadChunk, t_remove(MultiplexQueue, 1)) end
+    if #payloadChunk > 0 then FireBatch(payloadChunk) end
 end)
 
 local AimSec = CombatTab:Section({ Title = "Aimbot Configuration", Icon = "crosshair", Opened = true, Box = true })

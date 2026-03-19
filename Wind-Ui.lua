@@ -1,7 +1,6 @@
 print("Loading script maybe take a few seconds to complete")
 game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Purium On Top!", Text = "Injecting Singularity Engine...", Duration = 1.5 })
 
--- TỐI ƯU HÓA ENGINE CẤP THẤP (Micro-Optimizations)
 local t_insert = table.insert
 local t_remove = table.remove
 local v3_new = Vector3.new
@@ -26,7 +25,6 @@ local Window = WindUI:CreateWindow({
 
 Window:EditOpenButton({ Title = "Open Purium", Icon = "crown", CornerRadius = UDim.new(0,16), Draggable = true })
 
--- Khởi tạo Themes
 local themesData = {
     { Name = "Amethyst", Accent = Color3.fromHex("7E2CB6"), Dialog = Color3.fromHex("321E46"), Outline = Color3.fromHex("552D78"), Text = Color3.fromHex("F0F0F0"), Placeholder = Color3.fromHex("AAAAAA"), Background = Color3.fromHex("280C47"), Button = Color3.fromHex("733796"), Icon = Color3.fromHex("AAAAAA"), Toggle = Color3.fromHex("7E2CB6"), Slider = Color3.fromHex("7E2CB6"), Checkbox = Color3.fromHex("7E2CB6"), PanelBackground = Color3.fromHex("FFFFFF"), PanelBackgroundTransparency = 0.95, SliderIcon = Color3.fromHex("AAAAAA"), Primary = Color3.fromHex("7E2CB6"), LabelBackground = Color3.fromHex("000000"), LabelBackgroundTransparency = 0.85 },
     { Name = "Balloon", Accent = Color3.fromHex("64AAFF"), Dialog = Color3.fromHex("BDE6FF"), Outline = Color3.fromHex("82AAE6"), Text = Color3.fromHex("1E1E1E"), Placeholder = Color3.fromHex("5A5A5A"), Background = Color3.fromHex("BDE0FF"), Button = Color3.fromHex("A0C8FF"), Icon = Color3.fromHex("5A5A5A"), Toggle = Color3.fromHex("64AAFF"), Slider = Color3.fromHex("64AAFF"), Checkbox = Color3.fromHex("64AAFF"), PanelBackground = Color3.fromHex("FFFFFF"), PanelBackgroundTransparency = 0, SliderIcon = Color3.fromHex("5A5A5A"), Primary = Color3.fromHex("64AAFF"), LabelBackground = Color3.fromHex("FFFFFF"), LabelBackgroundTransparency = 0 },
@@ -54,7 +52,6 @@ local Camera = Workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 local GameRemote = ReplicatedStorage:WaitForChild("Events"):WaitForChild("GameRemoteFunction")
 
--- BIẾN TOÀN CỤC CỦA HỆ THỐNG
 _G.AntiSlow = false
 _G.AntiKickEnabled = false
 _G.InfiniteInvis = false
@@ -64,12 +61,9 @@ _G.SpoofStats = false
 _G.BlockNewIndex = false
 _G.KillAll = false
 _G.AuraRadius = 5000
-_G.AuraSpam = 30
-_G.AuraDelay = 0.05
+_G.AuraSpam = 100
+_G.AuraDelay = 0.03
 
--- =======================================================
--- LÕI HOOK 3 LỚP (TÀNG HÌNH & CHỐNG ANTI-CHEAT)
--- =======================================================
 local mt = getrawmetatable(game)
 local oldIndex = mt.__index
 local oldNewIndex = mt.__newindex
@@ -99,11 +93,8 @@ mt.__namecall = newcclosure(function(self, ...)
     
     if not checkcaller() then
         if _G.AntiKickEnabled and (method == "Kick" or method == "kick") then return nil end
-        
         if method == "InvokeServer" or method == "FireServer" then
             if _G.InfiniteInvis and args[1] == "SendMessage" and args[2] == "WeaponSwung" then return nil end
-            
-            -- Anti-Slow Remote Masking
             if _G.AntiSlow and args[1] == "AttemptWeaponHit" and type(args[2]) == "table" then
                 args[2].shouldSlow = false
                 args[2].cycleIndex = 1 
@@ -123,9 +114,6 @@ mt.__namecall = newcclosure(function(self, ...)
 end)
 setreadonly(mt, true)
 
--- =======================================================
--- TẠO CÁC TAB CHÍNH
--- =======================================================
 local BypassTab = Window:Tab({ Title = "Server Modification", Icon = "shield-alert" })
 local CombatTab = Window:Tab({ Title = "Combat & Farm", Icon = "swords" })
 local MoveTab = Window:Tab({ Title = "Movement & Fling", Icon = "move" })
@@ -153,20 +141,17 @@ local function getNearestTarget()
     return nearest
 end
 
--- =======================================================
--- TAB BYPASS
--- =======================================================
 local AntiCheatSec = BypassTab:Section({ Title = "Anti-Cheat Protection", Icon = "shield", Opened = true, Box = true })
-AntiCheatSec:Toggle({ Title = "Master Bypass", Desc = "Bật để tàng hình trước Server", Value = false, Callback = function(v) _G.MasterBypass = v end })
-AntiCheatSec:Toggle({ Title = "Spoof Stats (Index)", Desc = "Lừa Server về tốc độ của bạn", Value = false, Callback = function(v) _G.SpoofStats = v end })
-AntiCheatSec:Toggle({ Title = "Block Server Edit (NewIndex)", Desc = "Chặn hacker khác tác động lên bạn", Value = false, Callback = function(v) _G.BlockNewIndex = v end })
+AntiCheatSec:Toggle({ Title = "Master Bypass", Desc = "Enable to hide from server anti-cheat", Value = false, Callback = function(v) _G.MasterBypass = v end })
+AntiCheatSec:Toggle({ Title = "Spoof Stats (Index)", Desc = "Spoof your speed and jump power", Value = false, Callback = function(v) _G.SpoofStats = v end })
+AntiCheatSec:Toggle({ Title = "Block Server Edit (NewIndex)", Desc = "Prevent other hackers from modifying your stats", Value = false, Callback = function(v) _G.BlockNewIndex = v end })
 
 local GodSec = BypassTab:Section({ Title = "Modifications", Icon = "shield", Opened = true, Box = true })
 GodSec:Toggle({ Title = "Enable Anti-Kick", Desc = "Blocks server from kicking you", Value = false, Callback = function(v) _G.AntiKickEnabled = v end})
 
 GodSec:Divider()
 _G.TeleportWalk = false; _G.TPWalkValue = 2
-GodSec:Toggle({ Title = "Teleport Walk", Desc = "Safer And Better than walkspeed", Value = false, Callback = function(v) _G.TeleportWalk = v end})
+GodSec:Toggle({ Title = "Teleport Walk", Desc = "Safer and better than WalkSpeed", Value = false, Callback = function(v) _G.TeleportWalk = v end})
 GodSec:Slider({ Title = "Teleport Walk Distance", Value = {Min = 1, Max = 10, Default = 2}, Callback = function(v) _G.TPWalkValue = v end})
 
 RunService.Heartbeat:Connect(function()
@@ -200,7 +185,7 @@ SupportSection:Button({ Title = "Rejoin Server (Manual)", Desc = "Use when stuck
 
 local GodModeSec = BypassTab:Section({ Title = "God Mode Settings", Icon = "heart", Opened = true, Box = true })
 _G.DesyncGodMode = false
-GodModeSec:Toggle({ Title = "God Mode (Desync)", Desc = "Make You Invincible to standard hits", Value = false, Callback = function(v) 
+GodModeSec:Toggle({ Title = "God Mode (Desync)", Desc = "Make you invincible to standard hits", Value = false, Callback = function(v) 
     _G.DesyncGodMode = v 
     pcall(function()
         if not v then
@@ -255,27 +240,23 @@ RunService.RenderStepped:Connect(function()
 end)
 LocalPlayer.CharacterAdded:Connect(function() pcall(function() local cp = Workspace:FindFirstChild("PuriumCamPart"); if cp then cp:Destroy() end end) end)
 
--- =======================================================
--- TAB COMBAT: MULTIPLEXING ENGINE (SIÊU TỐC ĐỘ)
--- =======================================================
 local CombatSec = CombatTab:Section({ Title = "Attack Settings", Icon = "crosshair", Opened = true, Box = true })
-CombatSec:Toggle({ Title = "Ghost Mode (Infinite Invis)", Value = false, Callback = function(v) _G.InfiniteInvis = v end})
+CombatSec:Toggle({ Title = "Ghost Mode (Infinite Invis)", Desc = "Turn completely invisible", Value = false, Callback = function(v) _G.InfiniteInvis = v end})
 CombatSec:Toggle({ Title = "Enable Anti-Slow", Desc = "Remove movement penalty while swinging weapon", Value = false, Callback = function(v) _G.AntiSlow = v end})
 
 CombatSec:Divider()
 local KillSec = CombatTab:Section({ Title = "MULTIPLEXING KILL ALL", Icon = "zap", Opened = true, Box = true })
-KillSec:Toggle({ Title = "Enable Kill All", Desc = "Tự động chém diện rộng", Value = false, Callback = function(v) _G.KillAll = v end})
+KillSec:Toggle({ Title = "Enable Kill All", Desc = "Automatically attack players in a wide area", Value = false, Callback = function(v) _G.KillAll = v end})
 KillSec:Slider({ Title = "Kill Radius", Value = {Min = 100, Max = 10000, Default = 5000}, Callback = function(v) _G.AuraRadius = v end})
-KillSec:Slider({ Title = "Hits Per Target", Value = {Min = 1, Max = 100, Default = 30}, Callback = function(v) _G.AuraSpam = v end})
-KillSec:Slider({ Title = "Ping Stabilizer (Delay)", Value = {Min = 0.01, Max = 0.5, Default = 0.05}, Callback = function(v) _G.AuraDelay = v end})
+KillSec:Slider({ Title = "Hits Per Target", Value = {Min = 1, Max = 1000, Default = 100}, Callback = function(v) _G.AuraSpam = v end})
+KillSec:Slider({ Title = "Ping Stabilizer (Delay)", Value = {Min = 0.01, Max = 0.5, Default = 0.03}, Callback = function(v) _G.AuraDelay = v end})
 
--- [TRẠM MULTIPLEXER]
 local MultiplexQueue = {}
-local MAX_PAYLOAD = 80 -- Tối ưu để không bao giờ bị nghẽn mạng hay tràn RAM
+local MAX_PAYLOAD = 300 
+
 local NukeWeaponDef = { attackCycle = { ["1"] = {knockbackMul=0, slowMult=1, attackTime=0, lungeMul=0, slowTime=0, hitboxSizeAdd = v3_new(9e9, 9e9, 9e9)} }, attackOrder = {"1", "1", "1", "1"} }
 local NukeCycleData = {knockbackMul=0, slowMult=1, attackTime=0, lungeMul=0, slowTime=0}
 
--- Wrapper gọi trực tiếp C-Closure
 local FastInvoke = GameRemote.InvokeServer
 local function FireBatch(payload)
     local tool = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Tool") or LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
@@ -283,7 +264,6 @@ local function FireBatch(payload)
     task.spawn(FastInvoke, GameRemote, "AttemptWeaponHit", { attackCycleData = NukeCycleData, weaponDefinition = NukeWeaponDef, tool = tool, damage = 9e9, hitboxSize = v3_new(9e9, 9e9, 9e9), isCritical = true, shouldSlow = false }, payload)
 end
 
--- Luồng quét (Scanner) đẩy dữ liệu vào Queue
 RunService.PostSimulation:Connect(function()
     if not _G.KillAll then return end
     local Char = LocalPlayer.Character
@@ -313,43 +293,45 @@ end)
 
 local FarmSec = CombatTab:Section({ Title = "Auto Farm & Target", Icon = "crosshair", Opened = true, Box = true })
 _G.AutoHit = false; _G.HitRange = 15
-FarmSec:Toggle({ Title = "Auto Hit By Distance", Desc = "Chém kẻ địch lại gần", Value = false, Callback = function(v) _G.AutoHit = v end})
+FarmSec:Toggle({ Title = "Auto Hit By Distance", Desc = "Automatically attack nearby enemies", Value = false, Callback = function(v) _G.AutoHit = v end})
 FarmSec:Slider({ Title = "Auto Hit Range", Value = {Min = 5, Max = 1000, Default = 15}, Callback = function(v) _G.HitRange = v end})
 
 _G.AutoFarm = false
-FarmSec:Toggle({ Title = "Auto Farm", Desc = "Dịch chuyển sau lưng quái", Value = false, Callback = function(v) _G.AutoFarm = v end})
+FarmSec:Toggle({ Title = "Auto Farm", Desc = "Teleport behind enemies and attack", Value = false, Callback = function(v) _G.AutoFarm = v end})
 
--- Luồng AutoHit / AutoFarm bơm dữ liệu vào chung Trạm Multiplexer
-task.spawn(function()
-    while true do
-        task.wait(0.05)
-        local Char = LocalPlayer.Character
-        if Char and Char:FindFirstChild("HumanoidRootPart") and not _G.KillAll then
-            local target = getNearestTarget()
-            if target and target:FindFirstChild("HumanoidRootPart") then
-                local hrp = Char.HumanoidRootPart
-                local tHrp = target.HumanoidRootPart
-                local myPos = (_G.DesyncGodMode and _G.LastSafeCFrame) and _G.LastSafeCFrame.Position or hrp.Position
-                local dist = (tHrp.Position - myPos).Magnitude
+local lastFarmTick = 0
+RunService.Heartbeat:Connect(function()
+    if not _G.AutoFarm and not _G.AutoHit then return end
+    if _G.KillAll then return end
+    
+    if tick_now() - lastFarmTick < 0.03 then return end
+    lastFarmTick = tick_now()
 
-                if _G.AutoFarm then
-                    if _G.DesyncGodMode and _G.LastSafeCFrame then _G.LastSafeCFrame = tHrp.CFrame * cf_new(0, 0, 3) else hrp.CFrame = tHrp.CFrame * cf_new(0, 0, 3); hrp.Velocity = v3_new(0,0,0) end
-                    for i = 1, _G.AuraSpam do t_insert(MultiplexQueue, { knockback = 0, isClosestEnemy = true, origin = hrp.Position, enemyModel = target, distance = 3, direction = Vector3.zAxis }) end
-                    if _G.DesyncGodMode and _G.LastSafeCFrame then _G.LastSafeCFrame = tHrp.CFrame * cf_new(0, 25, 0) else hrp.CFrame = tHrp.CFrame * cf_new(0, 25, 0) end
-                
-                elseif _G.AutoHit and dist <= _G.HitRange then
-                    local dir = dist > 0 and (tHrp.Position - myPos).Unit or Vector3.zAxis
-                    for i = 1, _G.AuraSpam do t_insert(MultiplexQueue, { knockback = 0, isClosestEnemy = true, origin = myPos, enemyModel = target, distance = dist, direction = dir }) end
-                end
+    local Char = LocalPlayer.Character
+    if Char and Char:FindFirstChild("HumanoidRootPart") then
+        local target = getNearestTarget()
+        if target and target:FindFirstChild("HumanoidRootPart") then
+            local hrp = Char.HumanoidRootPart
+            local tHrp = target.HumanoidRootPart
+            local myPos = (_G.DesyncGodMode and _G.LastSafeCFrame) and _G.LastSafeCFrame.Position or hrp.Position
+            local dist = (tHrp.Position - myPos).Magnitude
+
+            if _G.AutoFarm then
+                if _G.DesyncGodMode and _G.LastSafeCFrame then _G.LastSafeCFrame = tHrp.CFrame * cf_new(0, 0, 3) else hrp.CFrame = tHrp.CFrame * cf_new(0, 0, 3); hrp.Velocity = v3_new(0,0,0) end
+                for i = 1, _G.AuraSpam do t_insert(MultiplexQueue, { knockback = 0, isClosestEnemy = true, origin = hrp.Position, enemyModel = target, distance = 3, direction = Vector3.zAxis }) end
+                if _G.DesyncGodMode and _G.LastSafeCFrame then _G.LastSafeCFrame = tHrp.CFrame * cf_new(0, 25, 0) else hrp.CFrame = tHrp.CFrame * cf_new(0, 25, 0) end
+            
+            elseif _G.AutoHit and dist <= _G.HitRange then
+                local dir = dist > 0 and (tHrp.Position - myPos).Unit or Vector3.zAxis
+                for i = 1, _G.AuraSpam do t_insert(MultiplexQueue, { knockback = 0, isClosestEnemy = true, origin = myPos, enemyModel = target, distance = dist, direction = dir }) end
             end
         end
     end
 end)
 
--- LUỒNG GỬI MẠNG (Độc lập, giải quyết mọi vấn đề về Ping)
 local lastNetTick = 0
 RunService.Heartbeat:Connect(function()
-    if #MultiplexQueue > 3000 then MultiplexQueue = {} end 
+    if #MultiplexQueue > 10000 then MultiplexQueue = {} end 
     
     if #MultiplexQueue == 0 then return end
     if tick_now() - lastNetTick < _G.AuraDelay then return end
@@ -361,9 +343,6 @@ RunService.Heartbeat:Connect(function()
     if #payloadChunk > 0 then FireBatch(payloadChunk) end
 end)
 
--- =======================================================
--- CÁC TAB CÒN LẠI (HITBOX, FLING, ESP, SETTING)
--- =======================================================
 local HitboxSec = BypassTab:Section({ Title = "Hitbox Expander", Icon = "maximize", Opened = true, Box = true })
 _G.HitboxStatus = false; _G.HitboxSize = 25; _G.HitboxTransparency = 70; _G.HitboxColorMode = "Pre-defined"; _G.HitboxStyle = "Red (Default)"; _G.HitboxCustomRGB = "255, 0, 0"; _G.HitboxCustomHEX = "#FF0000"
 
@@ -455,19 +434,26 @@ end)
 
 local FlingSec = MoveTab:Section({ Title = "Physics Fling Exploits", Icon = "wind", Opened = true, Box = true })
 _G.AntiFling = false
-FlingSec:Toggle({ Title = "Anti Fling", Desc = "", Value = false, Callback = function(v) _G.AntiFling = v end})
+FlingSec:Toggle({ Title = "Anti Fling", Desc = "Ghost mode to prevent being flung", Value = false, Callback = function(v) _G.AntiFling = v end})
 
 FlingSec:Divider()
 _G.FlingMode = "Spin Fling"
 FlingSec:Dropdown({ Title = "Select Fling Mode", Values = {"Spin Fling", "Teleport & Fling", "Touch Fling"}, Value = "Spin Fling", Callback = function(v) _G.FlingMode = v end})
 _G.FlingTarget = ""
-FlingSec:Input({ Title = "Target Name (For Teleport)", Desc = "Enter part of the target's name", Value = "", Callback = function(v) _G.FlingTarget = v end})
+FlingSec:Input({ Title = "Target Name (For Teleport)", Desc = "Enter target's name to fling", Value = "", Callback = function(v) _G.FlingTarget = v end})
 _G.FlingPower = 50000
 FlingSec:Slider({ Title = "Fling Power", Desc = "Rotation speed for maximum fling", Value = {Min = 1000, Max = 100000, Default = 50000}, Callback = function(v) _G.FlingPower = v end})
 _G.FlingActive = false
 FlingSec:Toggle({ Title = "Enable Fling", Desc = "Activate physics destroyer", Value = false, Callback = function(v) 
     _G.FlingActive = v 
-    if not v then pcall(function() local hrp = LocalPlayer.Character.HumanoidRootPart; hrp.AssemblyAngularVelocity = v3_new(0,0,0); local bav = hrp:FindFirstChild("PuriumFlingBAV"); if bav then bav:Destroy() end end) end
+    if not v then
+        pcall(function()
+            local hrp = LocalPlayer.Character.HumanoidRootPart
+            hrp.AssemblyAngularVelocity = v3_new(0,0,0)
+            hrp.AssemblyLinearVelocity = v3_new(0,0,0)
+            local bav = hrp:FindFirstChild("PuriumFlingBAV"); if bav then bav:Destroy() end
+        end)
+    end
 end})
 
 RunService.Stepped:Connect(function()
@@ -489,7 +475,7 @@ RunService.Heartbeat:Connect(function()
             bav.AngularVelocity = v3_new(0, _G.FlingPower, 0)
         elseif _G.FlingMode == "Touch Fling" then
             local bav = hrp:FindFirstChild("PuriumFlingBAV"); if bav then bav:Destroy() end
-            hrp.AssemblyAngularVelocity = v3_new(0, _G.FlingPower, 0); hrp.AssemblyLinearVelocity = v3_new(0, hrp.AssemblyLinearVelocity.Y, 0)
+            hrp.AssemblyAngularVelocity = v3_new(0, _G.FlingPower, 0)
         elseif _G.FlingMode == "Teleport & Fling" then
             local bav = hrp:FindFirstChild("PuriumFlingBAV"); if bav then bav:Destroy() end
             if _G.FlingTarget ~= "" then
@@ -497,9 +483,9 @@ RunService.Heartbeat:Connect(function()
                 for _, p in ipairs(Players:GetPlayers()) do if p ~= LocalPlayer and str_find(str_lower(p.Name), str_lower(_G.FlingTarget)) then tPlayer = p; break end end
                 if tPlayer and tPlayer.Character and tPlayer.Character:FindFirstChild("HumanoidRootPart") then
                     local tHrp = tPlayer.Character.HumanoidRootPart
-                    hrp.CFrame = tHrp.CFrame * cf_new(math.random(-1,1), math.random(-1,1), math.random(-1,1))
+                    hrp.CFrame = tHrp.CFrame
                     hrp.AssemblyAngularVelocity = v3_new(math.random(-_G.FlingPower, _G.FlingPower), math.random(-_G.FlingPower, _G.FlingPower), math.random(-_G.FlingPower, _G.FlingPower))
-                    hrp.AssemblyLinearVelocity = v3_new(math.random(-_G.FlingPower, _G.FlingPower), math.random(-_G.FlingPower, _G.FlingPower), math.random(-_G.FlingPower, _G.FlingPower))
+                    hrp.AssemblyLinearVelocity = v3_new(0, 0, 0)
                 end
             end
         end
@@ -636,9 +622,9 @@ task.spawn(function()
     task.wait(0.8)
     pcall(function() Window:Minimize() end)
     pcall(function() Window:Toggle() end)
-    WindUI:Notify({ Title = "UI Minimized", Content = "The Ui Automatic Minimized You Can Open By Click The Ui On The Bottom", Duration = 2 })
+    WindUI:Notify({ Title = "UI Minimized", Content = "The UI is minimized. Click the floating icon to open.", Duration = 2 })
 end)
 
-ThemeSection:Keybind({ Title = "Keybind", Desc = "Keybind to open ui", Value = "G", Callback = function(v) Window:SetToggleKey(Enum.KeyCode[v]) end })
+ThemeSection:Keybind({ Title = "Keybind", Desc = "Keybind to open UI", Value = "G", Callback = function(v) Window:SetToggleKey(Enum.KeyCode[v]) end })
 
 print("Successfully loaded all assets! Purium on Top!")

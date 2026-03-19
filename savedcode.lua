@@ -1,5 +1,5 @@
 print("Loading script maybe take a few seconds to complete")
-game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Purium On Top!", Text = "Injecting Singularity Engine...", Duration = 3 })
+game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Purium On Top!", Text = "Loading...", Duration = 1.5 })
 
 -- Ép FPS để mượt hơn
 pcall(function() if setfpscap then setfpscap(144) end end)
@@ -46,7 +46,6 @@ _G.LastAttackTime = 0
 _G.MasterBypass = false
 _G.SpoofStats = false
 _G.BlockNewIndex = false
-_G.StripIdle = false
 _G.KillAll = false
 _G.AuraRadius = 5000
 _G.AuraSpam = 30
@@ -81,17 +80,6 @@ mt.__namecall = newcclosure(function(self, ...)
     
     if not checkcaller() then
         if _G.AntiKickEnabled and (method == "Kick" or method == "kick") then return nil end
-        
-        -- Animation Stripping (Xóa animation cầm kiếm/nhàn rỗi)
-        if method == "Play" or method == "play" then
-            if self:IsA("AnimationTrack") then
-                local animName = string.lower(self.Animation.AnimationId)
-                if _G.StripIdle and (string.find(animName, "idle") or string.find(animName, "hold") or string.find(animName, "equip")) then
-                    return nil
-                end
-            end
-        end
-
         if method == "InvokeServer" or method == "FireServer" then
             if _G.InfiniteInvis and args[1] == "SendMessage" and args[2] == "WeaponSwung" then return nil end
             if _G.AntiSlow and args[1] == "AttemptWeaponHit" and type(args[2]) == "table" then
@@ -170,13 +158,6 @@ RunService.Heartbeat:Connect(function()
 end)
 
 GodSec:Divider()
-_G.FakeLag = false
-GodSec:Toggle({ Title = "Fake Lag (Blink)", Desc = "Freeze Your Character In Others Screen", Value = false, Callback = function(v)
-    _G.FakeLag = v
-    pcall(function() settings():GetService("NetworkSettings").IncomingReplicationLag = v and 9999 or 0 end)
-end})
-
-GodSec:Divider()
 _G.AntiAFK = false
 local VirtualUser = game:GetService("VirtualUser")
 LocalPlayer.Idled:Connect(function()
@@ -242,24 +223,6 @@ RunService.RenderStepped:Connect(function()
     end)
 end)
 LocalPlayer.CharacterAdded:Connect(function() pcall(function() local cp = Workspace:FindFirstChild("PuriumCamPart"); if cp then cp:Destroy() end end) end)
-
-GodModeSec:Divider()
-_G.GodModeEnabled = false; _G.HealthValue = 1000
-GodModeSec:Toggle({ Title = "Enable Auto Heal", Desc = "Instantly restore HP when taking damage", Value = false, Callback = function(v) 
-    _G.GodModeEnabled = v
-    if not v then pcall(function() game.Players.LocalPlayer.Character.Humanoid.MaxHealth = 100 end) end 
-end})
-GodModeSec:Slider({ Title = "Health Amount", Desc = "Keep it under 100,000 to prevent game crash", Value = {Min = 100, Max = 100000, Default = 1000}, Callback = function(v) _G.HealthValue = v end})
-
-RunService.Heartbeat:Connect(function()
-    if _G.GodModeEnabled then
-        pcall(function()
-            local hum = game.Players.LocalPlayer.Character.Humanoid
-            hum.MaxHealth = _G.HealthValue
-            if hum.Health < _G.HealthValue then hum.Health = _G.HealthValue end
-        end)
-    end
-end)
 
 local HitboxSec = BypassTab:Section({ Title = "Hitbox Expander", Icon = "maximize", Opened = true, Box = true })
 _G.HitboxStatus = false; _G.HitboxSize = 25; _G.HitboxTransparency = 70; _G.HitboxColorMode = "Pre-defined"; _G.HitboxStyle = "Red (Default)"; _G.HitboxCustomRGB = "255, 0, 0"; _G.HitboxCustomHEX = "#FF0000"
@@ -470,6 +433,8 @@ RunService.PostSimulation:Connect(function()
     end)
 end)
 
+CombatTab:Space()
+
 local FarmSec = CombatTab:Section({ Title = "Auto Farm & Target", Icon = "crosshair", Opened = true, Box = true })
 _G.AutoHit = false; _G.HitRange = 15
 FarmSec:Toggle({ Title = "Auto Hit By Distance", Desc = "Tự động chém kẻ địch lại gần", Value = false, Callback = function(v) _G.AutoHit = v end})
@@ -632,6 +597,7 @@ for themeName, _ in pairs(validThemes) do table.insert(themes, themeName) end; t
 ThemeSection:Dropdown({ Title = "Theme", Desc = "Choose UI Style", Values = themes, Flag = "ThemeDropdown", Value = "Dark", Callback = function(Value) if validThemes[Value] then pcall(function() WindUI:SetTheme(Value) end) end end })
 
 SettingTab:Space()
+
 local ConfigSection = SettingTab:Section({ Title = "Config Manager", Icon = "save", Opened = true, Box = true })
 local ConfigManager = Window.ConfigManager; local configName = "Configs"; local configFile = ConfigManager:CreateConfig(configName); local savedConfigs = ConfigManager:AllConfigs()
 
@@ -650,16 +616,16 @@ ConfigSection:Button({ Title = "Load Config", Icon = "refresh-cw", Callback = fu
 Window:OnClose(function() if ConfigManager and configFile then configFile:Save() end end)
 
 task.spawn(function()
-    task.wait(1.5)
+    task.wait(0.5)
     local autoConf = getAutoLoad()
     if autoConf ~= "none" then
         configName = autoConf; configFile = ConfigManager:CreateConfig(configName)
-        pcall(function() configFile:Load(); WindUI:Notify({ Title = "Auto-Load Enabled", Content = "Loaded config: " .. configName, Duration = 3 }) end)
+        pcall(function() configFile:Load(); WindUI:Notify({ Title = "Auto-Load Enabled", Content = "Loaded config: " .. configName, Duration = 2 }) end)
     end
-    task.wait(0.5)
+    task.wait(0.8)
     pcall(function() Window:Minimize() end)
     pcall(function() Window:Toggle() end)
-    WindUI:Notify({ Title = "UI Minimized", Content = "The Ui Automatic Minimized You Can Open By Click The Ui On The Bottom", Duration = 5 })
+    WindUI:Notify({ Title = "UI Minimized", Content = "The Ui Automatic Minimized You Can Open By Click The Ui On The Bottom", Duration = 2 })
 end)
 
 ThemeSection:Keybind({ Title = "Keybind", Desc = "Keybind to open ui", Value = "G", Callback = function(v) Window:SetToggleKey(Enum.KeyCode[v]) end })

@@ -2,7 +2,7 @@ local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/rel
 local Window = WindUI:CreateWindow({
     Title = "Purium Hub [By @hlck49] | Auto Farm |", 
     Icon = "door-open", 
-    Author = "Version : 4.0 Master", 
+    Author = "Version : 5.0 Auto-RJ", 
     Folder = "Purium_Farm",
     Size = UDim2.fromOffset(580, 460), 
     MinSize = Vector2.new(560, 350), 
@@ -20,16 +20,19 @@ local Window = WindUI:CreateWindow({
 Window:EditOpenButton({ Title = "Open Purium", Icon = "monitor", CornerRadius = UDim.new(0,16), Draggable = true })
 
 WindUI:AddTheme({ Name = "Amethyst", Accent = Color3.fromHex("7E2CB6"), Dialog = Color3.fromHex("321E46"), Outline = Color3.fromHex("552D78"), Text = Color3.fromHex("F0F0F0"), Placeholder = Color3.fromHex("AAAAAA"), Background = Color3.fromHex("280C47"), Button = Color3.fromHex("733796"), Icon = Color3.fromHex("AAAAAA"), Toggle = Color3.fromHex("7E2CB6"), Slider = Color3.fromHex("7E2CB6"), Checkbox = Color3.fromHex("7E2CB6"), PanelBackground = Color3.fromHex("FFFFFF"), PanelBackgroundTransparency = 0.95, SliderIcon = Color3.fromHex("AAAAAA"), Primary = Color3.fromHex("7E2CB6"), LabelBackground = Color3.fromHex("000000"), LabelBackgroundTransparency = 0.85 })
-Window:Tag({ Title = "Master Farm & Auto Config", Icon = "save", Color = Color3.fromRGB(0, 255, 150), Radius = 10 })
+Window:Tag({ Title = "Master Farm & Auto RJ", Icon = "refresh-ccw", Color = Color3.fromRGB(255, 100, 100), Radius = 10 })
 
 -- =========================================================================
--- KHỞI TẠO SERVICES & BIẾN
+-- KHỞI TẠO SERVICES
 -- =========================================================================
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 local UserInputService = game:GetService("UserInputService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
+local TeleportService = game:GetService("TeleportService")
+local GuiService = game:GetService("GuiService")
+local CoreGui = game:GetService("CoreGui")
 
 local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
@@ -48,7 +51,7 @@ end
 -- =========================================================================
 task.spawn(function()
     while true do
-        task.wait(900) -- 900 giây = 15 phút
+        task.wait(900)
         pcall(function()
             local cam = Workspace.CurrentCamera
             if cam then
@@ -62,9 +65,61 @@ task.spawn(function()
 end)
 
 -- =========================================================================
--- GIAO DIỆN QUẢN LÝ VŨ KHÍ (WEAPON MANAGER)
+-- [TRÍCH XUẤT TỪ INFINITE YIELD] HỆ THỐNG AUTO REJOIN
+-- =========================================================================
+_G.AutoRejoin = false
+
+-- Phương pháp 1: Lắng nghe sự kiện Lỗi chung của Client
+GuiService.ErrorMessageChanged:Connect(function()
+    if _G.AutoRejoin then
+        task.wait(0.5) -- Đợi nửa giây để game xử lý lỗi xong
+        TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
+    end
+end)
+
+-- Phương pháp 2: Hook trực tiếp vào GUI Lỗi của Roblox (An toàn gấp đôi)
+pcall(function()
+    local promptOverlay = CoreGui:WaitForChild("RobloxPromptGui", 5):WaitForChild("promptOverlay", 5)
+    if promptOverlay then
+        promptOverlay.ChildAdded:Connect(function(child)
+            if _G.AutoRejoin and child.Name == 'ErrorPrompt' then
+                task.wait(0.5)
+                TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
+            end
+        end)
+    end
+end)
+
+-- =========================================================================
+-- GIAO DIỆN QUẢN LÝ
 -- =========================================================================
 local FarmTab = Window:Tab({ Title = "Auto Farm Setup", Icon = "tractor" })
+
+-- MỤC KẾT NỐI (CONNECTION)
+local ConnSec = FarmTab:Section({ Title = "Connection & Rejoin", Icon = "wifi", Opened = true, Box = true })
+
+ConnSec:Toggle({ 
+    Title = "Auto Rejoin (Chống Văng Game)", 
+    Desc = "Tự động kết nối lại ĐÚNG server này nếu bị mất mạng hoặc bị Kick.", 
+    Flag = "AutoRejoin_Flag", 
+    Value = false, 
+    Callback = function(v) 
+        _G.AutoRejoin = v 
+    end
+})
+
+ConnSec:Button({
+    Title = "Rejoin Server Ngay Lập Tức",
+    Desc = "Thoát và nạp lại server hiện tại",
+    Icon = "log-in",
+    Callback = function()
+        TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
+    end
+})
+
+FarmTab:Divider()
+
+-- MỤC VŨ KHÍ
 local WeaponSec = FarmTab:Section({ Title = "Quản lý Vũ khí (Inventory)", Opened = true, Box = true })
 
 _G.SelectedWeapon = "None"
@@ -72,18 +127,14 @@ _G.AutoEquip = false
 
 local WeaponDropdown = WeaponSec:Dropdown({ 
     Title = "Choose Weapon", 
-    Desc = "Vũ khí sẽ được lấy ra khỏi Balo",
-    Flag = "WeaponDropdown_Flag", -- Flag để lưu Config
+    Flag = "WeaponDropdown_Flag",
     Values = {"None"}, 
     Value = "None", 
-    Callback = function(val) 
-        _G.SelectedWeapon = val 
-    end 
+    Callback = function(val) _G.SelectedWeapon = val end 
 })
 
 WeaponSec:Button({
     Title = "Refresh Inventory",
-    Desc = "Cập nhật danh sách vũ khí trong hòm đồ",
     Icon = "refresh-ccw",
     Callback = function()
         local list = {}
@@ -103,21 +154,16 @@ WeaponSec:Button({
         if #list == 0 then table.insert(list, "None") end
         
         WeaponDropdown:Refresh(list)
-        WindUI:Notify({Title = "Inventory", Content = "Đã cập nhật danh sách vũ khí!", Duration = 2})
     end
 })
 
 WeaponSec:Toggle({ 
     Title = "Auto Equip Selected Weapon", 
-    Desc = "Luôn luôn tự động cầm vũ khí đã chọn", 
-    Flag = "AutoEquip_Flag", -- Flag để lưu Config
+    Flag = "AutoEquip_Flag",
     Value = false, 
-    Callback = function(v) 
-        _G.AutoEquip = v 
-    end
+    Callback = function(v) _G.AutoEquip = v end
 })
 
--- Động cơ Auto Equip vũ khí
 task.spawn(function()
     while task.wait(0.5) do
         if _G.AutoEquip and _G.SelectedWeapon ~= "None" and _G.SelectedWeapon ~= "" then
@@ -130,9 +176,7 @@ task.spawn(function()
                     local isEquipped = char:FindFirstChild(_G.SelectedWeapon)
                     if not isEquipped then
                         local tool = bp:FindFirstChild(_G.SelectedWeapon)
-                        if tool and tool:IsA("Tool") then
-                            hum:EquipTool(tool)
-                        end
+                        if tool and tool:IsA("Tool") then hum:EquipTool(tool) end
                     end
                 end
             end)
@@ -142,9 +186,7 @@ end)
 
 FarmTab:Divider()
 
--- =========================================================================
--- KHU VỰC TREO MÁY CAMERA (FARM ENVIRONMENT)
--- =========================================================================
+-- MỤC KHU VỰC FARM
 local FarmSec = FarmTab:Section({ Title = "Khu Vực Treo Máy (Static Farm)", Opened = true, Box = true })
 
 local CAM_PITCH_X = -24.0
@@ -154,9 +196,9 @@ local CAM_DISTANCE = 12
 local FARM_POSITION = Vector3.new(324, -3, -1750)
 
 FarmSec:Toggle({ 
-    Title = "Start Auto Farm (Khóa màn hình & Camera)", 
+    Title = "Start Auto Farm", 
     Desc = "Dịch chuyển -> Giả lập Shift-Lock -> Khóa Camera", 
-    Flag = "StartAutoFarm_Flag", -- Flag để lưu Config
+    Flag = "StartAutoFarm_Flag",
     Value = false, 
     Callback = function(state)
         _G.IsFarming = state
@@ -165,16 +207,13 @@ FarmSec:Toggle({
 
         if state then
             if hrp then
-                -- Dịch chuyển & Khóa chân
                 hrp.CFrame = CFrame.new(FARM_POSITION)
                 hrp.Anchored = true
                 task.wait(0.2)
 
-                -- Shift Lock ảo
                 PressKey(Enum.KeyCode.LeftShift)
                 UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
 
-                -- Khóa Camera
                 Camera.CameraType = Enum.CameraType.Scriptable
                 local radX = math.rad(CAM_PITCH_X)
                 local radY = math.rad(CAM_YAW_Y)
@@ -187,18 +226,13 @@ FarmSec:Toggle({
                         Camera.CFrame = CFrame.new(FARM_POSITION) * CFrame.Angles(radX, radY, radZ) * CFrame.new(0, 0, CAM_DISTANCE)
                     end
                 end)
-                
-                WindUI:Notify({Title = "Farm Setup", Content = "Kích hoạt khu vực Farm thành công!", Duration = 3})
             end
         else
-            -- Tắt Farm
             if farmLoop then farmLoop:Disconnect() farmLoop = nil end
             if hrp then hrp.Anchored = false end
-            
             Camera.CameraType = Enum.CameraType.Custom
             Camera.CameraSubject = char and char:FindFirstChild("Humanoid")
             UserInputService.MouseBehavior = Enum.MouseBehavior.Default
-            
             PressKey(Enum.KeyCode.LeftShift)
         end
     end
@@ -220,7 +254,7 @@ FarmSec:Button({
 })
 
 -- =========================================================================
--- SETTINGS & CONFIG MANAGER (TỰ ĐỘNG LƯU/TẢI)
+-- CONFIG MANAGER
 -- =========================================================================
 local SettingTab = Window:Tab({ Title = "Settings", Icon = "settings" })
 SettingTab:Section({ Title = "Controls", Opened = true }):Keybind({ Title = "Toggle UI Key", Flag = "UIKey_Flag", Value = "G", Callback = function(v) Window:SetToggleKey(Enum.KeyCode[v]) end })
@@ -232,81 +266,44 @@ local configFile = ConfigManager:CreateConfig(configName)
 local savedConfigs = ConfigManager:AllConfigs()
 
 local function getAutoLoad() 
-    local s, r = pcall(function() 
-        if isfile and isfile("PuriumAutoLoad.txt") then return readfile("PuriumAutoLoad.txt") end 
-    end)
-    if s and r then return r end 
-    return "none" 
+    local s, r = pcall(function() if isfile and isfile("PuriumAutoLoad.txt") then return readfile("PuriumAutoLoad.txt") end end)
+    if s and r then return r end return "none" 
 end
-
-local function setAutoLoad(name) 
-    pcall(function() 
-        if writefile then writefile("PuriumAutoLoad.txt", name) end 
-    end) 
-end
+local function setAutoLoad(name) pcall(function() if writefile then writefile("PuriumAutoLoad.txt", name) end end) end
 
 if #savedConfigs == 0 then table.insert(savedConfigs, "PuriumSaved") end
 
 local ConfigInput = ConfigSection:Input({ Title = "Tên Config", Value = configName, Callback = function(value) configName = value or "PuriumSaved" end })
 local AutoLoadToggle
-
 local ConfigDropdown = ConfigSection:Dropdown({ 
-    Title = "Chọn Config Đã Lưu", 
-    Values = savedConfigs, 
-    Value = configName, 
-    AllowNone = false, 
-    Callback = function(value) 
-        configName = value or "PuriumSaved"
-        ConfigInput:Set(configName)
-        if AutoLoadToggle then AutoLoadToggle:Set(getAutoLoad() == configName) end 
-    end 
+    Title = "Chọn Config Đã Lưu", Values = savedConfigs, Value = configName, AllowNone = false, 
+    Callback = function(value) configName = value or "PuriumSaved"; ConfigInput:Set(configName); if AutoLoadToggle then AutoLoadToggle:Set(getAutoLoad() == configName) end end 
 })
 
-AutoLoadToggle = ConfigSection:Toggle({ 
-    Title = "Auto-Load Config Khi Chạy Script", 
-    Value = (getAutoLoad() == configName), 
-    Callback = function(Value) 
-        if Value then setAutoLoad(configName) else setAutoLoad("none") end 
-    end 
-})
+AutoLoadToggle = ConfigSection:Toggle({ Title = "Auto-Load Config Khi Chạy Script", Value = (getAutoLoad() == configName), Callback = function(Value) if Value then setAutoLoad(configName) else setAutoLoad("none") end end })
 
-ConfigSection:Button({ 
-    Title = "Save Config (Lưu Cài đặt)", 
-    Icon = "save", 
-    Callback = function() 
-        configFile = ConfigManager:CreateConfig(configName)
-        if configFile:Save() then 
-            local newList = ConfigManager:AllConfigs()
-            if #newList == 0 then table.insert(newList, "PuriumSaved") end
-            ConfigDropdown:Refresh(newList)
-            WindUI:Notify({ Title = "Config System", Content = "Đã lưu cài đặt vào: " .. configName, Duration = 3 }) 
-        end 
+ConfigSection:Button({ Title = "Save Config (Lưu Cài đặt)", Icon = "save", Callback = function() 
+    configFile = ConfigManager:CreateConfig(configName)
+    if configFile:Save() then 
+        local newList = ConfigManager:AllConfigs()
+        if #newList == 0 then table.insert(newList, "PuriumSaved") end
+        ConfigDropdown:Refresh(newList)
+        WindUI:Notify({ Title = "Config System", Content = "Đã lưu cài đặt!", Duration = 3 }) 
     end 
-})
+end })
 
-ConfigSection:Button({ 
-    Title = "Load Config (Tải Cài đặt)", 
-    Icon = "upload", 
-    Callback = function() 
-        configFile = ConfigManager:CreateConfig(configName)
-        if configFile:Load() then 
-            WindUI:Notify({ Title = "Config System", Content = "Đã tải cài đặt từ: " .. configName, Duration = 3 }) 
-        end 
-    end 
-})
+ConfigSection:Button({ Title = "Load Config (Tải Cài đặt)", Icon = "upload", Callback = function() 
+    configFile = ConfigManager:CreateConfig(configName)
+    if configFile:Load() then WindUI:Notify({ Title = "Config System", Content = "Đã tải cài đặt!", Duration = 3 }) end 
+end })
 
--- KÍCH HOẠT TỰ ĐỘNG NẠP CONFIG
 task.spawn(function() 
     task.wait(1.5) 
     local autoConf = getAutoLoad()
     if autoConf ~= "none" then 
-        configName = autoConf
-        configFile = ConfigManager:CreateConfig(configName)
-        pcall(function() 
-            configFile:Load()
-            WindUI:Notify({ Title = "Auto-Load Active", Content = "Đã nạp tự động: " .. configName, Duration = 4 }) 
-        end) 
+        configName = autoConf; configFile = ConfigManager:CreateConfig(configName)
+        pcall(function() configFile:Load() end) 
     end 
 end)
 
-print("Purium Master Farm Setup & Config Loaded!")
+print("Purium V5.0 Auto-RJ Loaded!")

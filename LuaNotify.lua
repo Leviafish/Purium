@@ -1,64 +1,100 @@
---[[
-    LuaNotify.lua — LIBRARY FILE
-    Upload this to GitHub Raw or Pastebin.
-    Do NOT paste this into your script — use the Loader instead.
-]]
+-- LuaNotify.lua | Library File
+-- Host on GitHub Raw or Pastebin. Use the Loader to call it.
 
--- Guard: only load once even if loadstring is called twice
 if _G.__LuaNotifyLoaded then return end
 _G.__LuaNotifyLoaded = true
 
--- ─────────────────────────────────────────────────────────
+-- ════════════════════════════════════════════
 --  Services
--- ─────────────────────────────────────────────────────────
-local TweenService  = game:GetService("TweenService")
-local SoundService  = game:GetService("SoundService")
-local Players       = game:GetService("Players")
+-- ════════════════════════════════════════════
+local TweenService = game:GetService("TweenService")
+local SoundService = game:GetService("SoundService")
+local Players      = game:GetService("Players")
 
--- Wait for LocalPlayer and PlayerGui safely
--- (works in both LocalScript and executor injection)
 local LocalPlayer
-repeat LocalPlayer = Players.LocalPlayer task.wait() until LocalPlayer
+repeat LocalPlayer = Players.LocalPlayer if not LocalPlayer then task.wait() end until LocalPlayer
 
 local PlayerGui
-repeat PlayerGui = LocalPlayer:FindFirstChild("PlayerGui") task.wait() until PlayerGui
+repeat PlayerGui = LocalPlayer:FindFirstChild("PlayerGui") if not PlayerGui then task.wait() end until PlayerGui
 
--- ─────────────────────────────────────────────────────────
---  Default config (overridden by Loader via _G.LuaNotifyCFG)
--- ─────────────────────────────────────────────────────────
+-- ════════════════════════════════════════════
+--  Config  (Loader can override via _G.LuaNotifyCFG)
+-- ════════════════════════════════════════════
 local CFG = {
-    Position    = "TR",  -- TR | TL | BR | BL
+    Position    = "TR",   -- TR | TL | BR | BL
+    TimerMode   = 1,      -- 1 = countdown number | 2 = floating bar
     MaxVisible  = 5,
     DefaultTime = 5,
-    TimerMode   = 1,     -- 1 = countdown number | 2 = progress bar
 }
 
--- Apply any overrides set by the Loader
 if type(_G.LuaNotifyCFG) == "table" then
-    for k, v in pairs(_G.LuaNotifyCFG) do
-        CFG[k] = v
-    end
+    for k, v in pairs(_G.LuaNotifyCFG) do CFG[k] = v end
 end
 
--- Resolve TimerMode: nil/"" → 1
 CFG.TimerMode = tonumber(CFG.TimerMode) or 1
-if CFG.TimerMode ~= 1 and CFG.TimerMode ~= 2 then
-    CFG.TimerMode = 1
-end
+if CFG.TimerMode ~= 1 and CFG.TimerMode ~= 2 then CFG.TimerMode = 1 end
 
--- ─────────────────────────────────────────────────────────
---  Type styles
--- ─────────────────────────────────────────────────────────
-local STYLES = {
-    success = { accent = Color3.fromRGB(68, 210, 105), iconBg = Color3.fromRGB(16, 48, 28), icon = "✔", label = "SUCCESS" },
-    info    = { accent = Color3.fromRGB(68, 210, 105), iconBg = Color3.fromRGB(16, 48, 28), icon = "●", label = "INFO"    },
-    warning = { accent = Color3.fromRGB(235, 192, 32), iconBg = Color3.fromRGB(48, 40,  6), icon = "▲", label = "WARNING" },
-    error   = { accent = Color3.fromRGB(248,  70, 70), iconBg = Color3.fromRGB(52, 10, 10), icon = "✖", label = "ERROR"   },
+-- ════════════════════════════════════════════
+--  Preset colors
+-- ════════════════════════════════════════════
+local PRESETS = {
+    green  = Color3.fromRGB(68,  210, 105),
+    red    = Color3.fromRGB(248,  70,  70),
+    yellow = Color3.fromRGB(235, 192,  32),
+    white  = Color3.fromRGB(220, 220, 230),
+    blue   = Color3.fromRGB(80,  160, 255),
+    purple = Color3.fromRGB(180,  90, 255),
+    orange = Color3.fromRGB(255, 140,  40),
 }
 
--- ─────────────────────────────────────────────────────────
---  Build ScreenGui + Container
--- ─────────────────────────────────────────────────────────
+-- ════════════════════════════════════════════
+--  Type definitions  (accent + icon + label)
+-- ════════════════════════════════════════════
+local TYPES = {
+    success = { accent = PRESETS.green,  iconBg = Color3.fromRGB(16,48,28),  icon = "✔", label = "SUCCESS" },
+    info    = { accent = PRESETS.green,  iconBg = Color3.fromRGB(16,48,28),  icon = "●", label = "INFO"    },
+    warning = { accent = PRESETS.yellow, iconBg = Color3.fromRGB(48,40,6),   icon = "▲", label = "WARNING" },
+    error   = { accent = PRESETS.red,    iconBg = Color3.fromRGB(52,10,10),  icon = "✖", label = "ERROR"   },
+}
+
+-- ════════════════════════════════════════════
+--  Resolve Color field
+--  Accepts: "green" | "red" | {r,g,b} | Color3
+-- ════════════════════════════════════════════
+local function resolveColor(raw)
+    if not raw then return nil end
+    if typeof(raw) == "Color3" then return raw end
+    if type(raw) == "string" then
+        local s = raw:lower():gsub("%s","")
+        return PRESETS[s]  -- nil if not a preset = use type default
+    end
+    if type(raw) == "table" and raw[1] and raw[2] and raw[3] then
+        return Color3.fromRGB(
+            math.clamp(raw[1],0,255),
+            math.clamp(raw[2],0,255),
+            math.clamp(raw[3],0,255)
+        )
+    end
+    return nil
+end
+
+-- ════════════════════════════════════════════
+--  Resolve asset ID
+--  Accepts: "rbxassetid://123" | "123" | 123 | "https://..."
+-- ════════════════════════════════════════════
+local function resolveAsset(raw)
+    if not raw or raw == "" then return nil end
+    local s = tostring(raw):match("^%s*(.-)%s*$")
+    if s == "" then return nil end
+    if s:lower():find("^rbxassetid://") then return s end
+    if s:match("^%d+$") then return "rbxassetid://" .. s end
+    if s:lower():find("^https?://") then return s end
+    return s
+end
+
+-- ════════════════════════════════════════════
+--  Build ScreenGui
+-- ════════════════════════════════════════════
 if PlayerGui:FindFirstChild("__LuaNotify__") then
     PlayerGui:FindFirstChild("__LuaNotify__"):Destroy()
 end
@@ -71,55 +107,71 @@ Screen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 Screen.DisplayOrder   = 9999
 Screen.Parent         = PlayerGui
 
-local isLeft   = CFG.Position:sub(2, 2) == "L"
-local isBottom = CFG.Position:sub(1, 1) == "B"
-
+-- Full-screen container so cards can sit anywhere
 local Container = Instance.new("Frame")
 Container.Name                   = "Container"
 Container.BackgroundTransparency = 1
 Container.BorderSizePixel        = 0
 Container.Size                   = UDim2.new(1, 0, 1, 0)
 Container.ClipsDescendants       = false
-Container.Position               = UDim2.new(0, 0, 0, 0)
 Container.Parent                 = Screen
 
--- ─────────────────────────────────────────────────────────
---  Tween shortcuts
--- ─────────────────────────────────────────────────────────
+-- Derived position flags
+local isRight  = CFG.Position:sub(2,2) == "R"
+local isBottom = CFG.Position:sub(1,1) == "B"
+local EDGE     = 18   -- px from screen edge
+local GAP      = 8    -- px between cards
+
+-- ════════════════════════════════════════════
+--  Tween helpers
+-- ════════════════════════════════════════════
 local function tw(obj, info, props)
     TweenService:Create(obj, info, props):Play()
 end
 
-local T_OUT    = TweenInfo.new(0.38, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-local T_IN     = TweenInfo.new(0.20, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
-local T_SPRING = TweenInfo.new(0.52, Enum.EasingStyle.Back,  Enum.EasingDirection.Out)
-local function T_LIN(s) return TweenInfo.new(s, Enum.EasingStyle.Linear) end
+local OUT    = TweenInfo.new(0.38, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+local IN_    = TweenInfo.new(0.20, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
+local SPRING = TweenInfo.new(0.52, Enum.EasingStyle.Back,  Enum.EasingDirection.Out)
+local function LIN(t) return TweenInfo.new(t, Enum.EasingStyle.Linear) end
 
--- ─────────────────────────────────────────────────────────
---  Stack helpers
--- ─────────────────────────────────────────────────────────
-local active = {}   -- list of active notification entries
+-- ════════════════════════════════════════════
+--  Stack
+-- ════════════════════════════════════════════
+local active = {}
 
-local function getEdgePad() return 18 end
-local function getGap()     return 8  end
+-- Final resting X position for a card (UDim2 X part)
+local function restX(cardW)
+    if isRight then
+        return UDim2.new(1, -(cardW + EDGE), 0, 0)
+    else
+        return UDim2.new(0, EDGE, 0, 0)
+    end
+end
 
+-- Off-screen start X position
+local function offX(cardW)
+    if isRight then
+        return UDim2.new(1, EDGE + 60, 0, 0)   -- off right edge
+    else
+        return UDim2.new(0, -(cardW + 60), 0, 0)  -- off left edge
+    end
+end
+
+-- Reposition all visible cards in a clean stack
 local function reflow()
-    local edgePad = getEdgePad()
-    local gap     = getGap()
-    local slot    = 0
-
+    local slot = 0
     for i = #active, 1, -1 do
         local e = active[i]
         if not e.dismissed then
             local yOff = isBottom
-                and -(edgePad + slot * (e.cardH + gap) + e.cardH)
-                or   edgePad  + slot * (e.cardH + gap)
-            tw(e.frame, T_OUT, {
+                and -(EDGE + slot * (e.cardH + GAP) + e.cardH)
+                or   EDGE  + slot * (e.cardH + GAP)
+
+            local rx = restX(e.cardW)
+            tw(e.frame, OUT, {
                 Position = UDim2.new(
-                    isLeft and 0 or 1,
-                    isLeft and edgePad or -(e.cardW + edgePad),
-                    isBottom and 1 or 0,
-                    yOff
+                    rx.X.Scale, rx.X.Offset,
+                    isBottom and 1 or 0, yOff
                 )
             })
             slot += 1
@@ -127,55 +179,45 @@ local function reflow()
     end
 end
 
--- ─────────────────────────────────────────────────────────
---  Dismiss  (THE FIX: uses pcall guard + guaranteed destroy)
--- ─────────────────────────────────────────────────────────
+-- ════════════════════════════════════════════
+--  Dismiss
+-- ════════════════════════════════════════════
 local function dismiss(entry)
     if entry.dismissed then return end
     entry.dismissed = true
 
-    -- Cancel all running threads immediately
     pcall(function() if entry.autoThread  then task.cancel(entry.autoThread)  end end)
     pcall(function() if entry.countThread then task.cancel(entry.countThread) end end)
 
-    local curPos = entry.frame.Position
-    local slideX = isLeft
-        and (curPos.X.Offset - entry.cardW - 60)
-        or  (curPos.X.Offset + entry.cardW + 60)
-
-    -- Slide out
-    tw(entry.frame, T_IN, {
-        Position = UDim2.new(curPos.X.Scale, slideX, curPos.Y.Scale, curPos.Y.Offset),
+    -- Slide off screen
+    local cur = entry.frame.Position
+    local ox  = offX(entry.cardW)
+    tw(entry.frame, IN_, {
+        Position = UDim2.new(ox.X.Scale, ox.X.Offset, cur.Y.Scale, cur.Y.Offset),
         BackgroundTransparency = 1,
     })
 
-    -- Fade children
     for _, d in ipairs(entry.frame:GetDescendants()) do
         pcall(function()
             if d:IsA("TextLabel") or d:IsA("TextButton") then
-                tw(d, T_IN, { TextTransparency = 1 })
+                tw(d, IN_, { TextTransparency = 1 })
             elseif d:IsA("ImageLabel") then
-                tw(d, T_IN, { ImageTransparency = 1, BackgroundTransparency = 1 })
+                tw(d, IN_, { ImageTransparency = 1, BackgroundTransparency = 1 })
             elseif d:IsA("Frame") then
-                tw(d, T_IN, { BackgroundTransparency = 1 })
+                tw(d, IN_, { BackgroundTransparency = 1 })
             end
         end)
     end
 
-    -- Stop sound if playing
     pcall(function()
-        if entry.sound then
-            entry.sound:Stop()
-            entry.sound:Destroy()
-        end
+        if entry.sound then entry.sound:Stop() entry.sound:Destroy() end
     end)
 
-    -- Destroy card after slide animation
-    -- Uses BOTH delay and a fallback to guarantee removal
-    local destroyed = false
-    local function destroy()
-        if destroyed then return end
-        destroyed = true
+    -- Destroy after slide — two layers to guarantee it
+    local gone = false
+    local function kill()
+        if gone then return end
+        gone = true
         pcall(function() entry.frame:Destroy() end)
         for i = #active, 1, -1 do
             if active[i] == entry then table.remove(active, i) break end
@@ -183,79 +225,70 @@ local function dismiss(entry)
         reflow()
     end
 
-    task.delay(0.22, destroy)
-
-    -- Hard fallback: if still alive after 0.5s, force destroy
-    task.delay(0.5, destroy)
+    task.delay(0.22, kill)
+    task.delay(0.55, kill)  -- hard fallback
 end
 
--- ─────────────────────────────────────────────────────────
---  Image / Sound ID resolver
--- ─────────────────────────────────────────────────────────
-local function resolveAsset(raw)
-    if not raw or raw == "" then return nil end
-    raw = tostring(raw):match("^%s*(.-)%s*$")
-    if raw == "" then return nil end
-    if raw:lower():find("^rbxassetid://") then return raw end
-    if raw:match("^%d+$") then return "rbxassetid://" .. raw end
-    if raw:lower():find("^https?://") then return raw end
-    return raw
-end
+-- ════════════════════════════════════════════
+--  NOTIFY
+-- ════════════════════════════════════════════
+local function Notify(arg1, arg2, arg3)
 
--- ─────────────────────────────────────────────────────────
---  NOTIFY  — the main function
--- ─────────────────────────────────────────────────────────
-local function Notify(cfg)
-
-    -- Support legacy string call: Notify("msg", "type", seconds)
-    if type(cfg) ~= "table" then
+    -- Accept table OR string call
+    local cfg
+    if type(arg1) == "table" then
+        cfg = arg1
+    else
         cfg = {
-            Description = tostring(cfg   or ""),
-            Type        = tostring(select(1, ...) or "info"),
-            Time        = tonumber(select(2, ...)) or CFG.DefaultTime,
+            Description = tostring(arg1 or ""),
+            Type        = tostring(arg2 or "info"),
+            Time        = tonumber(arg3) or CFG.DefaultTime,
         }
     end
 
-    -- ── Parse notification config ──────────────────────────────
-    local title       = tostring(cfg.Title       or "")
-    local description = tostring(cfg.Description or "")
-    local notifType   = tostring(cfg.Type        or "info"):lower()
-    local duration    = tonumber(cfg.Time)        or CFG.DefaultTime
-    local imageId     = resolveAsset(cfg.Image)
-    local soundId     = resolveAsset(cfg.Sound)
+    -- ── Read fields ──────────────────────────────────────────
+    local title    = tostring(cfg.Title       or "")
+    local desc     = tostring(cfg.Description or "")
+    local nType    = tostring(cfg.Type        or "info"):lower()
+    local duration = tonumber(cfg.Time)        or CFG.DefaultTime
+    local imgId    = resolveAsset(cfg.Image)
+    local sndId    = resolveAsset(cfg.Sound)
+    local color    = resolveColor(cfg.Color)   -- optional accent override
 
-    -- Size: cfg.Size = {width, height}  e.g. {320, 80}
-    -- or just a number for width, height stays auto
-    local customW, customH
+    -- Size: {width, height} or nil = auto
+    local cardW = 310
+    local cardH = nil  -- determined below
+
     if type(cfg.Size) == "table" then
-        customW = tonumber(cfg.Size[1])
-        customH = tonumber(cfg.Size[2])
+        cardW = tonumber(cfg.Size[1]) or cardW
+        cardH = tonumber(cfg.Size[2])
     elseif type(cfg.Size) == "number" then
-        customW = cfg.Size
+        cardW = cfg.Size
     end
 
     -- Validate
-    if not STYLES[notifType] then notifType = "info" end
+    if not TYPES[nType] then nType = "info" end
     duration = math.clamp(duration, 1, 60)
 
-    local S      = STYLES[notifType]
-    local hasImg = imageId ~= nil
+    local T      = TYPES[nType]
+    local accent = color or T.accent   -- color override wins
+    local iconBg = T.iconBg
+    local hasImg = imgId ~= nil
 
-    -- Sizing
-    local edgePad = getEdgePad()
-    local cardW   = customW or 310
-    local imgSize = 52
-    local minH    = customH or (hasImg and 90 or 74)
-    local cardH   = minH
-    local leftX   = hasImg and (imgSize + 16) or 46
-
-    -- Cull oldest if at limit
-    if #active >= CFG.MaxVisible then
-        dismiss(active[1])
-        task.wait(0.05)
+    -- Auto height
+    if not cardH then
+        cardH = hasImg and 90 or 74
     end
 
-    -- ── Card frame ────────────────────────────────────────────
+    local leftX = hasImg and 68 or 46  -- text starts after image or icon
+
+    -- ── Cull oldest if full ───────────────────────────────────
+    if #active >= CFG.MaxVisible then
+        dismiss(active[1])
+        task.wait(0.04)
+    end
+
+    -- ── Card ─────────────────────────────────────────────────
     local card = Instance.new("Frame")
     card.Name                   = "NotifCard"
     card.Size                   = UDim2.new(0, cardW, 0, cardH)
@@ -266,16 +299,10 @@ local function Notify(cfg)
     card.ZIndex                 = 100
     card.Parent                 = Container
 
-    -- Start off screen
-    local startX = isLeft
-        and -(edgePad + cardW + 60)
-        or  (1 * Screen.AbsoluteSize.X + 60)  -- will be corrected by reflow
-    card.Position = UDim2.new(
-        isLeft and 0 or 1,
-        isLeft and -(cardW + 60) or (cardW + 60),
-        isBottom and 1 or 0,
-        isBottom and -(edgePad + cardH) or edgePad
-    )
+    -- Initial off-screen position
+    local ox    = offX(cardW)
+    local initY = isBottom and -(EDGE + cardH) or EDGE
+    card.Position = UDim2.new(ox.X.Scale, ox.X.Offset, isBottom and 1 or 0, initY)
 
     Instance.new("UICorner", card).CornerRadius = UDim.new(0, 10)
 
@@ -290,7 +317,7 @@ local function Notify(cfg)
     local strip = Instance.new("Frame")
     strip.Size             = UDim2.new(0, 3, 1, -18)
     strip.Position         = UDim2.new(0, 0, 0, 9)
-    strip.BackgroundColor3 = S.accent
+    strip.BackgroundColor3 = accent
     strip.BackgroundTransparency = 0
     strip.BorderSizePixel  = 0
     strip.ZIndex           = 101
@@ -300,8 +327,8 @@ local function Notify(cfg)
     -- ── Image or Icon ─────────────────────────────────────────
     if hasImg then
         local imgFrame = Instance.new("Frame")
-        imgFrame.Size             = UDim2.new(0, imgSize, 0, imgSize)
-        imgFrame.Position         = UDim2.new(0, 7, 0.5, -imgSize / 2)
+        imgFrame.Size             = UDim2.new(0, 52, 0, 52)
+        imgFrame.Position         = UDim2.new(0, 7, 0.5, -26)
         imgFrame.BackgroundColor3 = Color3.fromRGB(26, 28, 40)
         imgFrame.BackgroundTransparency = 0
         imgFrame.BorderSizePixel  = 0
@@ -312,42 +339,44 @@ local function Notify(cfg)
         local imgLbl = Instance.new("ImageLabel")
         imgLbl.Size                   = UDim2.new(1, 0, 1, 0)
         imgLbl.BackgroundTransparency = 1
-        imgLbl.Image                  = imageId
+        imgLbl.Image                  = imgId
         imgLbl.ScaleType              = Enum.ScaleType.Crop
         imgLbl.ImageTransparency      = 0
         imgLbl.ZIndex                 = 102
         imgLbl.Parent                 = imgFrame
         Instance.new("UICorner", imgLbl).CornerRadius = UDim.new(0, 8)
     else
-        local iconFrame = Instance.new("Frame")
-        iconFrame.Size             = UDim2.new(0, 28, 0, 28)
-        iconFrame.Position         = UDim2.new(0, 9, 0, 11)
-        iconFrame.BackgroundColor3 = S.iconBg
-        iconFrame.BackgroundTransparency = 0
-        iconFrame.BorderSizePixel  = 0
-        iconFrame.ZIndex           = 101
-        iconFrame.Parent           = card
-        Instance.new("UICorner", iconFrame).CornerRadius = UDim.new(0, 7)
+        local iconBox = Instance.new("Frame")
+        iconBox.Size             = UDim2.new(0, 28, 0, 28)
+        iconBox.Position         = UDim2.new(0, 9, 0, 11)
+        iconBox.BackgroundColor3 = iconBg
+        iconBox.BackgroundTransparency = 0
+        iconBox.BorderSizePixel  = 0
+        iconBox.ZIndex           = 101
+        iconBox.Parent           = card
+        Instance.new("UICorner", iconBox).CornerRadius = UDim.new(0, 7)
 
         local iconLbl = Instance.new("TextLabel")
         iconLbl.Size                  = UDim2.new(1, 0, 1, 0)
         iconLbl.BackgroundTransparency= 1
-        iconLbl.Text                  = S.icon
-        iconLbl.TextColor3            = S.accent
+        iconLbl.Text                  = T.icon
+        iconLbl.TextColor3            = accent
         iconLbl.TextTransparency      = 0
         iconLbl.Font                  = Enum.Font.GothamBold
         iconLbl.TextSize              = 13
         iconLbl.ZIndex                = 102
-        iconLbl.Parent                = iconFrame
+        iconLbl.Parent                = iconBox
     end
 
-    -- ── Badge ─────────────────────────────────────────────────
+    -- ── Badge (type label) ────────────────────────────────────
+    local badgeW = cardW - leftX - (CFG.TimerMode == 1 and 50 or 28)
+
     local badge = Instance.new("TextLabel")
-    badge.Size                  = UDim2.new(0, cardW - leftX - (CFG.TimerMode == 1 and 50 or 28), 0, 14)
+    badge.Size                  = UDim2.new(0, badgeW, 0, 14)
     badge.Position              = UDim2.new(0, leftX, 0, 8)
     badge.BackgroundTransparency= 1
-    badge.Text                  = S.label
-    badge.TextColor3            = S.accent
+    badge.Text                  = T.label
+    badge.TextColor3            = accent
     badge.TextTransparency      = 0
     badge.Font                  = Enum.Font.GothamBold
     badge.TextSize              = 9
@@ -355,15 +384,14 @@ local function Notify(cfg)
     badge.ZIndex                = 101
     badge.Parent                = card
 
-    -- ── Timer: Mode 1 = countdown number ──────────────────────
+    -- ── Timer Mode 1: countdown number ───────────────────────
     local countdownLbl = nil
     if CFG.TimerMode == 1 then
         countdownLbl = Instance.new("TextLabel")
-        countdownLbl.Name                  = "Countdown"
         countdownLbl.Size                  = UDim2.new(0, 42, 0, 14)
-        countdownLbl.Position              = UDim2.new(1, -46, 1, -18)
+        countdownLbl.Position              = UDim2.new(1, -46, 1, -17)
         countdownLbl.BackgroundTransparency= 1
-        countdownLbl.Text                  = tostring(duration) .. "s"
+        countdownLbl.Text                  = duration .. "s"
         countdownLbl.TextColor3            = Color3.fromRGB(55, 55, 66)
         countdownLbl.TextTransparency      = 0
         countdownLbl.Font                  = Enum.Font.GothamBold
@@ -373,32 +401,36 @@ local function Notify(cfg)
         countdownLbl.Parent                = card
     end
 
-    -- ── Timer: Mode 2 = progress bar ──────────────────────────
+    -- ── Timer Mode 2: floating bar ────────────────────────────
+    -- Sits 6px above the bottom, inset 10px each side, 2px tall
+    -- Looks like it's floating inside the card, not glued to edge
     local barFill = nil
     if CFG.TimerMode == 2 then
         local barBg = Instance.new("Frame")
-        barBg.Size             = UDim2.new(1, 0, 0, 3)
-        barBg.Position         = UDim2.new(0, 0, 1, -3)
-        barBg.BackgroundColor3 = Color3.fromRGB(20, 22, 34)
+        barBg.Size             = UDim2.new(1, -20, 0, 2)
+        barBg.Position         = UDim2.new(0, 10, 1, -8)   -- 8px above bottom
+        barBg.BackgroundColor3 = Color3.fromRGB(28, 30, 44)
         barBg.BackgroundTransparency = 0
         barBg.BorderSizePixel  = 0
         barBg.ClipsDescendants = true
         barBg.ZIndex           = 101
         barBg.Parent           = card
+        Instance.new("UICorner", barBg).CornerRadius = UDim.new(1, 0)
 
         barFill = Instance.new("Frame")
-        barFill.Name             = "BarFill"
         barFill.Size             = UDim2.new(1, 0, 1, 0)
-        barFill.BackgroundColor3 = S.accent
+        barFill.BackgroundColor3 = accent
         barFill.BackgroundTransparency = 0
         barFill.BorderSizePixel  = 0
         barFill.ZIndex           = 102
         barFill.Parent           = barBg
-        Instance.new("UICorner", barFill).CornerRadius = UDim.new(0, 2)
+        Instance.new("UICorner", barFill).CornerRadius = UDim.new(1, 0)
     end
 
     -- ── Title ─────────────────────────────────────────────────
-    local textY = 22
+    local textY    = 22
+    local bottomPad = CFG.TimerMode == 1 and 18 or 14
+
     if title ~= "" then
         local titleLbl = Instance.new("TextLabel")
         titleLbl.Size                  = UDim2.new(0, cardW - leftX - 26, 0, 17)
@@ -417,13 +449,12 @@ local function Notify(cfg)
     end
 
     -- ── Description ───────────────────────────────────────────
-    local bottomPad = CFG.TimerMode == 1 and 18 or 10
-    if description ~= "" then
+    if desc ~= "" then
         local descLbl = Instance.new("TextLabel")
         descLbl.Size                  = UDim2.new(0, cardW - leftX - 26, 0, cardH - textY - bottomPad)
         descLbl.Position              = UDim2.new(0, leftX, 0, textY)
         descLbl.BackgroundTransparency= 1
-        descLbl.Text                  = description
+        descLbl.Text                  = desc
         descLbl.TextColor3            = Color3.fromRGB(165, 168, 192)
         descLbl.TextTransparency      = 0
         descLbl.Font                  = Enum.Font.Gotham
@@ -437,7 +468,6 @@ local function Notify(cfg)
 
     -- ── Close button ──────────────────────────────────────────
     local closeBtn = Instance.new("TextButton")
-    closeBtn.Name                  = "Close"
     closeBtn.Size                  = UDim2.new(0, 18, 0, 18)
     closeBtn.Position              = UDim2.new(1, -22, 0, 5)
     closeBtn.BackgroundTransparency= 1
@@ -449,7 +479,7 @@ local function Notify(cfg)
     closeBtn.ZIndex                = 103
     closeBtn.Parent                = card
 
-    -- ── Shimmer flash on entry ────────────────────────────────
+    -- ── Shimmer ───────────────────────────────────────────────
     local shimmer = Instance.new("Frame")
     shimmer.Size             = UDim2.new(0.45, 0, 1, 0)
     shimmer.Position         = UDim2.new(-0.45, 0, 0, 0)
@@ -462,18 +492,17 @@ local function Notify(cfg)
 
     -- ── Sound ─────────────────────────────────────────────────
     local soundObj = nil
-    if soundId then
+    if sndId then
         pcall(function()
             soundObj = Instance.new("Sound")
-            soundObj.SoundId    = soundId
-            soundObj.Volume     = 0.5
-            soundObj.RollOffMode = Enum.RollOffMode.InverseTapered
-            soundObj.Parent     = SoundService
+            soundObj.SoundId = sndId
+            soundObj.Volume  = 0.5
+            soundObj.Parent  = SoundService
             soundObj:Play()
         end)
     end
 
-    -- ── Register entry ────────────────────────────────────────
+    -- ── Register ──────────────────────────────────────────────
     local entry = {
         frame       = card,
         cardW       = cardW,
@@ -484,31 +513,23 @@ local function Notify(cfg)
         sound       = soundObj,
     }
     table.insert(active, entry)
-    reflow()
+    reflow()  -- sets correct Y before we slide in
 
     -- ── Slide in ──────────────────────────────────────────────
     task.delay(0.03, function()
         if entry.dismissed then return end
-        local p = card.Position
-        -- reset X to off-screen, then spring to correct position
-        card.Position = UDim2.new(
-            p.X.Scale,
-            isLeft and -(cardW + 60) or (cardW + 60),
-            p.Y.Scale,
-            p.Y.Offset
-        )
-        tw(card, T_SPRING, {
-            Position = UDim2.new(
-                isLeft and 0 or 1,
-                isLeft and edgePad or -(cardW + edgePad),
-                p.Y.Scale,
-                p.Y.Offset
-            )
+        local p  = card.Position
+        local rx = restX(cardW)
+
+        -- Start off screen, spring to resting X
+        card.Position = UDim2.new(ox.X.Scale, ox.X.Offset, p.Y.Scale, p.Y.Offset)
+        tw(card, SPRING, {
+            Position = UDim2.new(rx.X.Scale, rx.X.Offset, p.Y.Scale, p.Y.Offset)
         })
     end)
 
-    -- Shimmer sweep
-    task.delay(0.15, function()
+    -- Shimmer sweep after slide
+    task.delay(0.18, function()
         if entry.dismissed then return end
         tw(shimmer, TweenInfo.new(0.65, Enum.EasingStyle.Sine),
             { Position = UDim2.new(1.1, 0, 0, 0) })
@@ -517,14 +538,14 @@ local function Notify(cfg)
     -- ── Mode 1: countdown tick ────────────────────────────────
     if CFG.TimerMode == 1 and countdownLbl then
         entry.countThread = task.spawn(function()
-            local remaining = duration
-            while remaining > 0 and not entry.dismissed do
-                countdownLbl.Text = tostring(remaining) .. "s"
-                local pct  = remaining / duration
+            local rem = duration
+            while rem > 0 and not entry.dismissed do
+                countdownLbl.Text = rem .. "s"
+                local pct  = rem / duration
                 local gray = math.floor(48 + pct * 18)
                 countdownLbl.TextColor3 = Color3.fromRGB(gray, gray, gray + 10)
                 task.wait(1)
-                remaining -= 1
+                rem -= 1
             end
             if not entry.dismissed then
                 countdownLbl.Text = "0s"
@@ -532,15 +553,15 @@ local function Notify(cfg)
         end)
     end
 
-    -- ── Mode 2: bar drain tween ───────────────────────────────
+    -- ── Mode 2: bar drain ─────────────────────────────────────
     if CFG.TimerMode == 2 and barFill then
-        tw(barFill, T_LIN(duration), { Size = UDim2.new(0, 0, 1, 0) })
+        tw(barFill, LIN(duration), { Size = UDim2.new(0, 0, 1, 0) })
     end
 
     -- ── Hover ─────────────────────────────────────────────────
     card.MouseEnter:Connect(function()
-        tw(stroke,   TweenInfo.new(0.15), { Color = S.accent, Transparency = 0.08 })
-        tw(closeBtn, TweenInfo.new(0.15), { TextColor3 = Color3.fromRGB(205, 208, 228) })
+        tw(stroke,   TweenInfo.new(0.15), { Color = accent, Transparency = 0.05 })
+        tw(closeBtn, TweenInfo.new(0.15), { TextColor3 = Color3.fromRGB(205,208,228) })
     end)
     card.MouseLeave:Connect(function()
         tw(stroke,   TweenInfo.new(0.15), { Color = Color3.fromRGB(42,46,62), Transparency = 0.15 })
@@ -549,31 +570,27 @@ local function Notify(cfg)
 
     closeBtn.MouseButton1Click:Connect(function() dismiss(entry) end)
 
-    -- ── AUTO-DISMISS  (THE BUG FIX) ───────────────────────────
-    -- Uses task.delay which is frame-accurate.
-    -- A second hard-kill fires at duration + 0.5s as guarantee.
+    -- ── Auto-dismiss ──────────────────────────────────────────
+    -- Primary: fires at exact duration
     entry.autoThread = task.delay(duration, function()
         dismiss(entry)
     end)
 
-    -- Hard fallback: force destroy even if dismiss somehow fails
-    task.delay(duration + 0.6, function()
-        if not entry.dismissed then
-            entry.dismissed = true
-            pcall(function() entry.frame:Destroy() end)
-            pcall(function() if entry.sound then entry.sound:Destroy() end end)
-            for i = #active, 1, -1 do
-                if active[i] == entry then table.remove(active, i) break end
-            end
-            reflow()
+    -- Backup: fires 0.7s later, force-kills if somehow still alive
+    task.delay(duration + 0.7, function()
+        if entry.dismissed then return end
+        entry.dismissed = true
+        pcall(function() entry.frame:Destroy() end)
+        pcall(function() if entry.sound then entry.sound:Destroy() end end)
+        for i = #active, 1, -1 do
+            if active[i] == entry then table.remove(active, i) break end
         end
+        reflow()
     end)
 end
 
--- ─────────────────────────────────────────────────────────
---  Expose globally
---  _G.Notify       → standard Roblox LocalScripts
---  getgenv().Notify → executor environments (Synapse, SW…)
--- ─────────────────────────────────────────────────────────
+-- ════════════════════════════════════════════
+--  Export
+-- ════════════════════════════════════════════
 _G.Notify = Notify
 pcall(function() getgenv().Notify = Notify end)

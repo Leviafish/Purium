@@ -4,7 +4,10 @@ local function initializeSystem()
     if not game:IsLoaded() then
         game.Loaded:Wait()
     end
-    local character = game:GetService("Players").LocalPlayer.Character or game:GetService("Players").LocalPlayer.CharacterAdded:Wait()
+    local player = game:GetService("Players").LocalPlayer
+    if not player.Character then
+        player.CharacterAdded:Wait()
+    end
     isGameReady = true
 end
 
@@ -18,7 +21,7 @@ local function runWhenReady(func)
         pcall(func)
     end)
 end
-print("Loading Asset...")
+
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "Leviathan Loader",
     Text = "Loading Script...",
@@ -106,7 +109,10 @@ end
 local S = _G.Leviathan_State
 
 local function safeGetCharacter()
-    return LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    if LocalPlayer.Character then
+        return LocalPlayer.Character
+    end
+    return LocalPlayer.CharacterAdded:Wait()
 end
 
 local function safeGetHRP()
@@ -126,7 +132,7 @@ local function safeGetHumanoid()
 end
 
 local UILoader, WindUI = pcall(function()
-    return loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+    return loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/main/dist/main.lua"))()
 end)
 
 if not UILoader then
@@ -136,34 +142,35 @@ end
 
 local function compileThemes()
     local palette = {
-        AMOLED = {"000000", "050505", "121212", "ffffff", "ffffff"},
-        Amethyst = {"020005", "05010a", "140320", "b800e6", "f0e6ff"},
-        Night = {"010103", "030308", "0a0a1a", "3b82f6", "f1f5f9"},
-        Hacker = {"000000", "010301", "001a00", "00ff00", "39ff14"},
-        Cyberpunk = {"030005", "08000d", "1c002b", "ff007f", "ffff00"},
-        Cloud = {"fafafa", "f1f5f9", "cbd5e1", "1d4ed8", "0f172a"},
-        Sakura = {"fff5f7", "fce7f3", "f472b6", "db2777", "4c0519"}
+        AMOLED = { {0,0,0}, {5,5,5}, {18,18,18}, {255,255,255}, {255,255,255} },
+        Amethyst = { {2,0,5}, {5,1,10}, {20,3,32}, {184,0,230}, {240,230,255} },
+        Night = { {1,1,3}, {3,3,8}, {10,10,26}, {59,130,246}, {241,245,249} },
+        Hacker = { {0,0,0}, {1,3,1}, {0,26,0}, {0,255,0}, {57,255,20} },
+        Cyberpunk = { {3,0,5}, {8,0,13}, {28,0,43}, {255,0,127}, {255,255,0} },
+        Cloud = { {250,250,250}, {241,245,249}, {203,213,225}, {29,78,216}, {15,23,42} },
+        Sakura = { {255,245,247}, {252,231,243}, {244,114,182}, {219,39,119}, {76,5,25} }
     }
-    for name, c in pairs(palette) do
+    
+    for name, colors in pairs(palette) do
         pcall(function()
             WindUI:AddTheme({
                 Name = name,
-                Background = Color3.fromHex(c[1]),
-                Dialog = Color3.fromHex(c[2]),
-                Outline = Color3.fromHex(c[3]),
-                Accent = Color3.fromHex(c[4]),
-                Text = Color3.fromHex(c[5]),
-                Placeholder = Color3.fromHex("777777"),
-                Button = Color3.fromHex(c[2]),
-                Icon = Color3.fromHex(c[4]),
-                Toggle = Color3.fromHex(c[4]),
-                Slider = Color3.fromHex(c[4]),
-                Checkbox = Color3.fromHex(c[4]),
-                Primary = Color3.fromHex(c[4]),
-                SliderIcon = Color3.fromHex(c[5]),
-                PanelBackground = Color3.fromHex(c[2]),
+                Background = Color3.fromRGB(colors[1][1], colors[1][2], colors[1][3]),
+                Dialog = Color3.fromRGB(colors[2][1], colors[2][2], colors[2][3]),
+                Outline = Color3.fromRGB(colors[3][1], colors[3][2], colors[3][3]),
+                Accent = Color3.fromRGB(colors[4][1], colors[4][2], colors[4][3]),
+                Text = Color3.fromRGB(colors[5][1], colors[5][2], colors[5][3]),
+                Placeholder = Color3.fromRGB(119, 119, 119),
+                Button = Color3.fromRGB(colors[2][1], colors[2][2], colors[2][3]),
+                Icon = Color3.fromRGB(colors[4][1], colors[4][2], colors[4][3]),
+                Toggle = Color3.fromRGB(colors[4][1], colors[4][2], colors[4][3]),
+                Slider = Color3.fromRGB(colors[4][1], colors[4][2], colors[4][3]),
+                Checkbox = Color3.fromRGB(colors[4][1], colors[4][2], colors[4][3]),
+                Primary = Color3.fromRGB(colors[4][1], colors[4][2], colors[4][3]),
+                SliderIcon = Color3.fromRGB(colors[5][1], colors[5][2], colors[5][3]),
+                PanelBackground = Color3.fromRGB(colors[2][1], colors[2][2], colors[2][3]),
                 PanelBackgroundTransparency = 0.05,
-                LabelBackground = Color3.fromHex(c[1]),
+                LabelBackground = Color3.fromRGB(colors[1][1], colors[1][2], colors[1][3]),
                 LabelBackgroundTransparency = 0.05
             })
         end)
@@ -172,87 +179,70 @@ end
 
 compileThemes()
 
-local Window
+local Window = WindUI:CreateWindow({
+    Title = "Leviathan Hub 0.1",
+    Icon = "solar:compass-big-bold",
+    Author = "UI Library",
+    Folder = "LeviathanHub",
+    Theme = S.Theme,
+    NewElements = true,
+    Transparent = true,
+    Acrylic = S.Acrylic,
+    ToggleKey = Enum.KeyCode[S.ToggleKey] or Enum.KeyCode.RightShift,
+    HideSearchBar = false,
+    OpenButton = {
+        Title = "Open Leviathan",
+        CornerRadius = UDim.new(0, 8),
+        StrokeThickness = 2,
+        Enabled = true,
+        Color = ColorSequence.new(Color3.fromRGB(0, 0, 0), Color3.fromRGB(255, 255, 255))
+    },
+    Topbar = {
+        Height = 44,
+        ButtonsType = "Mac"
+    }
+})
 
-local function RebuildInterface()
-    pcall(function()
-        for _, g in ipairs(CoreGui:GetChildren()) do
-            if g:IsA("ScreenGui") and (g.Name == "WindUI" or g:FindFirstChild("Main")) then
-                g:Destroy()
-            end
-        end
-        for _, g in ipairs(LocalPlayer:WaitForChild("PlayerGui"):GetChildren()) do
-            if g:IsA("ScreenGui") and (g.Name == "WindUI" or g:FindFirstChild("Main")) then
-                g:Destroy()
-            end
+Window:Tag({
+    Title = "Build 0.1",
+    Color = Color3.fromRGB(0, 255, 255)
+})
+
+local FpsTag = Window:Tag({
+    Title = "FPS: 0",
+    Color = Color3.fromRGB(100, 255, 100)
+})
+
+local PingTag = Window:Tag({
+    Title = "Ping: 0ms",
+    Color = Color3.fromRGB(255, 200, 100)
+})
+
+task.spawn(function()
+    local lastUpdate = tick()
+    local frames = 0
+    RunService.RenderStepped:Connect(function()
+        frames = frames + 1
+        local now = tick()
+        if now - lastUpdate >= 1 then
+            local fps = math.floor(frames / (now - lastUpdate))
+            FpsTag:SetTitle("FPS: " .. tostring(fps))
+            frames = 0
+            lastUpdate = now
         end
     end)
-    
-    task.wait(0.1)
+end)
 
-    Window = WindUI:CreateWindow({
-        Title = "Leviathan Hub | Insane Elevator | 0.1",
-        Icon = "solar:compass-big-bold",
-        Author = "UI Library | ngao-gamer",
-        Folder = "LeviathanHub",
-        Theme = S.Theme,
-        NewElements = true,
-        Transparent = true,
-        Acrylic = S.Acrylic,
-        ToggleKey = Enum.KeyCode[S.ToggleKey] or Enum.KeyCode.RightShift,
-        HideSearchBar = false,
-        OpenButton = {
-            Title = "Open Leviathan",
-            CornerRadius = UDim.new(0, 8),
-            StrokeThickness = 2,
-            Enabled = true,
-            Color = ColorSequence.new(Color3.fromHex("000000"), Color3.fromHex("ffffff"))
-        },
-        Topbar = {
-            Height = 44,
-            ButtonsType = "Mac"
-        }
-    })
-
-    Window:Tag({
-        Title = "Build 0.1",
-        Color = Color3.fromRGB(0, 255, 255)
-    })
-
-    local FpsTag = Window:Tag({
-        Title = "FPS: 0",
-        Color = Color3.fromRGB(100, 255, 100)
-    })
-
-    local PingTag = Window:Tag({
-        Title = "Ping: 0ms",
-        Color = Color3.fromRGB(255, 200, 100)
-    })
-
-    task.spawn(function()
-        local lastUpdate = tick()
-        local frames = 0
-        RunService.RenderStepped:Connect(function()
-            frames = frames + 1
-            local now = tick()
-            if now - lastUpdate >= 1 then
-                local fps = math.floor(frames / (now - lastUpdate))
-                FpsTag:SetTitle("FPS: " .. tostring(fps))
-                frames = 0
-                lastUpdate = now
-            end
+task.spawn(function()
+    while task.wait(1) do
+        pcall(function()
+            local ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
+            PingTag:SetTitle("Ping: " .. tostring(ping) .. "ms")
         end)
-    end)
+    end
+end)
 
-    task.spawn(function()
-        while task.wait(1) do
-            pcall(function()
-                local ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
-                PingTag:SetTitle("Ping: " .. tostring(ping) .. "ms")
-            end)
-        end
-    end)
-
+local topButtonCall = pcall(function()
     Window.Topbar:Button({
         Name = "Copy Discord",
         Icon = "sfsymbols:link",
@@ -263,715 +253,710 @@ local function RebuildInterface()
             end
         end
     })
+end)
 
-    local SecInfo = Window:Section({
-        Title = "Information",
-        Icon = "info",
-        Opened = true
-    })
+local SecInfo = Window:Section({
+    Title = "Information",
+    Icon = "info",
+    Opened = true
+})
 
-    local MainTab = SecInfo:Tab({
-        Title = "Dashboard",
-        Icon = "home"
-    })
+local MainTab = SecInfo:Tab({
+    Title = "Dashboard",
+    Icon = "home"
+})
 
-    local SecModules = Window:Section({
-        Title = "Modules",
-        Icon = "box",
-        Opened = true
-    })
+local SecModules = Window:Section({
+    Title = "Modules",
+    Icon = "box",
+    Opened = true
+})
 
-    local MovTab = SecModules:Tab({
-        Title = "Movement",
-        Icon = "footprints"
-    })
+local MovTab = SecModules:Tab({
+    Title = "Movement",
+    Icon = "footprints"
+})
 
-    local SurTab = SecModules:Tab({
-        Title = "Survival",
-        Icon = "shield"
-    })
+local SurTab = SecModules:Tab({
+    Title = "Survival",
+    Icon = "shield"
+})
 
-    local VisTab = SecModules:Tab({
-        Title = "Visual ESP",
-        Icon = "scan"
-    })
+local VisTab = SecModules:Tab({
+    Title = "Visual ESP",
+    Icon = "scan"
+})
 
-    local ComTab = SecModules:Tab({
-        Title = "Combat",
-        Icon = "crosshair"
-    })
+local ComTab = SecModules:Tab({
+    Title = "Combat",
+    Icon = "crosshair"
+})
 
-    local NpcTab = SecModules:Tab({
-        Title = "NPC Ctrl",
-        Icon = "bot"
-    })
+local NpcTab = SecModules:Tab({
+    Title = "NPC Ctrl",
+    Icon = "bot"
+})
 
-    local FunTab = SecModules:Tab({
-        Title = "Troll & Fun",
-        Icon = "smile"
-    })
+local FunTab = SecModules:Tab({
+    Title = "Troll & Fun",
+    Icon = "smile"
+})
 
-    local SecSystem = Window:Section({
-        Title = "System",
-        Icon = "settings",
-        Opened = true
-    })
+local SecSystem = Window:Section({
+    Title = "System",
+    Icon = "settings",
+    Opened = true
+})
 
-    local SetTab = SecSystem:Tab({
-        Title = "Settings",
-        Icon = "settings"
-    })
+local SetTab = SecSystem:Tab({
+    Title = "Settings",
+    Icon = "settings"
+})
 
-    MainTab:Paragraph({
-        Title = "Engine Active",
-        Desc = "Leviathan Hub loaded successfully. Enjoy the advanced features."
-    })
-    
-    MainTab:Space({ Columns = 1 })
+MainTab:Paragraph({
+    Title = "Engine Active",
+    Desc = "Leviathan Hub loaded successfully. Enjoy the advanced features."
+})
 
-    MainTab:Viewport({
-        Object = Instance.new("Part"),
-        Interactive = true
-    })
-    
-    local MovGrp1 = MovTab:Group()
+MainTab:Space({
+    Columns = 1
+})
 
-    MovGrp1:Toggle({
-        Title = "Fly Mode",
-        Value = S.Fly,
-        Callback = function(v)
-            S.Fly = v
+MainTab:Viewport({
+    Object = Instance.new("Part"),
+    Interactive = true
+})
+
+local MovSec = MovTab:Section({
+    Title = "Navigation Engine"
+})
+
+MovSec:Toggle({
+    Title = "Fly Flight",
+    Value = S.Fly,
+    Callback = function(v)
+        S.Fly = v
+    end
+})
+
+MovSec:Toggle({
+    Title = "Noclip Bypass",
+    Value = S.Noclip,
+    Callback = function(v)
+        S.Noclip = v
+    end
+})
+
+MovSec:Toggle({
+    Title = "Auto Bhop",
+    Value = S.Bhop,
+    Callback = function(v)
+        S.Bhop = v
+    end
+})
+
+MovSec:Toggle({
+    Title = "Spinbot",
+    Value = S.SpinBot,
+    Callback = function(v)
+        S.SpinBot = v
+    end
+})
+
+MovSec:Slider({
+    Title = "WalkSpeed",
+    Step = 1,
+    Value = {
+        Min = 16,
+        Max = 300,
+        Default = S.WalkSpeed
+    },
+    Callback = function(v)
+        S.WalkSpeed = v
+        local hum = safeGetHumanoid()
+        if hum then
+            hum.WalkSpeed = v
         end
-    })
+    end
+})
 
-    MovGrp1:Toggle({
-        Title = "Noclip Wall Bypass",
-        Value = S.Noclip,
-        Callback = function(v)
-            S.Noclip = v
+MovSec:Slider({
+    Title = "JumpPower",
+    Step = 1,
+    Value = {
+        Min = 50,
+        Max = 400,
+        Default = S.JumpPower
+    },
+    Callback = function(v)
+        S.JumpPower = v
+        local hum = safeGetHumanoid()
+        if hum then
+            hum.JumpPower = v
         end
-    })
+    end
+})
 
-    MovGrp1:Toggle({
-        Title = "Auto Bhop",
-        Value = S.Bhop,
-        Callback = function(v)
-            S.Bhop = v
+MovSec:Slider({
+    Title = "Fly Speed",
+    Step = 1,
+    Value = {
+        Min = 10,
+        Max = 300,
+        Default = S.FlySpeed
+    },
+    Callback = function(v)
+        S.FlySpeed = v
+    end
+})
+
+local TpSec = MovTab:Section({
+    Title = "Teleportation"
+})
+
+TpSec:Button({
+    Title = "Teleport to Center",
+    Callback = function()
+        local hrp = safeGetHRP()
+        if hrp then
+            hrp.CFrame = CFrame.new(0, 50, 0)
         end
-    })
+    end
+})
 
-    MovGrp1:Toggle({
-        Title = "Spinbot Core",
-        Value = S.SpinBot,
-        Callback = function(v)
-            S.SpinBot = v
+TpSec:Button({
+    Title = "Teleport to Spawn",
+    Callback = function()
+        local sp = Workspace:FindFirstChildWhichIsA("SpawnLocation", true)
+        local hrp = safeGetHRP()
+        if hrp and sp then
+            hrp.CFrame = sp.CFrame + Vector3.new(0, 5, 0)
         end
-    })
+    end
+})
 
-    MovTab:Divider()
+local SurSec = SurTab:Section({
+    Title = "Defense Systems"
+})
 
-    local MovGrp2 = MovTab:Group()
+SurSec:Toggle({
+    Title = "Anti Touch Hitbox",
+    Value = S.AntiTouch,
+    Callback = function(v)
+        S.AntiTouch = v
+    end
+})
 
-    MovGrp2:Slider({
-        Title = "WalkSpeed",
-        Step = 1,
-        Value = {
-            Min = 16,
-            Max = 300,
-            Default = S.WalkSpeed
-        },
-        Callback = function(v)
-            S.WalkSpeed = v
-            local hum = safeGetHumanoid()
-            if hum then
-                hum.WalkSpeed = v
+SurSec:Toggle({
+    Title = "ForceField Shield",
+    Value = S.ForceField,
+    Callback = function(v)
+        S.ForceField = v
+    end
+})
+
+SurSec:Toggle({
+    Title = "Local Ghost Mode",
+    Value = S.GhostMode,
+    Callback = function(v)
+        S.GhostMode = v
+        if not v then
+            local char = LocalPlayer.Character
+            if char then
+                for _, p in ipairs(char:GetDescendants()) do
+                    if p:IsA("BasePart") then
+                        p.Transparency = 0
+                    elseif p:IsA("Decal") then
+                        p.Transparency = 0
+                    end
+                end
             end
         end
-    })
+    end
+})
 
-    MovGrp2:Slider({
-        Title = "JumpPower",
-        Step = 1,
-        Value = {
-            Min = 50,
-            Max = 400,
-            Default = S.JumpPower
-        },
-        Callback = function(v)
-            S.JumpPower = v
-            local hum = safeGetHumanoid()
-            if hum then
-                hum.JumpPower = v
+local EspSec = VisTab:Section({
+    Title = "Visual Overlay"
+})
+
+EspSec:Toggle({
+    Title = "Render Players",
+    Value = S.EspPlayers,
+    Callback = function(v)
+        S.EspPlayers = v
+    end
+})
+
+EspSec:Toggle({
+    Title = "Render Monsters",
+    Value = S.EspMonsters,
+    Callback = function(v)
+        S.EspMonsters = v
+    end
+})
+
+EspSec:Divider()
+
+EspSec:Toggle({
+    Title = "Draw Bounding Box",
+    Value = S.EspBox,
+    Callback = function(v)
+        S.EspBox = v
+    end
+})
+
+EspSec:Toggle({
+    Title = "Draw Name Text",
+    Value = S.EspName,
+    Callback = function(v)
+        S.EspName = v
+    end
+})
+
+EspSec:Toggle({
+    Title = "Draw Distance Info",
+    Value = S.EspDist,
+    Callback = function(v)
+        S.EspDist = v
+    end
+})
+
+EspSec:Toggle({
+    Title = "Draw Health Bar",
+    Value = S.EspHealth,
+    Callback = function(v)
+        S.EspHealth = v
+    end
+})
+
+EspSec:Toggle({
+    Title = "Draw Line Tracers",
+    Value = S.EspTracers,
+    Callback = function(v)
+        S.EspTracers = v
+    end
+})
+
+EspSec:Toggle({
+    Title = "Enable X-Ray View",
+    Value = S.EspXray,
+    Callback = function(v)
+        S.EspXray = v
+    end
+})
+
+EspSec:Space({
+    Columns = 1
+})
+
+EspSec:Colorpicker({
+    Title = "Global ESP Color",
+    Default = S.EspColor,
+    Callback = function(color)
+        S.EspColor = typeof(color) == "Color3" and color or Color3.fromRGB(0, 255, 255)
+    end
+})
+
+local AimSec = ComTab:Section({
+    Title = "Aimbot Assist"
+})
+
+AimSec:Toggle({
+    Title = "Enable Target Lock",
+    Value = S.AimbotEnabled,
+    Callback = function(v)
+        S.AimbotEnabled = v
+    end
+})
+
+AimSec:Toggle({
+    Title = "Show FOV Circle",
+    Value = S.ShowFOV,
+    Callback = function(v)
+        S.ShowFOV = v
+    end
+})
+
+AimSec:Slider({
+    Title = "FOV Scan Radius",
+    Step = 5,
+    Value = {
+        Min = 30,
+        Max = 500,
+        Default = S.FOVRadius
+    },
+    Callback = function(v)
+        S.FOVRadius = v
+    end
+})
+
+AimSec:Dropdown({
+    Title = "Tracking Bone Priority",
+    Values = {"Head", "HumanoidRootPart"},
+    Value = S.TargetBone,
+    Callback = function(v)
+        S.TargetBone = v
+    end
+})
+
+local HitSec = ComTab:Section({
+    Title = "Hitbox Expander"
+})
+
+HitSec:Toggle({
+    Title = "Enable Expander",
+    Value = S.HitboxEnabled,
+    Callback = function(v)
+        S.HitboxEnabled = v
+    end
+})
+
+HitSec:Slider({
+    Title = "Size Scale Multiplier",
+    Step = 1,
+    Value = {
+        Min = 2,
+        Max = 60,
+        Default = S.HitboxMultiplier
+    },
+    Callback = function(v)
+        S.HitboxMultiplier = v
+    end
+})
+
+HitSec:Dropdown({
+    Title = "Expansion Target Part",
+    Values = {"Head", "HumanoidRootPart", "Torso"},
+    Value = S.HitboxTarget,
+    Callback = function(v)
+        S.HitboxTarget = v
+    end
+})
+
+local NpcLockSec = NpcTab:Section({
+    Title = "Absolute NPC Lockdown"
+})
+
+NpcLockSec:Toggle({
+    Title = "Freeze Engines",
+    Value = S.FreezeEngine,
+    Callback = function(v)
+        S.FreezeEngine = v
+    end
+})
+
+NpcLockSec:Dropdown({
+    Title = "Freeze Mode",
+    Values = {"Matrix", "Void"},
+    Value = S.FreezeMode,
+    Callback = function(v)
+        S.FreezeMode = v
+    end
+})
+
+NpcLockSec:Toggle({
+    Title = "Suppress Specials",
+    Value = S.SuppressNPCs,
+    Callback = function(v)
+        S.SuppressNPCs = v
+    end
+})
+
+local ToolSec = NpcTab:Section({
+    Title = "Void Arsenal"
+})
+
+ToolSec:Button({
+    Title = "Get Void Scythe",
+    Callback = function()
+        local tool = Instance.new("Tool")
+        tool.Name = "Void Scythe"
+        tool.RequiresHandle = true
+        
+        local handle = Instance.new("Part")
+        handle.Parent = tool
+        handle.Name = "Handle"
+        handle.Size = Vector3.new(1, 5, 1)
+        handle.Massless = true
+        
+        local mesh = Instance.new("SpecialMesh")
+        mesh.Parent = handle
+        mesh.MeshId = "rbxassetid://14349160130"
+        mesh.Scale = Vector3.new(0.04, 0.04, 0.04)
+        
+        tool.Parent = LocalPlayer.Backpack
+        local slashing = false
+        
+        tool.Activated:Connect(function()
+            if slashing then
+                return
             end
-        end
-    })
+            
+            slashing = true
+            
+            pcall(function()
+                local anim = Instance.new("Animation")
+                anim.AnimationId = S.ScytheAnim
+                local hum = safeGetHumanoid()
+                if hum then
+                    hum:LoadAnimation(anim):Play()
+                end
+            end)
+            
+            local mPos = Mouse.Hit.Position
+            
+            for npc, _ in pairs(_G.ActiveNPCs or {}) do
+                if npc and npc:FindFirstChild("HumanoidRootPart") then
+                    local dist = (npc.HumanoidRootPart.Position - mPos).Magnitude
+                    if dist <= 30 then
+                        pcall(function()
+                            npc:BreakJoints()
+                            for _, p in ipairs(npc:GetDescendants()) do
+                                if p:IsA("BasePart") then
+                                    p.Velocity = Vector3.new(0, -1000, 0)
+                                    p.CFrame = p.CFrame * CFrame.new(0, -800, 0)
+                                end
+                            end
+                        end)
+                    end
+                end
+            end
+            
+            task.wait(0.3)
+            slashing = false
+        end)
+    end
+})
 
-    MovGrp2:Slider({
-        Title = "Flight Velocity",
-        Step = 1,
-        Value = {
-            Min = 10,
-            Max = 300,
-            Default = S.FlySpeed
-        },
-        Callback = function(v)
-            S.FlySpeed = v
-        end
-    })
+ToolSec:Toggle({
+    Title = "Kill Aura",
+    Value = S.KillAura,
+    Callback = function(v)
+        S.KillAura = v
+    end
+})
 
-    MovTab:Space({ Columns = 1 })
+local TrollSec = FunTab:Section({
+    Title = "Server Disruption"
+})
 
-    local TpGrp = MovTab:Group()
+TrollSec:Input({
+    Title = "Victim Name",
+    Value = S.ChaseVictim,
+    Callback = function(v)
+        S.ChaseVictim = v
+    end
+})
 
-    TpGrp:Button({
-        Title = "Teleport to Center",
-        Callback = function()
+TrollSec:Toggle({
+    Title = "Chase Victim",
+    Value = S.ChaseActive,
+    Callback = function(v)
+        S.ChaseActive = v
+    end
+})
+
+TrollSec:Toggle({
+    Title = "Chat Spam",
+    Value = S.ChatSpam,
+    Callback = function(v)
+        S.ChatSpam = v
+    end
+})
+
+TrollSec:Input({
+    Title = "Spam Message",
+    Value = S.SpamMsg,
+    Callback = function(v)
+        S.SpamMsg = v
+    end
+})
+
+TrollSec:Toggle({
+    Title = "Glitch Stance",
+    Value = S.GlitchStance,
+    Callback = function(v)
+        S.GlitchStance = v
+    end
+})
+
+TrollSec:Toggle({
+    Title = "Aura Fling",
+    Value = S.FlingActive,
+    Callback = function(v)
+        S.FlingActive = v
+        if not v then
             local hrp = safeGetHRP()
             if hrp then
-                hrp.CFrame = CFrame.new(0, 50, 0)
-            end
-        end
-    })
-
-    TpGrp:Button({
-        Title = "Teleport to Spawn",
-        Callback = function()
-            local sp = Workspace:FindFirstChildWhichIsA("SpawnLocation", true)
-            local hrp = safeGetHRP()
-            if hrp and sp then
-                hrp.CFrame = sp.CFrame + Vector3.new(0, 5, 0)
-            end
-        end
-    })
-
-    local SurGrp = SurTab:Group()
-
-    SurGrp:Toggle({
-        Title = "Anti Touch Hitbox",
-        Value = S.AntiTouch,
-        Callback = function(v)
-            S.AntiTouch = v
-        end
-    })
-
-    SurGrp:Toggle({
-        Title = "ForceField Shield",
-        Value = S.ForceField,
-        Callback = function(v)
-            S.ForceField = v
-        end
-    })
-
-    SurGrp:Toggle({
-        Title = "Local Ghost Mode",
-        Value = S.GhostMode,
-        Callback = function(v)
-            S.GhostMode = v
-            if not v then
-                local char = LocalPlayer.Character
-                if char then
-                    for _, p in ipairs(char:GetDescendants()) do
-                        if p:IsA("BasePart") then
-                            p.Transparency = 0
-                        elseif p:IsA("Decal") then
-                            p.Transparency = 0
-                        end
-                    end
+                local force = hrp:FindFirstChild("FlingForce")
+                if force then
+                    force:Destroy()
                 end
             end
         end
-    })
-
-    local EspGrp1 = VisTab:Group()
-
-    EspGrp1:Toggle({
-        Title = "Render Players",
-        Value = S.EspPlayers,
-        Callback = function(v)
-            S.EspPlayers = v
-        end
-    })
-
-    EspGrp1:Toggle({
-        Title = "Render Monsters",
-        Value = S.EspMonsters,
-        Callback = function(v)
-            S.EspMonsters = v
-        end
-    })
-
-    VisTab:Divider()
-
-    local EspGrp2 = VisTab:Group()
-
-    EspGrp2:Toggle({
-        Title = "Draw Bounding Box",
-        Value = S.EspBox,
-        Callback = function(v)
-            S.EspBox = v
-        end
-    })
-
-    EspGrp2:Toggle({
-        Title = "Draw Name Text",
-        Value = S.EspName,
-        Callback = function(v)
-            S.EspName = v
-        end
-    })
-
-    EspGrp2:Toggle({
-        Title = "Draw Distance Info",
-        Value = S.EspDist,
-        Callback = function(v)
-            S.EspDist = v
-        end
-    })
-
-    EspGrp2:Toggle({
-        Title = "Draw Health Bar",
-        Value = S.EspHealth,
-        Callback = function(v)
-            S.EspHealth = v
-        end
-    })
-
-    EspGrp2:Toggle({
-        Title = "Draw Line Tracers",
-        Value = S.EspTracers,
-        Callback = function(v)
-            S.EspTracers = v
-        end
-    })
-
-    EspGrp2:Toggle({
-        Title = "Enable X-Ray View",
-        Value = S.EspXray,
-        Callback = function(v)
-            S.EspXray = v
-        end
-    })
-
-    VisTab:Space({ Columns = 1 })
-
-    VisTab:Colorpicker({
-        Title = "Global ESP Color",
-        Default = S.EspColor,
-        Callback = function(color)
-            S.EspColor = color
-        end
-    })
-
-    local AimGrp = ComTab:Group()
-
-    AimGrp:Toggle({
-        Title = "Enable Target Lock",
-        Value = S.AimbotEnabled,
-        Callback = function(v)
-            S.AimbotEnabled = v
-        end
-    })
-
-    AimGrp:Toggle({
-        Title = "Show FOV Circle",
-        Value = S.ShowFOV,
-        Callback = function(v)
-            S.ShowFOV = v
-        end
-    })
-
-    AimGrp:Slider({
-        Title = "FOV Scan Radius",
-        Step = 5,
-        Value = {
-            Min = 30,
-            Max = 500,
-            Default = S.FOVRadius
-        },
-        Callback = function(v)
-            S.FOVRadius = v
-        end
-    })
-
-    AimGrp:Dropdown({
-        Title = "Tracking Bone Priority",
-        Values = {"Head", "HumanoidRootPart"},
-        Value = S.TargetBone,
-        Callback = function(v)
-            S.TargetBone = v
-        end
-    })
-    
-    ComTab:Divider()
-
-    local HitGrp = ComTab:Group()
-
-    HitGrp:Toggle({
-        Title = "Enable Hitbox Expander",
-        Value = S.HitboxEnabled,
-        Callback = function(v)
-            S.HitboxEnabled = v
-        end
-    })
-
-    HitGrp:Slider({
-        Title = "Size Scale Multiplier",
-        Step = 1,
-        Value = {
-            Min = 2,
-            Max = 60,
-            Default = S.HitboxMultiplier
-        },
-        Callback = function(v)
-            S.HitboxMultiplier = v
-        end
-    })
-
-    HitGrp:Dropdown({
-        Title = "Expansion Target Part",
-        Values = {"Head", "HumanoidRootPart", "Torso"},
-        Value = S.HitboxTarget,
-        Callback = function(v)
-            S.HitboxTarget = v
-        end
-    })
-
-    local NpcGrp1 = NpcTab:Group()
-
-    NpcGrp1:Toggle({
-        Title = "Absolute Freeze Engine",
-        Desc = "Freeze almost all NPC",
-        Value = S.FreezeEngine,
-        Callback = function(v)
-            S.FreezeEngine = v
-        end
-    })
-
-    NpcGrp1:Dropdown({
-        Title = "Engine Mode",
-        Desc = "Matrix Sync or Void Exile",
-        Values = {"Matrix", "Void"},
-        Value = S.FreezeMode,
-        Callback = function(v)
-            S.FreezeMode = v
-        end
-    })
-
-    NpcGrp1:Toggle({
-        Title = "Suppress Special Entities",
-        Value = S.SuppressNPCs,
-        Callback = function(v)
-            S.SuppressNPCs = v
-        end
-    })
-    
-    NpcTab:Space({ Columns = 1 })
-    
-    local NpcGrp2 = NpcTab:Group()
-
-    NpcGrp2:Button({
-        Title = "Summon Void Scythe",
-        Callback = function()
-            local tool = Instance.new("Tool")
-            tool.Name = "Void Scythe"
-            tool.RequiresHandle = true
-            
-            local handle = Instance.new("Part")
-            handle.Parent = tool
-            handle.Name = "Handle"
-            handle.Size = Vector3.new(1, 5, 1)
-            handle.Massless = true
-            
-            local mesh = Instance.new("SpecialMesh")
-            mesh.Parent = handle
-            mesh.MeshId = "rbxassetid://14349160130"
-            mesh.Scale = Vector3.new(0.04, 0.04, 0.04)
-            
-            tool.Parent = LocalPlayer.Backpack
-            local slashing = false
-            
-            tool.Activated:Connect(function()
-                if slashing then
-                    return
-                end
-                
-                slashing = true
-                
-                pcall(function()
-                    local anim = Instance.new("Animation")
-                    anim.AnimationId = S.ScytheAnim
-                    local hum = safeGetHumanoid()
-                    if hum then
-                        hum:LoadAnimation(anim):Play()
-                    end
-                end)
-                
-                local mPos = Mouse.Hit.Position
-                
-                for npc, _ in pairs(_G.ActiveNPCs or {}) do
-                    if npc and npc:FindFirstChild("HumanoidRootPart") then
-                        local dist = (npc.HumanoidRootPart.Position - mPos).Magnitude
-                        if dist <= 30 then
-                            pcall(function()
-                                npc:BreakJoints()
-                                for _, p in ipairs(npc:GetDescendants()) do
-                                    if p:IsA("BasePart") then
-                                        p.Velocity = Vector3.new(0, -1000, 0)
-                                        p.CFrame = p.CFrame * CFrame.new(0, -800, 0)
-                                    end
-                                end
-                            end)
-                        end
-                    end
-                end
-                
-                task.wait(0.3)
-                slashing = false
-            end)
-        end
-    })
-
-    NpcGrp2:Toggle({
-        Title = "Enable Kill Aura",
-        Value = S.KillAura,
-        Callback = function(v)
-            S.KillAura = v
-        end
-    })
-
-    local TrollGrp = FunTab:Group()
-
-    TrollGrp:Input({
-        Title = "Target Victim Name",
-        Value = S.ChaseVictim,
-        Callback = function(v)
-            S.ChaseVictim = v
-        end
-    })
-
-    TrollGrp:Toggle({
-        Title = "Force Minion Chase",
-        Value = S.ChaseActive,
-        Callback = function(v)
-            S.ChaseActive = v
-        end
-    })
-
-    TrollGrp:Toggle({
-        Title = "Automated Chat Spam",
-        Value = S.ChatSpam,
-        Callback = function(v)
-            S.ChatSpam = v
-        end
-    })
-
-    TrollGrp:Input({
-        Title = "Spam Message Content",
-        Value = S.SpamMsg,
-        Callback = function(v)
-            S.SpamMsg = v
-        end
-    })
-
-    TrollGrp:Toggle({
-        Title = "Malformed Glitch Stance",
-        Value = S.GlitchStance,
-        Callback = function(v)
-            S.GlitchStance = v
-        end
-    })
-
-    TrollGrp:Toggle({
-        Title = "Invisible Force Fling",
-        Value = S.FlingActive,
-        Callback = function(v)
-            S.FlingActive = v
-            if not v then
-                local hrp = safeGetHRP()
-                if hrp then
-                    local force = hrp:FindFirstChild("FlingForce")
-                    if force then
-                        force:Destroy()
-                    end
-                end
-            end
-        end
-    })
-
-    FunTab:Divider()
-
-    local WldGrp = FunTab:Group()
-
-    WldGrp:Toggle({
-        Title = "Disco Sky Strobe",
-        Value = S.DiscoSky,
-        Callback = function(v)
-            S.DiscoSky = v
-            if not v then
-                Lighting.Ambient = Color3.fromRGB(128, 128, 128)
-            end
-        end
-    })
-
-    WldGrp:Toggle({
-        Title = "Low Gravity Field",
-        Value = S.LowGravity,
-        Callback = function(v)
-            S.LowGravity = v
-            if v then
-                Workspace.Gravity = 40
-            else
-                Workspace.Gravity = 196.2
-            end
-        end
-    })
-
-    WldGrp:Slider({
-        Title = "Server Time Speed",
-        Step = 0.5,
-        Value = {
-            Min = 1,
-            Max = 10,
-            Default = S.TimeSpeed
-        },
-        Callback = function(v)
-            S.TimeSpeed = v
-        end
-    })
-
-    WldGrp:Slider({
-        Title = "Current Day Time",
-        Step = 1,
-        Value = {
-            Min = 0,
-            Max = 24,
-            Default = S.DayTime
-        },
-        Callback = function(v)
-            S.DayTime = v
-        end
-    })
-
-    local UtilGrp = SetTab:Group()
-
-    UtilGrp:Toggle({
-        Title = "Anti-AFK Protection",
-        Value = S.AntiAFK,
-        Callback = function(v)
-            S.AntiAFK = v
-        end
-    })
-
-    UtilGrp:Toggle({
-        Title = "Fullbright Override",
-        Value = S.Fullbright,
-        Callback = function(v)
-            S.Fullbright = v
-            if v then
-                Lighting.Ambient = Color3.new(1, 1, 1)
-                Lighting.OutdoorAmbient = Color3.new(1, 1, 1)
-            else
-                Lighting.Ambient = Color3.fromRGB(128, 128, 128)
-                Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
-            end
-        end
-    })
-
-    UtilGrp:Toggle({
-        Title = "Remove Fog Elements",
-        Value = S.NoFog,
-        Callback = function(v)
-            S.NoFog = v
-            if v then
-                Lighting.FogEnd = 9e9
-            else
-                Lighting.FogEnd = 100000
-            end
-        end
-    })
-
-    SetTab:Space({ Columns = 1 })
-
-    local CfgGrp = SetTab:Group()
-
-    local themeNames = {}
-    for name in pairs(WindUI:GetThemes()) do
-        table.insert(themeNames, name)
     end
-    table.sort(themeNames)
+})
 
-    CfgGrp:Dropdown({
-        Title = "UI Theme Selection",
-        Values = themeNames,
-        Value = S.Theme,
-        Callback = function(v)
-            S.Theme = v
-            pcall(function()
-                WindUI:SetTheme(v)
-            end)
+local WldSec = FunTab:Section({
+    Title = "World Control"
+})
+
+WldSec:Toggle({
+    Title = "Disco Sky",
+    Value = S.DiscoSky,
+    Callback = function(v)
+        S.DiscoSky = v
+        if not v then
+            Lighting.Ambient = Color3.fromRGB(128, 128, 128)
         end
-    })
+    end
+})
 
-    CfgGrp:Toggle({
-        Title = "Acrylic Panel Material",
-        Value = S.Acrylic,
-        Callback = function(v)
-            S.Acrylic = v
+WldSec:Toggle({
+    Title = "Low Gravity",
+    Value = S.LowGravity,
+    Callback = function(v)
+        S.LowGravity = v
+        if v then
+            Workspace.Gravity = 40
+        else
+            Workspace.Gravity = 196.2
         end
-    })
+    end
+})
 
-    CfgGrp:Keybind({
-        Title = "Toggle UI Panel Key",
-        Value = S.ToggleKey,
-        Callback = function(v)
-            S.ToggleKey = v
-            pcall(function()
-                Window:SetToggleKey(Enum.KeyCode[v])
-            end)
+WldSec:Slider({
+    Title = "Time Speed",
+    Step = 0.5,
+    Value = {
+        Min = 1,
+        Max = 10,
+        Default = S.TimeSpeed
+    },
+    Callback = function(v)
+        S.TimeSpeed = v
+    end
+})
+
+WldSec:Slider({
+    Title = "Day Time",
+    Step = 1,
+    Value = {
+        Min = 0,
+        Max = 24,
+        Default = S.DayTime
+    },
+    Callback = function(v)
+        S.DayTime = v
+    end
+})
+
+local UtilSec = SetTab:Section({
+    Title = "Client Utils"
+})
+
+UtilSec:Toggle({
+    Title = "Anti AFK",
+    Value = S.AntiAFK,
+    Callback = function(v)
+        S.AntiAFK = v
+    end
+})
+
+UtilSec:Toggle({
+    Title = "Fullbright",
+    Value = S.Fullbright,
+    Callback = function(v)
+        S.Fullbright = v
+        if v then
+            Lighting.Ambient = Color3.fromRGB(255, 255, 255)
+            Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
+        else
+            Lighting.Ambient = Color3.fromRGB(128, 128, 128)
+            Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
         end
-    })
-    
-    SetTab:Divider()
-    
-    local ServerGrp = SetTab:Group()
+    end
+})
 
-    ServerGrp:Button({
-        Title = "Instant Server Rejoin",
-        Callback = function()
-            local playerCount = #Players:GetPlayers()
-            if playerCount <= 1 then
-                TeleportService:Teleport(game.PlaceId, LocalPlayer)
-            else
-                TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
-            end
+UtilSec:Toggle({
+    Title = "No Fog",
+    Value = S.NoFog,
+    Callback = function(v)
+        S.NoFog = v
+        if v then
+            Lighting.FogEnd = 9e9
+        else
+            Lighting.FogEnd = 100000
         end
-    })
+    end
+})
 
-    ServerGrp:Button({
-        Title = "Random Server Hop",
-        Callback = function()
-            local url = "https://games.roblox.com/v1/games/" .. tostring(game.PlaceId) .. "/servers/Public?sortOrder=Asc&limit=100"
-            local success, result = pcall(function()
-                return game:HttpGet(url)
-            end)
-            if success then
-                local data = HttpService:JSONDecode(result)
-                if data and data.data then
-                    local servers = {}
-                    for _, server in ipairs(data.data) do
-                        if server.playing < server.maxPlayers and server.id ~= game.JobId then
-                            table.insert(servers, server.id)
-                        end
+local CfgSec = SetTab:Section({
+    Title = "Interface Core"
+})
+
+local themeNames = {}
+for name in pairs(WindUI:GetThemes()) do
+    table.insert(themeNames, name)
+end
+table.sort(themeNames)
+
+CfgSec:Dropdown({
+    Title = "Select Theme",
+    Values = themeNames,
+    Value = S.Theme,
+    Callback = function(v)
+        S.Theme = v
+        pcall(function()
+            WindUI:SetTheme(v)
+        end)
+    end
+})
+
+CfgSec:Toggle({
+    Title = "Acrylic Glass",
+    Value = S.Acrylic,
+    Callback = function(v)
+        S.Acrylic = v
+    end
+})
+
+CfgSec:Button({
+    Title = "Rejoin",
+    Callback = function()
+        local playerCount = #Players:GetPlayers()
+        if playerCount <= 1 then
+            TeleportService:Teleport(game.PlaceId, LocalPlayer)
+        else
+            TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
+        end
+    end
+})
+
+CfgSec:Button({
+    Title = "Server Hop",
+    Callback = function()
+        local url = "https://games.roblox.com/v1/games/" .. tostring(game.PlaceId) .. "/servers/Public?sortOrder=Asc&limit=100"
+        local success, result = pcall(function()
+            return game:HttpGet(url)
+        end)
+        if success then
+            local data = HttpService:JSONDecode(result)
+            if data and data.data then
+                local servers = {}
+                for _, server in ipairs(data.data) do
+                    if server.playing < server.maxPlayers and server.id ~= game.JobId then
+                        table.insert(servers, server.id)
                     end
-                    if #servers > 0 then
-                        local randomServer = servers[math.random(1, #servers)]
-                        TeleportService:TeleportToPlaceInstance(game.PlaceId, randomServer, LocalPlayer)
-                    end
+                end
+                if #servers > 0 then
+                    local randomServer = servers[math.random(1, #servers)]
+                    TeleportService:TeleportToPlaceInstance(game.PlaceId, randomServer, LocalPlayer)
                 end
             end
         end
-    })
-end
+    end
+})
 
 _G.ActiveNPCs = {}
 _G.CachedCFrames = {}
@@ -1471,7 +1456,8 @@ RunService.RenderStepped:Connect(function()
                 if S.EspBox then
                     drawings.Box.Size = Vector2.new(width, height)
                     drawings.Box.Position = Vector2.new(vec.X - width / 2, vec.Y - height / 2)
-                    drawings.Box.Color = S.EspColor
+                    local safeColor = typeof(S.EspColor) == "Color3" and S.EspColor or Color3.fromRGB(0, 255, 255)
+                    drawings.Box.Color = safeColor
                     drawings.Box.Visible = true
                 else
                     drawings.Box.Visible = false
@@ -1487,7 +1473,8 @@ RunService.RenderStepped:Connect(function()
                         textStr = textStr .. "[" .. tostring(dist) .. "m]"
                     end
                     drawings.Text.Text = textStr
-                    drawings.Text.Color = S.EspColor
+                    local safeColor = typeof(S.EspColor) == "Color3" and S.EspColor or Color3.fromRGB(0, 255, 255)
+                    drawings.Text.Color = safeColor
                     drawings.Text.Position = Vector2.new(vec.X, vec.Y - height / 2 - 25)
                     drawings.Text.Visible = true
                 else
@@ -1513,18 +1500,4 @@ LocalPlayer.Idled:Connect(function()
     end
 end)
 
-RebuildInterface()
-print("Succesful Loaded Assets")
-game:GetService("StarterGui"):SetCore("SendNotification",
-    { Title = "Leviathan Loader",
-        Text = "Loaded Script!",
-        Duration = 1.5
-    })
-task.wait(0.5)
-print("Hello ,")
-task.wait(0.5)
-print("Im A Leviathan...")
-task.wait(0.5)
-print("No , Im A Fish!")
-task.wait(0.5)
-print("Some Functions May Not Working And Bug")
+print("Leviathan Loaded")

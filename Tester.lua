@@ -52,10 +52,12 @@ local Mouse = LocalPlayer:GetMouse()
 
 if not _G.Leviathan_State then
     _G.Leviathan_State = {
-        Theme = "Amethyst",
+        Theme = "MizuDark",
         Acrylic = true,
         ToggleKey = "RightShift",
-        EspColor = Color3.fromRGB(0, 255, 255),
+        EspColor = Color3.fromRGB(200, 200, 200),
+        CustomFont = "Pixel",
+        UIStyleGradient = true,
         Fly = false,
         Noclip = false,
         WalkSpeed = 16,
@@ -144,6 +146,7 @@ end
 
 local function compileThemes()
     local palette = {
+        MizuDark = { {12,12,15}, {20,20,25}, {35,35,45}, {150,150,150}, {230,230,230} },
         AMOLED = { {0,0,0}, {5,5,5}, {18,18,18}, {255,255,255}, {255,255,255} },
         Amethyst = { {2,0,5}, {5,1,10}, {20,3,32}, {184,0,230}, {240,230,255} },
         Night = { {1,1,3}, {3,3,8}, {10,10,26}, {59,130,246}, {241,245,249} },
@@ -206,7 +209,7 @@ local Window = WindUI:CreateWindow({
 
 Window:Tag({
     Title = "Build 0.1",
-    Color = Color3.fromRGB(0, 255, 255)
+    Color = Color3.fromRGB(150, 150, 150)
 })
 
 local FpsTag = Window:Tag({
@@ -888,6 +891,23 @@ CfgSec:Dropdown({
     end
 })
 
+CfgSec:Dropdown({
+    Title = "custom font",
+    Values = {"Default", "Pixel", "Code"},
+    Value = S.CustomFont,
+    Callback = function(v)
+        S.CustomFont = v
+    end
+})
+
+CfgSec:Toggle({
+    Title = "enable ui gradients",
+    Value = S.UIStyleGradient,
+    Callback = function(v)
+        S.UIStyleGradient = v
+    end
+})
+
 CfgSec:Toggle({
     Title = "acrylic glass",
     Value = S.Acrylic,
@@ -1190,16 +1210,24 @@ TaskRunner:AddHeartbeat("DefenseEngine", function()
         end
     end
     if S.AntiTouch then
-        for _, obj in ipairs(Workspace:GetDescendants()) do
-            if obj:IsA("Model") then
-                if obj ~= LocalPlayer.Character then
-                    local isPlayer = Players:GetPlayerFromCharacter(obj)
-                    if not isPlayer then
-                        for _, p in ipairs(obj:GetDescendants()) do
-                            if p:IsA("BasePart") then
-                                if p.CanTouch then
-                                    p.CanTouch = false
-                                end
+        for npc, _ in pairs(_G.ActiveNPCs) do
+            if npc then
+                for _, p in ipairs(npc:GetDescendants()) do
+                    if p:IsA("BasePart") then
+                        if p.CanTouch then
+                            p.CanTouch = false
+                        end
+                    end
+                end
+            end
+        end
+        for _, pl in ipairs(Players:GetPlayers()) do
+            if pl ~= LocalPlayer then
+                if pl.Character then
+                    for _, p in ipairs(pl.Character:GetDescendants()) do
+                        if p:IsA("BasePart") then
+                            if p.CanTouch then
+                                p.CanTouch = false
                             end
                         end
                     end
@@ -1434,22 +1462,20 @@ TaskRunner:AddRender("ESPAimbotEngine", function()
         end
     end
     if S.EspMonsters then
-        for _, npc in pairs(Workspace:GetDescendants()) do
-            if npc:IsA("Model") then
+        for npc, _ in pairs(_G.ActiveNPCs) do
+            if npc then
                 if npc:FindFirstChild("HumanoidRootPart") then
-                    if not Players:GetPlayerFromCharacter(npc) then
-                        if not espCache[npc] then
-                            espCache[npc] = {
-                                Box = Drawing.new("Square"),
-                                Text = Drawing.new("Text"),
-                                IsPlayer = false
-                            }
-                            espCache[npc].Box.Thickness = 1.5
-                            espCache[npc].Box.Filled = false
-                            espCache[npc].Text.Size = 13
-                            espCache[npc].Text.Center = true
-                            espCache[npc].Text.Outline = true
-                        end
+                    if not espCache[npc] then
+                        espCache[npc] = {
+                            Box = Drawing.new("Square"),
+                            Text = Drawing.new("Text"),
+                            IsPlayer = false
+                        }
+                        espCache[npc].Box.Thickness = 1.5
+                        espCache[npc].Box.Filled = false
+                        espCache[npc].Text.Size = 13
+                        espCache[npc].Text.Center = true
+                        espCache[npc].Text.Outline = true
                     end
                 end
             end
@@ -1482,7 +1508,7 @@ TaskRunner:AddRender("ESPAimbotEngine", function()
                                 if S.EspBox then
                                     drawings.Box.Size = Vector2.new(width, height)
                                     drawings.Box.Position = Vector2.new(vec.X - width / 2, vec.Y - height / 2)
-                                    local safeColor = typeof(S.EspColor) == "Color3" and S.EspColor or Color3.fromRGB(0, 255, 255)
+                                    local safeColor = typeof(S.EspColor) == "Color3" and S.EspColor or Color3.fromRGB(200, 200, 200)
                                     drawings.Box.Color = safeColor
                                     drawings.Box.Visible = true
                                 else
@@ -1500,7 +1526,7 @@ TaskRunner:AddRender("ESPAimbotEngine", function()
                                         end
                                     end
                                     drawings.Text.Text = textStr
-                                    local safeColor = typeof(S.EspColor) == "Color3" and S.EspColor or Color3.fromRGB(0, 255, 255)
+                                    local safeColor = typeof(S.EspColor) == "Color3" and S.EspColor or Color3.fromRGB(200, 200, 200)
                                     drawings.Text.Color = safeColor
                                     drawings.Text.Position = Vector2.new(vec.X, vec.Y - height / 2 - 25)
                                     drawings.Text.Visible = true
@@ -1525,6 +1551,52 @@ TaskRunner:AddRender("ESPAimbotEngine", function()
             end
         else
             removeEsp(model)
+        end
+    end
+end)
+
+task.spawn(function()
+    while task.wait(1.5) do
+        if S.CustomFont ~= "Default" or S.UIStyleGradient then
+            local guis = {}
+            if CoreGui:FindFirstChild("WindUI") then
+                table.insert(guis, CoreGui.WindUI)
+            end
+            if CoreGui:FindFirstChild("LeviathanHub") then
+                table.insert(guis, CoreGui.LeviathanHub)
+            end
+            for _, gui in ipairs(guis) do
+                for _, obj in ipairs(gui:GetDescendants()) do
+                    if S.CustomFont ~= "Default" then
+                        if obj:IsA("TextLabel") or obj:IsA("TextBox") or obj:IsA("TextButton") then
+                            pcall(function()
+                                if S.CustomFont == "Pixel" then
+                                    obj.FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.Medium)
+                                elseif S.CustomFont == "Code" then
+                                    obj.Font = Enum.Font.Code
+                                end
+                            end)
+                        end
+                    end
+                    if S.UIStyleGradient then
+                        if obj:IsA("Frame") or obj:IsA("ScrollingFrame") then
+                            if obj.BackgroundTransparency < 1 then
+                                if not obj:FindFirstChildOfClass("UIGradient") then
+                                    pcall(function()
+                                        local grad = Instance.new("UIGradient")
+                                        grad.Color = ColorSequence.new({
+                                            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+                                            ColorSequenceKeypoint.new(1, Color3.fromRGB(80, 80, 80))
+                                        })
+                                        grad.Rotation = 45
+                                        grad.Parent = obj
+                                    end)
+                                end
+                            end
+                        end
+                    end
+                end
+            end
         end
     end
 end)

@@ -1,34 +1,45 @@
--- VERSION:0.0.1
+-- VERSION:0.1.0
 local isGameReady = false
+local scriptRunning = true
+
+-- Safety guards for nil checks
+local function safeWait(obj, timeout)
+    if not obj then return false end
+    local startTime = tick()
+    while not obj.Parent and (tick() - startTime) < (timeout or 30) do
+        task.wait(0.1)
+    end
+    return obj.Parent ~= nil
+end
 
 local function initializeSystem()
     if not game:IsLoaded() then
         game.Loaded:Wait()
     end
+    
     local player = game:GetService("Players").LocalPlayer
+    if not player then
+        warn("LocalPlayer not available")
+        return false
+    end
+    
     if not player.Character then
         player.CharacterAdded:Wait()
     end
     isGameReady = true
+    return true
 end
 
 task.spawn(initializeSystem)
 
-local function runWhenReady(func)
-    task.spawn(function()
-        while not isGameReady do
-            task.wait(1)
-        end
-        pcall(func)
-    end)
-end
-
 print("Loading Asset...")
-game:GetService("StarterGui"):SetCore("SendNotification", {
-    Title = "Leviathan Loader",
-    Text = "Loading Script...",
-    Duration = 1.5
-})
+pcall(function()
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "Leviathan Loader",
+        Text = "Loading Script...",
+        Duration = 1.5
+    })
+end)
 
 local cloneref = cloneref or function(instance)
     return instance
@@ -47,6 +58,11 @@ local Lighting = cloneref(game:GetService("Lighting"))
 local Stats = cloneref(game:GetService("Stats"))
 
 local LocalPlayer = Players.LocalPlayer
+if not LocalPlayer then
+    warn("Failed to get LocalPlayer")
+    return
+end
+
 local CurrentCamera = Workspace.CurrentCamera
 local Mouse = LocalPlayer:GetMouse()
 
@@ -111,10 +127,13 @@ end
 local S = _G.Leviathan_State
 
 local function safeGetCharacter()
-    if LocalPlayer.Character then
+    if LocalPlayer and LocalPlayer.Character then
         return LocalPlayer.Character
     end
-    return LocalPlayer.CharacterAdded:Wait()
+    if LocalPlayer then
+        return LocalPlayer.CharacterAdded:Wait()
+    end
+    return nil
 end
 
 local function safeGetHRP()
@@ -133,21 +152,30 @@ local function safeGetHumanoid()
     return nil
 end
 
-local UILoader, WindUI = pcall(function()
-    return loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+-- Load WindUI with proper error handling
+local UILoader, WindUI
+local loadSuccess = pcall(function()
+    UILoader, WindUI = pcall(function()
+        return loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+    end)
 end)
 
-if not UILoader then
+if not loadSuccess or not UILoader then
+    warn("Failed to load WindUI - Script initialization aborted")
     if LocalPlayer then
-        LocalPlayer:Kick("Failed to load WindUI.")
+        pcall(function()
+            LocalPlayer:Kick("Failed to load WindUI library.")
+        end)
     end
     return
 end
 
--- Extract the actual UI library from pcall result
 if not WindUI or type(WindUI) ~= "table" then
+    warn("WindUI is not a valid table")
     if LocalPlayer then
-        LocalPlayer:Kick("Failed to load WindUI library.")
+        pcall(function()
+            LocalPlayer:Kick("Failed to load WindUI library.")
+        end)
     end
     return
 end
@@ -165,76 +193,96 @@ local function compileThemes()
     
     for name, colors in pairs(palette) do
         pcall(function()
-            WindUI:AddTheme({
-                Name = name,
-                Background = Color3.fromRGB(colors[1][1], colors[1][2], colors[1][3]),
-                Dialog = Color3.fromRGB(colors[2][1], colors[2][2], colors[2][3]),
-                Outline = Color3.fromRGB(colors[3][1], colors[3][2], colors[3][3]),
-                Accent = Color3.fromRGB(colors[4][1], colors[4][2], colors[4][3]),
-                Text = Color3.fromRGB(colors[5][1], colors[5][2], colors[5][3]),
-                Placeholder = Color3.fromRGB(119, 119, 119),
-                Button = Color3.fromRGB(colors[2][1], colors[2][2], colors[2][3]),
-                Icon = Color3.fromRGB(colors[4][1], colors[4][2], colors[4][3]),
-                Toggle = Color3.fromRGB(colors[4][1], colors[4][2], colors[4][3]),
-                Slider = Color3.fromRGB(colors[4][1], colors[4][2], colors[4][3]),
-                Checkbox = Color3.fromRGB(colors[4][1], colors[4][2], colors[4][3]),
-                Primary = Color3.fromRGB(colors[4][1], colors[4][2], colors[4][3]),
-                SliderIcon = Color3.fromRGB(colors[5][1], colors[5][2], colors[5][3]),
-                PanelBackground = Color3.fromRGB(colors[2][1], colors[2][2], colors[2][3]),
-                PanelBackgroundTransparency = 0.05,
-                LabelBackground = Color3.fromRGB(colors[1][1], colors[1][2], colors[1][3]),
-                LabelBackgroundTransparency = 0.05
-            })
+            if WindUI and WindUI.AddTheme then
+                WindUI:AddTheme({
+                    Name = name,
+                    Background = Color3.fromRGB(colors[1][1], colors[1][2], colors[1][3]),
+                    Dialog = Color3.fromRGB(colors[2][1], colors[2][2], colors[2][3]),
+                    Outline = Color3.fromRGB(colors[3][1], colors[3][2], colors[3][3]),
+                    Accent = Color3.fromRGB(colors[4][1], colors[4][2], colors[4][3]),
+                    Text = Color3.fromRGB(colors[5][1], colors[5][2], colors[5][3]),
+                    Placeholder = Color3.fromRGB(119, 119, 119),
+                    Button = Color3.fromRGB(colors[2][1], colors[2][2], colors[2][3]),
+                    Icon = Color3.fromRGB(colors[4][1], colors[4][2], colors[4][3]),
+                    Toggle = Color3.fromRGB(colors[4][1], colors[4][2], colors[4][3]),
+                    Slider = Color3.fromRGB(colors[4][1], colors[4][2], colors[4][3]),
+                    Checkbox = Color3.fromRGB(colors[4][1], colors[4][2], colors[4][3]),
+                    Primary = Color3.fromRGB(colors[4][1], colors[4][2], colors[4][3]),
+                    SliderIcon = Color3.fromRGB(colors[5][1], colors[5][2], colors[5][3]),
+                    PanelBackground = Color3.fromRGB(colors[2][1], colors[2][2], colors[2][3]),
+                    PanelBackgroundTransparency = 0.05,
+                    LabelBackground = Color3.fromRGB(colors[1][1], colors[1][2], colors[1][3]),
+                    LabelBackgroundTransparency = 0.05
+                })
+            end
         end)
     end
 end
 
 compileThemes()
 
-local Window = WindUI:CreateWindow({
-    Title = "Leviathan Hub 0.1",
-    Icon = "solar:compass-big-bold",
-    Author = "UI Library",
-    Folder = "LeviathanHub",
-    Theme = S.Theme,
-    NewElements = true,
-    Transparent = true,
-    Acrylic = S.Acrylic,
-    ToggleKey = Enum.KeyCode[S.ToggleKey] or Enum.KeyCode.RightShift,
-    HideSearchBar = false,
-    OpenButton = {
-        Title = "Open Leviathan",
-        CornerRadius = UDim.new(0, 8),
-        StrokeThickness = 2,
-        Enabled = true,
-        Color = ColorSequence.new(Color3.fromRGB(0, 0, 0), Color3.fromRGB(255, 255, 255))
-    },
-})
+local Window
+pcall(function()
+    Window = WindUI:CreateWindow({
+        Title = "Leviathan Hub 0.1",
+        Icon = "solar:compass-big-bold",
+        Author = "UI Library",
+        Folder = "LeviathanHub",
+        Theme = S.Theme,
+        NewElements = true,
+        Transparent = true,
+        Acrylic = S.Acrylic,
+        ToggleKey = Enum.KeyCode[S.ToggleKey] or Enum.KeyCode.RightShift,
+        HideSearchBar = false,
+        OpenButton = {
+            Title = "Open Leviathan",
+            CornerRadius = UDim.new(0, 8),
+            StrokeThickness = 2,
+            Enabled = true,
+            Color = ColorSequence.new(Color3.fromRGB(0, 0, 0), Color3.fromRGB(255, 255, 255))
+        },
+    })
+end)
 
-Window:Tag({
-    Title = "Build 0.1",
-    Color = Color3.fromRGB(0, 255, 255)
-})
+if not Window then
+    warn("Failed to create Window")
+    return
+end
 
-local FpsTag = Window:Tag({
-    Title = "FPS: 0",
-    Color = Color3.fromRGB(100, 255, 100)
-})
+pcall(function()
+    Window:Tag({
+        Title = "Build 0.1",
+        Color = Color3.fromRGB(0, 255, 255)
+    })
+end)
 
-local PingTag = Window:Tag({
-    Title = "Ping: 0ms",
-    Color = Color3.fromRGB(255, 200, 100)
-})
+local FpsTag = pcall(function()
+    return Window:Tag({
+        Title = "FPS: 0",
+        Color = Color3.fromRGB(100, 255, 100)
+    })
+end) and FpsTag or nil
+
+local PingTag = pcall(function()
+    return Window:Tag({
+        Title = "Ping: 0ms",
+        Color = Color3.fromRGB(255, 200, 100)
+    })
+end) and PingTag or nil
 
 task.spawn(function()
     local lastUpdate = tick()
     local frames = 0
-    RunService.RenderStepped:Connect(function()
+    local connection
+    connection = RunService.RenderStepped:Connect(function()
+        if not scriptRunning then connection:Disconnect() return end
         frames = frames + 1
         local now = tick()
         if now - lastUpdate >= 1 then
             local fps = math.floor(frames / (now - lastUpdate))
-            FpsTag:SetTitle("FPS: " .. tostring(fps))
+            if FpsTag then
+                pcall(function() FpsTag:SetTitle("FPS: " .. tostring(fps)) end)
+            end
             frames = 0
             lastUpdate = now
         end
@@ -242,28 +290,33 @@ task.spawn(function()
 end)
 
 task.spawn(function()
-    while task.wait(1) do
+    while scriptRunning do
+        task.wait(1)
         pcall(function()
-            local statItem = Stats and Stats.Network and Stats.Network.ServerStatsItem and Stats.Network.ServerStatsItem["Data Ping"]
-            if statItem then
-                local ping = math.floor(statItem:GetValue())
-                PingTag:SetTitle("Ping: " .. tostring(ping) .. "ms")
+            if Stats and Stats.Network and Stats.Network.ServerStatsItem then
+                local statItem = Stats.Network.ServerStatsItem["Data Ping"]
+                if statItem and PingTag then
+                    local ping = math.floor(statItem:GetValue())
+                    PingTag:SetTitle("Ping: " .. tostring(ping) .. "ms")
+                end
             end
         end)
     end
 end)
 
-local topButtonCall = pcall(function()
-    Window.Topbar:Button({
-        Name = "Copy Discord",
-        Icon = "sfsymbols:link",
-        IconSize = 20,
-        Callback = function()
-            if setclipboard then
-                setclipboard("https://discord.gg/8czznVURXc")
+pcall(function()
+    if Window.Topbar then
+        Window.Topbar:Button({
+            Name = "Copy Discord",
+            Icon = "sfsymbols:link",
+            IconSize = 20,
+            Callback = function()
+                if setclipboard then
+                    setclipboard("https://discord.gg/8czznVURXc")
+                end
             end
-        end
-    })
+        })
+    end
 end)
 
 local SecInfo = Window:Section({
@@ -333,19 +386,21 @@ MainTab:Space({
     Columns = 1
 })
 
-local viewportModel = Instance.new("Model")
-local part = Instance.new("Part")
-part.Shape = Enum.PartType.Ball
-part.Material = Enum.Material.Neon
-part.Color = Color3.fromRGB(0, 255, 255)
-part.Size = Vector3.new(2, 2, 2)
-part.CanCollide = false
-part.Parent = viewportModel
-
-MainTab:Viewport({
-    Object = viewportModel,
-    Interactive = true
-})
+pcall(function()
+    local viewportModel = Instance.new("Model")
+    local part = Instance.new("Part")
+    part.Shape = Enum.PartType.Ball
+    part.Material = Enum.Material.Neon
+    part.Color = Color3.fromRGB(0, 255, 255)
+    part.Size = Vector3.new(2, 2, 2)
+    part.CanCollide = false
+    part.Parent = viewportModel
+    
+    MainTab:Viewport({
+        Object = viewportModel,
+        Interactive = true
+    })
+end)
 
 local MovSec = MovTab:Section({
     Title = "Navigation Engine"
@@ -777,9 +832,9 @@ WldSec:Toggle({
     Callback = function(v)
         S.Fullbright = v
         if v then
-            Lighting.Brightness = 3
+            pcall(function() Lighting.Brightness = 3 end)
         else
-            Lighting.Brightness = 1
+            pcall(function() Lighting.Brightness = 1 end)
         end
     end
 })
@@ -807,7 +862,7 @@ WldSec:Slider({
     },
     Callback = function(v)
         S.DayTime = v
-        Lighting.ClockTime = v
+        pcall(function() Lighting.ClockTime = v end)
     end
 })
 
@@ -829,9 +884,9 @@ UtilSec:Toggle({
     Callback = function(v)
         S.NoFog = v
         if v then
-            Lighting.FogEnd = 100000
+            pcall(function() Lighting.FogEnd = 100000 end)
         else
-            Lighting.FogEnd = 100000
+            pcall(function() Lighting.FogEnd = 100000 end)
         end
     end
 })
@@ -842,9 +897,9 @@ UtilSec:Toggle({
     Callback = function(v)
         S.LowGravity = v
         if v then
-            Workspace.Gravity = 10
+            pcall(function() Workspace.Gravity = 10 end)
         else
-            Workspace.Gravity = 196.2
+            pcall(function() Workspace.Gravity = 196.2 end)
         end
     end
 })
@@ -860,7 +915,11 @@ CfgSec:Dropdown({
     Items = {"AMOLED", "Amethyst", "Night", "Hacker", "Cyberpunk", "Cloud", "Sakura"},
     Callback = function(v)
         S.Theme = v
-        Window:SetTheme(v)
+        pcall(function()
+            if Window and Window.SetTheme then
+                Window:SetTheme(v)
+            end
+        end)
     end
 })
 
@@ -875,27 +934,38 @@ CfgSec:Toggle({
 CfgSec:Button({
     Title = "Save Config",
     Callback = function()
-        local json = HttpService:JSONEncode(S)
-        writefile("LeviathanConfig.json", json)
-        print("Config saved!")
+        pcall(function()
+            local json = HttpService:JSONEncode(S)
+            if writefile then
+                writefile("LeviathanConfig.json", json)
+                print("Config saved!")
+            else
+                warn("writefile not available")
+            end
+        end)
     end
 })
 
 CfgSec:Button({
     Title = "Load Config",
     Callback = function()
-        if isfile("LeviathanConfig.json") then
-            local json = readfile("LeviathanConfig.json")
-            local loaded = HttpService:JSONDecode(json)
-            for k, v in pairs(loaded) do
-                S[k] = v
+        pcall(function()
+            if isfile and isfile("LeviathanConfig.json") then
+                local json = readfile("LeviathanConfig.json")
+                local loaded = HttpService:JSONDecode(json)
+                for k, v in pairs(loaded) do
+                    S[k] = v
+                end
+                print("Config loaded!")
+            else
+                warn("Config file not found or isfile unavailable")
             end
-            print("Config loaded!")
-        end
+        end)
     end
 })
 
 local function scanNPC(obj)
+    if not obj then return false end
     if obj:IsA("Model") and obj:FindFirstChildOfClass("Humanoid") then
         return true
     end
@@ -903,41 +973,54 @@ local function scanNPC(obj)
 end
 
 local function executeFreeze()
-    if S.FreezeEngine then
+    if not S.FreezeEngine then return end
+    pcall(function()
+        local currentChar = safeGetCharacter()
         for _, npc in pairs(Workspace:GetDescendants()) do
-            if scanNPC(npc) and npc ~= safeGetCharacter() then
+            if scanNPC(npc) and npc ~= currentChar then
                 local hum = npc:FindFirstChildOfClass("Humanoid")
                 if hum then
                     hum.WalkSpeed = 0
                 end
             end
         end
-    end
+    end)
 end
 
-local function removeEsp(model)
-    if model and model:FindFirstChild("EspBox") then
-        model:FindFirstChild("EspBox"):Destroy()
+local mainLoopConnection
+mainLoopConnection = RunService.RenderStepped:Connect(function()
+    if not scriptRunning then
+        mainLoopConnection:Disconnect()
+        return
     end
-end
-
-RunService.RenderStepped:Connect(function()
-    -- Main loop for all active features
-    if S.EspPlayers then
-        for _, player in pairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer and player.Character then
-                -- Render ESP here
+    
+    if not isGameReady then return end
+    
+    pcall(function()
+        if S.EspPlayers then
+            for _, player in pairs(Players:GetPlayers()) do
+                if player ~= LocalPlayer and player.Character then
+                    -- Render ESP here
+                end
             end
         end
-    end
-    
-    if S.AimbotEnabled then
-        -- Aimbot logic here
-    end
-    
-    if S.Fly then
-        -- Fly logic here
-    end
-    
-    executeFreeze()
+        
+        if S.AimbotEnabled then
+            -- Aimbot logic here
+        end
+        
+        if S.Fly then
+            -- Fly logic here
+        end
+        
+        executeFreeze()
+    end)
 end)
+
+-- Cleanup on player leaving
+LocalPlayer.Exiting:Connect(function()
+    scriptRunning = false
+    print("Script cleanup triggered")
+end)
+
+print("Leviathan Hub loaded successfully!")

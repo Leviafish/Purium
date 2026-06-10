@@ -1,3 +1,31 @@
+local isGameReady = false
+
+local function initializeSystem()
+    if not game:IsLoaded() then
+        game.Loaded:Wait()
+    end
+    
+    local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+
+    isGameReady = true
+    print("[Leviathan]: Comfirmed Game Loaded!")
+end
+task.spawn(initializeSystem)
+local function runWhenReady(func)
+    task.spawn(function()
+        while not isGameReady do
+            task.wait(1)
+        end
+        pcall(func)
+    end)
+end
+
+print("Loading Asset...")
+game:GetService("StarterGui"):SetCore("SendNotification",
+    { Title = "Leviathan Loader",
+        Text = "Loading Script...",
+        Duration = 1.5
+    })
 local cloneref = cloneref or function(instance)
     return instance
 end
@@ -1347,3 +1375,9 @@ LocalPlayer.Idled:Connect(function()
 end)
 
 RebuildInterface()
+print("Succesful Loaded Assets")
+game:GetService("StarterGui"):SetCore("SendNotification",
+    { Title = "Leviathan Loader",
+        Text = "Loaded Script!",
+        Duration = 1.5
+    })

@@ -621,7 +621,7 @@ local NpcLockSec = NpcTab:Section({
 })
 
 NpcLockSec:Toggle({
-    Title = "freeze almost all npc",
+    Title = "Freeze NPCs",
     Value = S.FreezeEngine,
     Callback = function(v)
         S.FreezeEngine = v

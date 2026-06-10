@@ -135,7 +135,6 @@ local function safeGetHumanoid()
     return nil
 end
 
--- FIX: Correct pcall unpacking
 local UILoader, WindUI = pcall(function()
     return loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 end)
@@ -205,7 +204,7 @@ local Window = WindUI:CreateWindow({
 })
 
 Window:Tag({
-    Title = "Build 0.0.1",
+    Title = "Build 0.2",
     Color = Color3.fromRGB(150, 150, 150)
 })
 
@@ -298,12 +297,6 @@ MainTab:Paragraph({
 MainTab:Space({
     Columns = 1
 })
-
--- FIX: Remove broken Viewport or fix it properly
--- MainTab:Viewport({
---     Object = Instance.new("Part"),
---     Interactive = true
--- })
 
 local MovSec = MovTab:Section({
     Title = "Navigation Engine"
@@ -621,7 +614,7 @@ local NpcLockSec = NpcTab:Section({
 })
 
 NpcLockSec:Toggle({
-    Title = "Freeze NPCs",
+    Title = "freeze almost all npc",
     Value = S.FreezeEngine,
     Callback = function(v)
         S.FreezeEngine = v
@@ -1006,7 +999,6 @@ RunService.RenderStepped:Connect(function(dt)
     end
 end)
 
--- FIX: FPS counter now maintains state across frames
 local fpsLastUpdate = tick()
 local fpsFrames = 0
 
@@ -1435,7 +1427,6 @@ TaskRunner:AddRender("ESPAimbotEngine", function()
                 local cPos = CurrentCamera.CFrame.Position
                 local tPos = target.Position
                 local aimCFrame = CFrame.new(cPos, tPos)
-                -- FIX: Clamp smoothness to valid range [0, 1]
                 local smoothness = math.clamp(S.Smoothness or 0.35, 0, 1)
                 CurrentCamera.CFrame = CurrentCamera.CFrame:Lerp(aimCFrame, smoothness)
             end

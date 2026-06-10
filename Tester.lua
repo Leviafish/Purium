@@ -199,7 +199,7 @@ local Window = WindUI:CreateWindow({
     },
     Topbar = {
         Height = 44,
-        ButtonsType = "Mac"
+        ButtonsType = "default"
     }
 })
 
@@ -240,19 +240,6 @@ task.spawn(function()
             PingTag:SetTitle("Ping: " .. tostring(ping) .. "ms")
         end)
     end
-end)
-
-local topButtonCall = pcall(function()
-    Window.Topbar:Button({
-        Name = "Copy Discord",
-        Icon = "sfsymbols:link",
-        IconSize = 20,
-        Callback = function()
-            if setclipboard then
-                setclipboard("https://discord.gg/8czznVURXc")
-            end
-        end
-    })
 end)
 
 local SecInfo = Window:Section({

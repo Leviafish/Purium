@@ -204,7 +204,7 @@ local Window = WindUI:CreateWindow({
 })
 
 Window:Tag({
-    Title = "Build 0.2",
+    Title = "Build 0.0.1",
     Color = Color3.fromRGB(150, 150, 150)
 })
 

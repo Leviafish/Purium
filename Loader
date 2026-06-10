@@ -1,6 +1,6 @@
 -- Leviathan Hub Loader
 local CURRENT_VERSION = "0.0.1"
-local VERSION_URL = "https://raw.githubusercontent.com/PuriumHuB/Purium/refs/heads/main/version.lua"
+local VERSION_URL = "https://raw.githubusercontent.com/PuriumHuB/Purium/refs/heads/main/Tester.lua"
 
 local GAME_CONFIGS = {
     [4104106043] = "https://raw.githubusercontent.com/PuriumHuB/Purium/refs/heads/main/Tester.lua",--Insane Elevator

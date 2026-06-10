@@ -27,7 +27,7 @@ local function boot()
     end)
     
     if success and remoteVersion then
-        remoteVersion = string.gsub(remoteVersion, "%s+", "")
+        remoteVersion = string.gsub(remoteVersion, "%-%-", "")
         if remoteVersion ~= CURRENT_VERSION then
             print("[Leviathan]: Update " .. remoteVersion .. " is available!")
         end

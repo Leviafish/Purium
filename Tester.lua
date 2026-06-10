@@ -20,8 +20,9 @@ local function runWhenReady(func)
         end
         pcall(func)
     end)
-end
 
+    
+print("Loading Asset...")
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "Leviathan Loader",
     Text = "Loading Script...",
@@ -132,7 +133,7 @@ local function safeGetHumanoid()
 end
 
 local UILoader, WindUI = pcall(function()
-    return loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/main/dist/main.lua"))()
+    return WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 end)
 
 if not UILoader then
@@ -182,7 +183,7 @@ compileThemes()
 local Window = WindUI:CreateWindow({
     Title = "Leviathan Hub 0.1",
     Icon = "solar:compass-big-bold",
-    Author = "UI Library | footagesus",
+    Author = "UI Library",
     Folder = "LeviathanHub",
     Theme = S.Theme,
     NewElements = true,
@@ -240,6 +241,19 @@ task.spawn(function()
             PingTag:SetTitle("Ping: " .. tostring(ping) .. "ms")
         end)
     end
+end)
+
+local topButtonCall = pcall(function()
+    Window.Topbar:Button({
+        Name = "Copy Discord",
+        Icon = "sfsymbols:link",
+        IconSize = 20,
+        Callback = function()
+            if setclipboard then
+                setclipboard("https://discord.gg/8czznVURXc")
+            end
+        end
+    })
 end)
 
 local SecInfo = Window:Section({
@@ -427,7 +441,7 @@ local SurSec = SurTab:Section({
 })
 
 SurSec:Toggle({
-    Title = "Anti Touch Hitbox",
+    Title = "Anti Touch Hitbox ( Patched )",
     Value = S.AntiTouch,
     Callback = function(v)
         S.AntiTouch = v
@@ -435,7 +449,7 @@ SurSec:Toggle({
 })
 
 SurSec:Toggle({
-    Title = "ForceField Shield",
+    Title = "ForceField Shield ( Patched )",
     Value = S.ForceField,
     Callback = function(v)
         S.ForceField = v
@@ -621,7 +635,7 @@ HitSec:Dropdown({
 })
 
 local NpcLockSec = NpcTab:Section({
-    Title = "Absolute NPC Lockdown"
+    Title = "Lockdown Protocol"
 })
 
 NpcLockSec:Toggle({
@@ -716,7 +730,7 @@ ToolSec:Button({
 })
 
 ToolSec:Toggle({
-    Title = "Kill Aura",
+    Title = "Kill Aura ( Patched )",
     Value = S.KillAura,
     Callback = function(v)
         S.KillAura = v
@@ -728,7 +742,7 @@ local TrollSec = FunTab:Section({
 })
 
 TrollSec:Input({
-    Title = "Victim Name",
+    Title = "Victim Name ( Patched )",
     Value = S.ChaseVictim,
     Callback = function(v)
         S.ChaseVictim = v
@@ -736,7 +750,7 @@ TrollSec:Input({
 })
 
 TrollSec:Toggle({
-    Title = "Chase Victim",
+    Title = "Chase Victim ( Patched )",
     Value = S.ChaseActive,
     Callback = function(v)
         S.ChaseActive = v
@@ -744,7 +758,7 @@ TrollSec:Toggle({
 })
 
 TrollSec:Toggle({
-    Title = "Chat Spam",
+    Title = "Chat Spam ( Patched )",
     Value = S.ChatSpam,
     Callback = function(v)
         S.ChatSpam = v
@@ -752,7 +766,7 @@ TrollSec:Toggle({
 })
 
 TrollSec:Input({
-    Title = "Spam Message",
+    Title = "Spam Message ( Patched )",
     Value = S.SpamMsg,
     Callback = function(v)
         S.SpamMsg = v
@@ -768,7 +782,7 @@ TrollSec:Toggle({
 })
 
 TrollSec:Toggle({
-    Title = "Aura Fling",
+    Title = "Aura Fling ( Buggy )",
     Value = S.FlingActive,
     Callback = function(v)
         S.FlingActive = v
@@ -1487,4 +1501,17 @@ LocalPlayer.Idled:Connect(function()
     end
 end)
 
-print("Leviathan Loaded")
+print("Succesful Loaded Assets")
+game:GetService("StarterGui"):SetCore("SendNotification",
+    { Title = "Leviathan Loader",
+        Text = "Loaded Script!",
+        Duration = 1.5
+    })
+task.wait(0.5)
+print("Hello ,")
+task.wait(0.5)
+print("Im A Leviathan...")
+task.wait(0.5)
+print("No , Im A Fish!")
+task.wait(0.5)
+print("Some Functions May Not Working And Bug")

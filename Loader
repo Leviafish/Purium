@@ -1,0 +1,46 @@
+-- Leviathan Hub Loader
+local CURRENT_VERSION = "0.0.1"
+local VERSION_URL = "https://raw.githubusercontent.com/PuriumHuB/Purium/refs/heads/main/version.lua"
+
+local GAME_CONFIGS = {
+    [4104106043] = "https://raw.githubusercontent.com/PuriumHuB/Purium/refs/heads/main/Tester.lua",--Insane Elevator
+    [123456789]  = "https://raw.githubusercontent.com/username/repo/main/Game2.lua",--Stil not a real game, just an example
+    [987654321]  = "https://raw.githubusercontent.com/username/repo/main/Game3.lua",--Stil not a real game, just an example
+}
+
+local function boot()
+    local gameUrl = GAME_CONFIGS[game.PlaceId]
+
+    if not gameUrl then
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Leviathan Hub",
+            Text = "This game is not supported yet. Please check back later for updates.",
+            Duration = 5
+        })
+        task.wait(2)
+        script:Destroy()
+        return
+    end
+  
+    local success, remoteVersion = pcall(function()
+        return game:HttpGet(VERSION_URL)
+    end)
+    
+    if success and remoteVersion then
+        remoteVersion = string.gsub(remoteVersion, "%s+", "")
+        if remoteVersion ~= CURRENT_VERSION then
+            print("[Leviathan]: Update " .. remoteVersion .. " is available!")
+        end
+    end
+
+    print("[Leviathan]: Loading module for game ID: " .. game.PlaceId)
+    local loadSuccess, loadResult = pcall(function()
+        return loadstring(game:HttpGet(gameUrl))()
+    end)
+
+    if not loadSuccess then
+        warn("[Leviathan]: Error while loading module: " .. tostring(loadResult))
+    end
+end
+
+boot()

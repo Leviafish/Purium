@@ -237,10 +237,6 @@ local Window = WindUI:CreateWindow({
         StrokeThickness = 1,
         Enabled = true,
         Color = ColorSequence.new(Color3.fromRGB(20, 20, 20), Color3.fromRGB(240, 240, 240))
-    },
-    Topbar = {
-        Height = 35,
-        ButtonsType = "default"
     }
 })
 

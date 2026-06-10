@@ -182,7 +182,7 @@ compileThemes()
 local Window = WindUI:CreateWindow({
     Title = "Leviathan Hub 0.1",
     Icon = "solar:compass-big-bold",
-    Author = "UI Library",
+    Author = "UI Library | footagesus",
     Folder = "LeviathanHub",
     Theme = S.Theme,
     NewElements = true,

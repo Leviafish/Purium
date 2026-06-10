@@ -90,7 +90,7 @@ if not _G.Leviathan_State then
         ScytheAnim = "rbxassetid://10492892972",
         ChatSpam = false,
         SpamDelay = 2,
-        SpamMsg = "Leviathan Hub dominates",
+        SpamMsg = "GG , Bro Ts Peak",
         GlitchStance = false,
         FlingActive = false,
         DiscoSky = false,
@@ -225,7 +225,7 @@ local function RebuildInterface()
         IconSize = 20,
         Callback = function()
             if setclipboard then
-                setclipboard("https://discord.gg/")
+                setclipboard("https://discord.gg/8czznVURXc")
             end
         end
     })
@@ -415,7 +415,7 @@ local function RebuildInterface()
     })
 
     SurSec:Toggle({
-        Title = "Anti Touch",
+        Title = "Anti Touch ( Patched )",
         Value = S.AntiTouch,
         Callback = function(v)
             S.AntiTouch = v
@@ -423,7 +423,7 @@ local function RebuildInterface()
     })
 
     SurSec:Toggle({
-        Title = "Forcefield",
+        Title = "ForceField ( Patched )",
         Value = S.ForceField,
         Callback = function(v)
             S.ForceField = v
@@ -431,7 +431,7 @@ local function RebuildInterface()
     })
 
     SurSec:Toggle({
-        Title = "Ghost Mode",
+        Title = "Invisible",
         Value = S.GhostMode,
         Callback = function(v)
             S.GhostMode = v
@@ -603,7 +603,7 @@ local function RebuildInterface()
     })
 
     NpcSec:Toggle({
-        Title = "Freeze Engines",
+        Title = "Freeze NPC",
         Desc = "freeze almost all npc",
         Value = S.FreezeEngine,
         Callback = function(v)
@@ -648,7 +648,7 @@ local function RebuildInterface()
             
             local mesh = Instance.new("SpecialMesh")
             mesh.Parent = handle
-            mesh.MeshId = "rbxassetid://4311193301"
+            mesh.MeshId = "rbxassetid://14349160130"
             mesh.Scale = Vector3.new(0.04, 0.04, 0.04)
             
             tool.Parent = LocalPlayer.Backpack
@@ -696,7 +696,7 @@ local function RebuildInterface()
     })
 
     ToolSec:Toggle({
-        Title = "Kill Aura",
+        Title = "Kill Aura ( Patched )",
         Value = S.KillAura,
         Callback = function(v)
             S.KillAura = v
@@ -708,7 +708,7 @@ local function RebuildInterface()
     })
 
     TrollSec:Input({
-        Title = "Victim Name",
+        Title = "Victim Name ( Patched )",
         Value = S.ChaseVictim,
         Callback = function(v)
             S.ChaseVictim = v
@@ -716,7 +716,7 @@ local function RebuildInterface()
     })
 
     TrollSec:Toggle({
-        Title = "Chase Victim",
+        Title = "Chase Victim ( Patched )",
         Value = S.ChaseActive,
         Callback = function(v)
             S.ChaseActive = v
@@ -1381,3 +1381,11 @@ game:GetService("StarterGui"):SetCore("SendNotification",
         Text = "Loaded Script!",
         Duration = 1.5
     })
+task.wait(0.5)
+print("Hello ,")
+task.wait(0.5)
+print("Im A Leviathan...")
+task.wait(0.5)
+print("No , Im A Fish!")
+task.wait(0.5)
+print("Some Functions May Not Working And Bug")

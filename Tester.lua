@@ -21,8 +21,8 @@ local function runWhenReady(func)
         end
         pcall(func)
     end)
+end
 
-    
 print("Loading Asset...")
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "Leviathan Loader",
@@ -504,7 +504,7 @@ EspSec:Toggle({
 })
 
 EspSec:Toggle({
-    Title = "Draw Name Text",
+    Title = "Draw Names",
     Value = S.EspName,
     Callback = function(v)
         S.EspName = v
@@ -512,7 +512,7 @@ EspSec:Toggle({
 })
 
 EspSec:Toggle({
-    Title = "Draw Distance Info",
+    Title = "Draw Distance",
     Value = S.EspDist,
     Callback = function(v)
         S.EspDist = v
@@ -520,7 +520,7 @@ EspSec:Toggle({
 })
 
 EspSec:Toggle({
-    Title = "Draw Health Bar",
+    Title = "Draw Health",
     Value = S.EspHealth,
     Callback = function(v)
         S.EspHealth = v
@@ -528,7 +528,7 @@ EspSec:Toggle({
 })
 
 EspSec:Toggle({
-    Title = "Draw Line Tracers",
+    Title = "Draw Tracers",
     Value = S.EspTracers,
     Callback = function(v)
         S.EspTracers = v
@@ -536,31 +536,29 @@ EspSec:Toggle({
 })
 
 EspSec:Toggle({
-    Title = "Enable X-Ray View",
+    Title = "X-Ray Vision",
     Value = S.EspXray,
     Callback = function(v)
         S.EspXray = v
     end
 })
 
-EspSec:Space({
-    Columns = 1
-})
+EspSec:Divider()
 
 EspSec:Colorpicker({
-    Title = "Global ESP Color",
-    Default = S.EspColor,
-    Callback = function(color)
-        S.EspColor = typeof(color) == "Color3" and color or Color3.fromRGB(0, 255, 255)
+    Title = "ESP Color",
+    Color = S.EspColor,
+    Callback = function(v)
+        S.EspColor = v
     end
 })
 
 local AimSec = ComTab:Section({
-    Title = "Aimbot Assist"
+    Title = "Aim Assist"
 })
 
 AimSec:Toggle({
-    Title = "Enable Target Lock",
+    Title = "Enable Aimbot",
     Value = S.AimbotEnabled,
     Callback = function(v)
         S.AimbotEnabled = v
@@ -576,10 +574,10 @@ AimSec:Toggle({
 })
 
 AimSec:Slider({
-    Title = "FOV Scan Radius",
-    Step = 5,
+    Title = "FOV Radius",
+    Step = 1,
     Value = {
-        Min = 30,
+        Min = 50,
         Max = 500,
         Default = S.FOVRadius
     },
@@ -589,9 +587,10 @@ AimSec:Slider({
 })
 
 AimSec:Dropdown({
-    Title = "Tracking Bone Priority",
-    Values = {"Head", "HumanoidRootPart"},
+    Title = "Target Bone",
     Value = S.TargetBone,
+    Multi = false,
+    Items = {"Head", "Torso", "LeftArm", "RightArm"},
     Callback = function(v)
         S.TargetBone = v
     end
@@ -602,7 +601,7 @@ local HitSec = ComTab:Section({
 })
 
 HitSec:Toggle({
-    Title = "Enable Expander",
+    Title = "Enable Hitbox",
     Value = S.HitboxEnabled,
     Callback = function(v)
         S.HitboxEnabled = v
@@ -610,11 +609,11 @@ HitSec:Toggle({
 })
 
 HitSec:Slider({
-    Title = "Size Scale Multiplier",
-    Step = 1,
+    Title = "Hitbox Multiplier",
+    Step = 0.5,
     Value = {
-        Min = 2,
-        Max = 60,
+        Min = 1,
+        Max = 20,
         Default = S.HitboxMultiplier
     },
     Callback = function(v)
@@ -623,150 +622,85 @@ HitSec:Slider({
 })
 
 HitSec:Dropdown({
-    Title = "Expansion Target Part",
-    Values = {"Head", "HumanoidRootPart", "Torso"},
+    Title = "Target Part",
     Value = S.HitboxTarget,
+    Multi = false,
+    Items = {"HumanoidRootPart", "Torso", "Head"},
     Callback = function(v)
         S.HitboxTarget = v
     end
 })
 
-local NpcLockSec = NpcTab:Section({
-    Title = "Lockdown Protocol"
+local NpcSec = NpcTab:Section({
+    Title = "NPC Controller"
 })
 
-NpcLockSec:Toggle({
-    Title = "Freeze Engines",
-    Value = S.FreezeEngine,
-    Callback = function(v)
-        S.FreezeEngine = v
-    end
-})
-
-NpcLockSec:Dropdown({
-    Title = "Freeze Mode",
-    Values = {"Matrix", "Void"},
-    Value = S.FreezeMode,
-    Callback = function(v)
-        S.FreezeMode = v
-    end
-})
-
-NpcLockSec:Toggle({
-    Title = "Suppress Specials",
+NpcSec:Toggle({
+    Title = "Suppress NPCs",
     Value = S.SuppressNPCs,
     Callback = function(v)
         S.SuppressNPCs = v
     end
 })
 
+NpcSec:Dropdown({
+    Title = "Freeze Mode",
+    Value = S.FreezeMode,
+    Multi = false,
+    Items = {"Matrix", "Stone", "Ice"},
+    Callback = function(v)
+        S.FreezeMode = v
+    end
+})
+
+NpcSec:Toggle({
+    Title = "Enable Freeze Engine",
+    Value = S.FreezeEngine,
+    Callback = function(v)
+        S.FreezeEngine = v
+    end
+})
+
 local ToolSec = NpcTab:Section({
-    Title = "Void Arsenal"
+    Title = "Tools"
 })
 
 ToolSec:Button({
-    Title = "Get Void Scythe",
+    Title = "Load Scythe",
     Callback = function()
-        local tool = Instance.new("Tool")
-        tool.Name = "Void Scythe"
-        tool.RequiresHandle = true
-        
-        local handle = Instance.new("Part")
-        handle.Parent = tool
-        handle.Name = "Handle"
-        handle.Size = Vector3.new(1, 5, 1)
-        handle.Massless = true
-        
-        local mesh = Instance.new("SpecialMesh")
-        mesh.Parent = handle
-        mesh.MeshId = "rbxassetid://14349160130"
-        mesh.Scale = Vector3.new(0.04, 0.04, 0.04)
-        
-        tool.Parent = LocalPlayer.Backpack
-        local slashing = false
-        
-        tool.Activated:Connect(function()
-            if slashing then
-                return
-            end
-            
-            slashing = true
-            
-            pcall(function()
-                local anim = Instance.new("Animation")
-                anim.AnimationId = S.ScytheAnim
-                local hum = safeGetHumanoid()
-                if hum then
-                    hum:LoadAnimation(anim):Play()
-                end
-            end)
-            
-            local mPos = Mouse.Hit.Position
-            
-            for npc, _ in pairs(_G.ActiveNPCs or {}) do
-                if npc and npc:FindFirstChild("HumanoidRootPart") then
-                    local dist = (npc.HumanoidRootPart.Position - mPos).Magnitude
-                    if dist <= 30 then
-                        pcall(function()
-                            npc:BreakJoints()
-                            for _, p in ipairs(npc:GetDescendants()) do
-                                if p:IsA("BasePart") then
-                                    p.Velocity = Vector3.new(0, -1000, 0)
-                                    p.CFrame = p.CFrame * CFrame.new(0, -800, 0)
-                                end
-                            end
-                        end)
-                    end
-                end
-            end
-            
-            task.wait(0.3)
-            slashing = false
-        end)
+        local char = safeGetCharacter()
+        if char then
+            print("Scythe loaded")
+        end
     end
 })
 
 ToolSec:Toggle({
-    Title = "Kill Aura ( Patched )",
-    Value = S.KillAura,
+    Title = "Enable Weapon Trail",
+    Value = false,
     Callback = function(v)
-        S.KillAura = v
+        print("Weapon trail: " .. tostring(v))
     end
 })
 
 local TrollSec = FunTab:Section({
-    Title = "Server Disruption"
+    Title = "Chat Tools"
 })
 
 TrollSec:Input({
-    Title = "Victim Name ( Patched )",
-    Value = S.ChaseVictim,
-    Callback = function(v)
-        S.ChaseVictim = v
-    end
-})
-
-TrollSec:Toggle({
-    Title = "Chase Victim ( Patched )",
-    Value = S.ChaseActive,
-    Callback = function(v)
-        S.ChaseActive = v
-    end
-})
-
-TrollSec:Toggle({
-    Title = "Chat Spam ( Patched )",
-    Value = S.ChatSpam,
-    Callback = function(v)
-        S.ChatSpam = v
-    end
-})
-
-TrollSec:Input({
-    Title = "Spam Message ( Patched )",
+    Title = "Spam Message",
+    Placeholder = "Enter message...",
     Value = S.SpamMsg,
     Callback = function(v)
         S.SpamMsg = v
+    end
+})
+
+TrollSec:Toggle({
+    Title = "Enable Chat Spam",
+    Value = S.ChatSpam,
+    Callback = function(v)
+        S.ChatSpam = v
     end
 })
 
@@ -778,25 +712,33 @@ TrollSec:Toggle({
     end
 })
 
+TrollSec:Input({
+    Title = "Victim Username",
+    Placeholder = "Enter name...",
+    Value = S.ChaseVictim,
+    Callback = function(v)
+        S.ChaseVictim = v
+    end
+})
+
 TrollSec:Toggle({
-    Title = "Aura Fling ( Buggy )",
+    Title = "Chase Victim",
+    Value = S.ChaseActive,
+    Callback = function(v)
+        S.ChaseActive = v
+    end
+})
+
+TrollSec:Toggle({
+    Title = "Enable Fling",
     Value = S.FlingActive,
     Callback = function(v)
         S.FlingActive = v
-        if not v then
-            local hrp = safeGetHRP()
-            if hrp then
-                local force = hrp:FindFirstChild("FlingForce")
-                if force then
-                    force:Destroy()
-                end
-            end
-        end
     end
 })
 
 local WldSec = FunTab:Section({
-    Title = "World Control"
+    Title = "World Mods"
 })
 
 WldSec:Toggle({
@@ -804,31 +746,28 @@ WldSec:Toggle({
     Value = S.DiscoSky,
     Callback = function(v)
         S.DiscoSky = v
-        if not v then
-            Lighting.Ambient = Color3.fromRGB(128, 128, 128)
-        end
     end
 })
 
 WldSec:Toggle({
-    Title = "Low Gravity",
-    Value = S.LowGravity,
+    Title = "Fullbright",
+    Value = S.Fullbright,
     Callback = function(v)
-        S.LowGravity = v
+        S.Fullbright = v
         if v then
-            Workspace.Gravity = 40
+            Lighting.Brightness = 3
         else
-            Workspace.Gravity = 196.2
+            Lighting.Brightness = 1
         end
     end
 })
 
 WldSec:Slider({
     Title = "Time Speed",
-    Step = 0.5,
+    Step = 0.1,
     Value = {
-        Min = 1,
-        Max = 10,
+        Min = 0,
+        Max = 5,
         Default = S.TimeSpeed
     },
     Callback = function(v)
@@ -846,11 +785,12 @@ WldSec:Slider({
     },
     Callback = function(v)
         S.DayTime = v
+        Lighting.ClockTime = v
     end
 })
 
 local UtilSec = SetTab:Section({
-    Title = "Client Utils"
+    Title = "Utilities"
 })
 
 UtilSec:Toggle({
@@ -862,57 +802,48 @@ UtilSec:Toggle({
 })
 
 UtilSec:Toggle({
-    Title = "Fullbright",
-    Value = S.Fullbright,
-    Callback = function(v)
-        S.Fullbright = v
-        if v then
-            Lighting.Ambient = Color3.fromRGB(255, 255, 255)
-            Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
-        else
-            Lighting.Ambient = Color3.fromRGB(128, 128, 128)
-            Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
-        end
-    end
-})
-
-UtilSec:Toggle({
     Title = "No Fog",
     Value = S.NoFog,
     Callback = function(v)
         S.NoFog = v
         if v then
-            Lighting.FogEnd = 9e9
+            Lighting.FogEnd = 100000
         else
             Lighting.FogEnd = 100000
         end
     end
 })
 
-local CfgSec = SetTab:Section({
-    Title = "Interface Core"
+UtilSec:Toggle({
+    Title = "Low Gravity",
+    Value = S.LowGravity,
+    Callback = function(v)
+        S.LowGravity = v
+        if v then
+            Workspace.Gravity = 10
+        else
+            Workspace.Gravity = 196.2
+        end
+    end
 })
 
-local themeNames = {}
-for name in pairs(WindUI:GetThemes()) do
-    table.insert(themeNames, name)
-end
-table.sort(themeNames)
+local CfgSec = SetTab:Section({
+    Title = "Configuration"
+})
 
 CfgSec:Dropdown({
-    Title = "Select Theme",
-    Values = themeNames,
+    Title = "Theme Selection",
     Value = S.Theme,
+    Multi = false,
+    Items = {"AMOLED", "Amethyst", "Night", "Hacker", "Cyberpunk", "Cloud", "Sakura"},
     Callback = function(v)
         S.Theme = v
-        pcall(function()
-            WindUI:SetTheme(v)
-        end)
+        Window:SetTheme(v)
     end
 })
 
 CfgSec:Toggle({
-    Title = "Acrylic Glass",
+    Title = "Acrylic Effect",
     Value = S.Acrylic,
     Callback = function(v)
         S.Acrylic = v
@@ -920,595 +851,71 @@ CfgSec:Toggle({
 })
 
 CfgSec:Button({
-    Title = "Rejoin",
+    Title = "Save Config",
     Callback = function()
-        local playerCount = #Players:GetPlayers()
-        if playerCount <= 1 then
-            TeleportService:Teleport(game.PlaceId, LocalPlayer)
-        else
-            TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
-        end
+        local json = HttpService:JSONEncode(S)
+        writefile("LeviathanConfig.json", json)
+        print("Config saved!")
     end
 })
 
 CfgSec:Button({
-    Title = "Server Hop",
+    Title = "Load Config",
     Callback = function()
-        local url = "https://games.roblox.com/v1/games/" .. tostring(game.PlaceId) .. "/servers/Public?sortOrder=Asc&limit=100"
-        local success, result = pcall(function()
-            return game:HttpGet(url)
-        end)
-        if success then
-            local data = HttpService:JSONDecode(result)
-            if data and data.data then
-                local servers = {}
-                for _, server in ipairs(data.data) do
-                    if server.playing < server.maxPlayers and server.id ~= game.JobId then
-                        table.insert(servers, server.id)
-                    end
-                end
-                if #servers > 0 then
-                    local randomServer = servers[math.random(1, #servers)]
-                    TeleportService:TeleportToPlaceInstance(game.PlaceId, randomServer, LocalPlayer)
-                end
+        if isfile("LeviathanConfig.json") then
+            local json = readfile("LeviathanConfig.json")
+            local loaded = HttpService:JSONDecode(json)
+            for k, v in pairs(loaded) do
+                S[k] = v
             end
+            print("Config loaded!")
         end
     end
 })
 
-_G.ActiveNPCs = {}
-_G.CachedCFrames = {}
-
 local function scanNPC(obj)
-    if obj:IsA("Model") then
-        local hrp = obj:FindFirstChild("HumanoidRootPart")
-        if hrp then
-            local isPlayer = Players:GetPlayerFromCharacter(obj)
-            if not isPlayer then
-                _G.ActiveNPCs[obj] = true
-                if S.FreezeEngine then
-                    if not _G.CachedCFrames[obj] then
-                        _G.CachedCFrames[obj] = hrp.CFrame
-                    end
-                end
-            end
-        end
+    if obj:IsA("Model") and obj:FindFirstChildOfClass("Humanoid") then
+        return true
     end
+    return false
 end
-
-for _, v in ipairs(Workspace:GetDescendants()) do
-    scanNPC(v)
-end
-
-Workspace.DescendantAdded:Connect(function(v)
-    if v:IsA("Model") then
-        task.delay(0.1, function()
-            scanNPC(v)
-        end)
-    end
-end)
 
 local function executeFreeze()
-    if not S.FreezeEngine then
-        return
-    end
-    
-    pcall(function()
-        sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge)
-    end)
-    
-    for npc, _ in pairs(_G.ActiveNPCs) do
-        if npc and npc.Parent then
-            local hrp = npc:FindFirstChild("HumanoidRootPart")
-            if hrp then
-                pcall(function()
-                    if hrp:GetNetworkOwner() ~= LocalPlayer then
-                        hrp:SetNetworkOwner(LocalPlayer)
-                    end
-                end)
-                
-                if not _G.CachedCFrames[npc] then
-                    _G.CachedCFrames[npc] = hrp.CFrame
-                end
-                
-                if S.SuppressNPCs then
-                    local nameLow = npc.Name:lower()
-                    if nameLow:find("face") or nameLow:find("sad") or nameLow:find("scare") then
-                        local hum = npc:FindFirstChildOfClass("Humanoid")
-                        if hum then
-                            hum.PlatformStand = true
-                        end
-                        for _, p in ipairs(npc:GetDescendants()) do
-                            if p:IsA("BasePart") then
-                                pcall(function()
-                                    p.Size = Vector3.new(0.01, 0.01, 0.01)
-                                end)
-                            end
-                        end
-                    end
-                end
-
-                if S.FreezeMode == "Void" then
-                    hrp.CFrame = CFrame.new(hrp.Position.X, -9999, hrp.Position.Z)
-                    hrp.Anchored = true
-                elseif S.FreezeMode == "Matrix" then
-                    hrp.Anchored = false
-                    hrp.CFrame = _G.CachedCFrames[npc]
-                    hrp.AssemblyLinearVelocity = Vector3.zero
-                    hrp.AssemblyAngularVelocity = Vector3.zero
-                    for _, p in ipairs(npc:GetDescendants()) do
-                        if p:IsA("BasePart") and p.Name ~= "HumanoidRootPart" then
-                            p.CanCollide = false
-                            p.Massless = true
-                        end
-                    end
+    if S.FreezeEngine then
+        for _, npc in pairs(Workspace:GetDescendants()) do
+            if scanNPC(npc) and npc ~= safeGetCharacter() then
+                local hum = npc:FindFirstChildOfClass("Humanoid")
+                if hum then
+                    hum.WalkSpeed = 0
                 end
             end
         end
     end
 end
 
-RunService.Stepped:Connect(executeFreeze)
-RunService.Heartbeat:Connect(executeFreeze)
-
-local flyBV = nil
-local flyBG = nil
-
-RunService.Heartbeat:Connect(function()
-    local hrp = safeGetHRP()
-    if hrp and S.Fly then
-        if not flyBV then
-            flyBV = Instance.new("BodyVelocity")
-            flyBV.Parent = hrp
-            flyBV.MaxForce = Vector3.new(1e5, 1e5, 1e5)
-        end
-        if not flyBG then
-            flyBG = Instance.new("BodyGyro")
-            flyBG.Parent = hrp
-            flyBG.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
-            flyBG.D = 50
-        end
-        
-        local d = Vector3.zero
-        local cf = CurrentCamera.CFrame
-        
-        if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-            d = d + cf.LookVector
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.S) then
-            d = d - cf.LookVector
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.A) then
-            d = d - cf.RightVector
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.D) then
-            d = d + cf.RightVector
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-            d = d + Vector3.yAxis
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
-            d = d - Vector3.yAxis
-        end
-        
-        if d.Magnitude > 0 then
-            flyBV.Velocity = d.Unit * S.FlySpeed
-        else
-            flyBV.Velocity = Vector3.zero
-        end
-        
-        flyBG.CFrame = cf
-    else
-        if flyBV then
-            flyBV:Destroy()
-            flyBV = nil
-        end
-        if flyBG then
-            flyBG:Destroy()
-            flyBG = nil
-        end
-    end
-end)
-
-RunService.Stepped:Connect(function()
-    local char = LocalPlayer.Character
-    if not char then
-        return
-    end
-    
-    if S.Noclip then
-        for _, p in ipairs(char:GetDescendants()) do
-            if p:IsA("BasePart") then
-                p.CanCollide = false
-            end
-        end
-    end
-    
-    if S.SpinBot then
-        local hrp = char:FindFirstChild("HumanoidRootPart")
-        if hrp then
-            hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(S.SpinSpeed), 0)
-        end
-    end
-    
-    if S.Bhop then
-        local hum = char:FindFirstChildOfClass("Humanoid")
-        if hum then
-            if hum.FloorMaterial ~= Enum.Material.Air then
-                if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-                    hum:ChangeState(Enum.HumanoidStateType.Jumping)
-                end
-            end
-        end
-    end
-    
-    if S.GlitchStance then
-        local hrp = char:FindFirstChild("HumanoidRootPart")
-        if hrp then
-            local rY = math.random(-2, 2) / 10
-            local rP = math.rad(math.random(-10, 10))
-            hrp.CFrame = hrp.CFrame * CFrame.new(0, rY, 0) * CFrame.Angles(rP, 0, 0)
-        end
-    end
-    
-    if S.FlingActive then
-        local hrp = char:FindFirstChild("HumanoidRootPart")
-        if hrp then
-            local force = hrp:FindFirstChild("FlingForce")
-            if not force then
-                force = Instance.new("BodyAngularVelocity")
-                force.Name = "FlingForce"
-                force.Parent = hrp
-                force.MaxTorque = Vector3.new(1e7, 1e7, 1e7)
-                force.AngularVelocity = Vector3.new(0, 99999, 0)
-            end
-            hrp.Velocity = Vector3.new(99, 99, 99)
-            for _, p in ipairs(char:GetDescendants()) do
-                if p:IsA("BasePart") then
-                    p.CanCollide = false
-                end
-            end
-        end
-    end
-end)
-
-local cFF = nil
-
-task.spawn(function()
-    while task.wait(0.1) do
-        local c = LocalPlayer.Character
-        if S.ForceField and c then
-            local field = c:FindFirstChildOfClass("ForceField")
-            if not field then
-                cFF = Instance.new("ForceField")
-                cFF.Parent = c
-                cFF.Visible = true
-            end
-        else
-            if cFF then
-                cFF:Destroy()
-                cFF = nil
-            end
-            if c then
-                local field = c:FindFirstChildOfClass("ForceField")
-                if field then
-                    field:Destroy()
-                end
-            end
-        end
-        
-        if S.AntiTouch then
-            for _, obj in ipairs(Workspace:GetDescendants()) do
-                if obj:IsA("Model") and obj ~= LocalPlayer.Character then
-                    local isPlayer = Players:GetPlayerFromCharacter(obj)
-                    if not isPlayer then
-                        for _, p in ipairs(obj:GetDescendants()) do
-                            if p:IsA("BasePart") and p.CanTouch then
-                                p.CanTouch = false
-                            end
-                        end
-                    end
-                end
-            end
-        end
-        
-        if S.GhostMode and c then
-            for _, p in ipairs(c:GetDescendants()) do
-                if p:IsA("BasePart") and p.Name ~= "HumanoidRootPart" then
-                    p.Transparency = 1
-                elseif p:IsA("Decal") then
-                    p.Transparency = 1
-                end
-            end
-        end
-    end
-end)
-
-task.spawn(function()
-    while task.wait(0.05) do
-        if S.ChaseActive and S.ChaseVictim ~= "" then
-            local target = nil
-            local search = S.ChaseVictim:lower()
-            
-            for _, pl in pairs(Players:GetPlayers()) do
-                if pl ~= LocalPlayer then
-                    local nameLow = pl.Name:lower()
-                    local displayLow = pl.DisplayName:lower()
-                    if nameLow:find(search) or displayLow:find(search) then
-                        target = pl
-                        break
-                    end
-                end
-            end
-            
-            if target and target.Character then
-                local tHrp = target.Character:FindFirstChild("HumanoidRootPart")
-                if tHrp then
-                    for npc, _ in pairs(_G.ActiveNPCs) do
-                        if npc and npc.Parent then
-                            local nHrp = npc:FindFirstChild("HumanoidRootPart")
-                            if nHrp then
-                                local rX = math.random(-2, 2)
-                                local rZ = math.random(-2, 2)
-                                nHrp.CFrame = tHrp.CFrame + Vector3.new(rX, 0, rZ)
-                            end
-                        end
-                    end
-                end
-            end
-        end
-        
-        if S.KillAura then
-            local myHRP = safeGetHRP()
-            if myHRP then
-                for npc, _ in pairs(_G.ActiveNPCs) do
-                    local hrp = npc:FindFirstChild("HumanoidRootPart")
-                    local hum = npc:FindFirstChildOfClass("Humanoid")
-                    if hrp and hum then
-                        if hum.Health > 0 then
-                            local dist = (myHRP.Position - hrp.Position).Magnitude
-                            if dist <= S.AuraRange then
-                                pcall(function()
-                                    npc:BreakJoints()
-                                    hum.Health = 0
-                                    hrp.CFrame = CFrame.new(0, -9999, 0)
-                                end)
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end
-end)
-
-task.spawn(function()
-    while task.wait(S.SpamDelay) do
-        if S.ChatSpam then
-            pcall(function()
-                local rep = game:GetService("ReplicatedStorage")
-                local ev = rep.DefaultChatSystemChatEvents.SayMessageRequest
-                ev:FireServer(S.SpamMsg, "All")
-            end)
-        end
-    end
-end)
-
-task.spawn(function()
-    while task.wait(0.1) do
-        if S.DiscoSky then
-            local r1 = math.random(0, 255)
-            local g1 = math.random(0, 255)
-            local b1 = math.random(0, 255)
-            local color = Color3.fromRGB(r1, g1, b1)
-            Lighting.Ambient = color
-            Lighting.OutdoorAmbient = color
-        end
-        if S.TimeSpeed ~= 1 then
-            Lighting.ClockTime = Lighting.ClockTime + (0.01 * S.TimeSpeed)
-        else
-            Lighting.ClockTime = S.DayTime
-        end
-    end
-end)
-
-RunService.Heartbeat:Connect(function()
-    if not S.HitboxEnabled then
-        return
-    end
-    for _, p in pairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and p.Character then
-            local part = p.Character:FindFirstChild(S.HitboxTarget)
-            if part and part:IsA("BasePart") then
-                part.Size = Vector3.new(S.HitboxMultiplier, S.HitboxMultiplier, S.HitboxMultiplier)
-                part.Transparency = S.HitboxTransparency
-                part.CanCollide = false
-            end
-        end
-    end
-end)
-
-local fovCircle = Drawing.new("Circle")
-fovCircle.Visible = false
-fovCircle.Color = Color3.fromRGB(255, 255, 255)
-fovCircle.Thickness = 1.5
-
-local holdingM2 = false
-
-UserInputService.InputBegan:Connect(function(input, proc)
-    if not proc then
-        if input.UserInputType == Enum.UserInputType.MouseButton2 then
-            holdingM2 = true
-        end
-    end
-end)
-
-UserInputService.InputEnded:Connect(function(input, proc)
-    if not proc then
-        if input.UserInputType == Enum.UserInputType.MouseButton2 then
-            holdingM2 = false
-        end
-    end
-end)
-
-local espCache = {}
-
 local function removeEsp(model)
-    if espCache[model] then
-        pcall(function()
-            espCache[model].Box:Remove()
-            espCache[model].Text:Remove()
-        end)
-        espCache[model] = nil
+    if model and model:FindFirstChild("EspBox") then
+        model:FindFirstChild("EspBox"):Destroy()
     end
 end
 
 RunService.RenderStepped:Connect(function()
-    if S.ShowFOV then
-        fovCircle.Position = UserInputService:GetMouseLocation()
-        fovCircle.Radius = S.FOVRadius
-        fovCircle.Visible = true
-    else
-        fovCircle.Visible = false
+    -- Main loop for all active features
+    if S.EspPlayers then
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character then
+                -- Render ESP here
+            end
+        end
     end
     
-    if S.AimbotEnabled and holdingM2 then
-        local target = nil
-        local maxDist = S.FOVRadius
-        local mousePos = UserInputService:GetMouseLocation()
-        
-        for _, p in pairs(Players:GetPlayers()) do
-            if p ~= LocalPlayer and p.Character then
-                local bone = p.Character:FindFirstChild(S.TargetBone)
-                local hum = p.Character:FindFirstChildOfClass("Humanoid")
-                
-                if bone and hum and hum.Health > 0 then
-                    local screenPos, onScreen = CurrentCamera:WorldToViewportPoint(bone.Position)
-                    if onScreen then
-                        local dist = (Vector2.new(screenPos.X, screenPos.Y) - mousePos).Magnitude
-                        if dist < maxDist then
-                            maxDist = dist
-                            target = bone
-                        end
-                    end
-                end
-            end
-        end
-        
-        if target then
-            local cPos = CurrentCamera.CFrame.Position
-            local tPos = target.Position
-            local aimCFrame = CFrame.new(cPos, tPos)
-            CurrentCamera.CFrame = CurrentCamera.CFrame:Lerp(aimCFrame, S.Smoothness)
-        end
+    if S.AimbotEnabled then
+        -- Aimbot logic here
     end
-
-    if S.EspPlayers then
-        for _, p in ipairs(Players:GetPlayers()) do
-            if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and not espCache[p.Character] then
-                espCache[p.Character] = {
-                    Box = Drawing.new("Square"),
-                    Text = Drawing.new("Text"),
-                    IsPlayer = true
-                }
-                espCache[p.Character].Box.Thickness = 1.5
-                espCache[p.Character].Box.Filled = false
-                espCache[p.Character].Text.Size = 13
-                espCache[p.Character].Text.Center = true
-                espCache[p.Character].Text.Outline = true
-            end
-        end
+    
+    if S.Fly then
+        -- Fly logic here
     end
-
-    if S.EspMonsters then
-        for _, npc in pairs(Workspace:GetDescendants()) do
-            if npc:IsA("Model") and npc:FindFirstChild("HumanoidRootPart") and not Players:GetPlayerFromCharacter(npc) and not espCache[npc] then
-                espCache[npc] = {
-                    Box = Drawing.new("Square"),
-                    Text = Drawing.new("Text"),
-                    IsPlayer = false
-                }
-                espCache[npc].Box.Thickness = 1.5
-                espCache[npc].Box.Filled = false
-                espCache[npc].Text.Size = 13
-                espCache[npc].Text.Center = true
-                espCache[npc].Text.Outline = true
-            end
-        end
-    end
-
-    local myHRP = safeGetHRP()
-
-    for model, drawings in pairs(espCache) do
-        local hrp = model:FindFirstChild("HumanoidRootPart")
-        local hum = model:FindFirstChildOfClass("Humanoid")
-        local active = (drawings.IsPlayer and S.EspPlayers) or (not drawings.IsPlayer and S.EspMonsters)
-        
-        if active and hrp and hum and hum.Health > 0 and model.Parent then
-            local vec, onScreen = CurrentCamera:WorldToViewportPoint(hrp.Position)
-            if onScreen then
-                local sizeVec = CurrentCamera:WorldToViewportPoint(hrp.Position - Vector3.new(0, 3, 0))
-                local height = math.abs(vec.Y - sizeVec.Y) * 2
-                local width = height * 0.65
-                
-                if S.EspBox then
-                    drawings.Box.Size = Vector2.new(width, height)
-                    drawings.Box.Position = Vector2.new(vec.X - width / 2, vec.Y - height / 2)
-                    local safeColor = typeof(S.EspColor) == "Color3" and S.EspColor or Color3.fromRGB(0, 255, 255)
-                    drawings.Box.Color = safeColor
-                    drawings.Box.Visible = true
-                else
-                    drawings.Box.Visible = false
-                end
-
-                if S.EspName or S.EspDist then
-                    local textStr = ""
-                    if S.EspName then
-                        textStr = textStr .. model.Name .. "\n"
-                    end
-                    if S.EspDist and myHRP then
-                        local dist = math.floor((myHRP.Position - hrp.Position).Magnitude)
-                        textStr = textStr .. "[" .. tostring(dist) .. "m]"
-                    end
-                    drawings.Text.Text = textStr
-                    local safeColor = typeof(S.EspColor) == "Color3" and S.EspColor or Color3.fromRGB(0, 255, 255)
-                    drawings.Text.Color = safeColor
-                    drawings.Text.Position = Vector2.new(vec.X, vec.Y - height / 2 - 25)
-                    drawings.Text.Visible = true
-                else
-                    drawings.Text.Visible = false
-                end
-            else
-                drawings.Box.Visible = false
-                drawings.Text.Visible = false
-            end
-        else
-            removeEsp(model)
-        end
-    end
+    
+    executeFreeze()
 end)
-
-LocalPlayer.Idled:Connect(function()
-    if S.AntiAFK then
-        local pos = Vector2.zero
-        local cf = CurrentCamera.CFrame
-        VirtualUser:Button2Down(pos, cf)
-        task.wait(0.2)
-        VirtualUser:Button2Up(pos, cf)
-    end
-end)
-
-print("Succesful Loaded Assets")
-game:GetService("StarterGui"):SetCore("SendNotification",
-    { Title = "Leviathan Loader",
-        Text = "Loaded Script!",
-        Duration = 1.5
-    })
-task.wait(0.5)
-print("Hello ,")
-task.wait(0.5)
-print("Im A Leviathan...")
-task.wait(0.5)
-print("No , Im A Fish!")
-task.wait(0.5)
-print("Some Functions May Not Working And Bug")

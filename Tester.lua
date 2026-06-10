@@ -200,15 +200,11 @@ local Window = WindUI:CreateWindow({
         StrokeThickness = 2,
         Enabled = true,
         Color = ColorSequence.new(Color3.fromRGB(0, 0, 0), Color3.fromRGB(255, 255, 255))
-    },
-    Topbar = {
-        Height = 44,
-        ButtonsType = "default"
     }
 })
 
 Window:Tag({
-    Title = "Build 0.1",
+    Title = "Build 0.2",
     Color = Color3.fromRGB(150, 150, 150)
 })
 

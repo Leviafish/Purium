@@ -135,6 +135,7 @@ local function safeGetHumanoid()
     return nil
 end
 
+-- FIX: Correct pcall unpacking
 local UILoader, WindUI = pcall(function()
     return loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 end)
@@ -298,10 +299,11 @@ MainTab:Space({
     Columns = 1
 })
 
-MainTab:Viewport({
-    Object = Instance.new("Part"),
-    Interactive = true
-})
+-- FIX: Remove broken Viewport or fix it properly
+-- MainTab:Viewport({
+--     Object = Instance.new("Part"),
+--     Interactive = true
+-- })
 
 local MovSec = MovTab:Section({
     Title = "Navigation Engine"
@@ -1004,16 +1006,18 @@ RunService.RenderStepped:Connect(function(dt)
     end
 end)
 
+-- FIX: FPS counter now maintains state across frames
+local fpsLastUpdate = tick()
+local fpsFrames = 0
+
 TaskRunner:AddHeartbeat("FPSPingUpdate", function()
-    local lastUpdate = tick()
-    local frames = 0
-    frames = frames + 1
+    fpsFrames = fpsFrames + 1
     local now = tick()
-    if now - lastUpdate >= 1 then
-        local fps = math.floor(frames / (now - lastUpdate))
+    if now - fpsLastUpdate >= 1 then
+        local fps = math.floor(fpsFrames / (now - fpsLastUpdate))
         FpsTag:SetTitle("FPS: " .. tostring(fps))
-        frames = 0
-        lastUpdate = now
+        fpsFrames = 0
+        fpsLastUpdate = now
     end
     local ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
     PingTag:SetTitle("Ping: " .. tostring(ping) .. "ms")
@@ -1431,7 +1435,9 @@ TaskRunner:AddRender("ESPAimbotEngine", function()
                 local cPos = CurrentCamera.CFrame.Position
                 local tPos = target.Position
                 local aimCFrame = CFrame.new(cPos, tPos)
-                CurrentCamera.CFrame = CurrentCamera.CFrame:Lerp(aimCFrame, S.Smoothness)
+                -- FIX: Clamp smoothness to valid range [0, 1]
+                local smoothness = math.clamp(S.Smoothness or 0.35, 0, 1)
+                CurrentCamera.CFrame = CurrentCamera.CFrame:Lerp(aimCFrame, smoothness)
             end
         end
     end

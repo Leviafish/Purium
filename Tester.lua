@@ -134,11 +134,21 @@ local function safeGetHumanoid()
 end
 
 local UILoader, WindUI = pcall(function()
-    return WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+    return loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 end)
 
 if not UILoader then
-    LocalPlayer:Kick("Failed to load WindUI.")
+    if LocalPlayer then
+        LocalPlayer:Kick("Failed to load WindUI.")
+    end
+    return
+end
+
+-- Extract the actual UI library from pcall result
+if not WindUI or type(WindUI) ~= "table" then
+    if LocalPlayer then
+        LocalPlayer:Kick("Failed to load WindUI library.")
+    end
     return
 end
 
@@ -234,8 +244,11 @@ end)
 task.spawn(function()
     while task.wait(1) do
         pcall(function()
-            local ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
-            PingTag:SetTitle("Ping: " .. tostring(ping) .. "ms")
+            local statItem = Stats and Stats.Network and Stats.Network.ServerStatsItem and Stats.Network.ServerStatsItem["Data Ping"]
+            if statItem then
+                local ping = math.floor(statItem:GetValue())
+                PingTag:SetTitle("Ping: " .. tostring(ping) .. "ms")
+            end
         end)
     end
 end)

@@ -333,8 +333,17 @@ MainTab:Space({
     Columns = 1
 })
 
+local viewportModel = Instance.new("Model")
+local part = Instance.new("Part")
+part.Shape = Enum.PartType.Ball
+part.Material = Enum.Material.Neon
+part.Color = Color3.fromRGB(0, 255, 255)
+part.Size = Vector3.new(2, 2, 2)
+part.CanCollide = false
+part.Parent = viewportModel
+
 MainTab:Viewport({
-    Object = Instance.new("Part"),
+    Object = viewportModel,
     Interactive = true
 })
 

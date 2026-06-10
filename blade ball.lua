@@ -364,14 +364,28 @@ task.spawn(function()
             if PlayerViewport then
                 if not hasCloned then
                     local charClone = getClonedCharacter()
-                    if charClone then
+                    if charClone and charClone:FindFirstChild("HumanoidRootPart") then
+                        -- Set object to the cloned character
                         PlayerViewport.Object = charClone
                         hasCloned = true
+                        
+                        -- Position the character at origin for better viewport display
                         local hrp = charClone:FindFirstChild("HumanoidRootPart")
                         if hrp then
-                            if PlayerViewport.Camera then
-                                PlayerViewport.Camera.CFrame = CFrame.new(hrp.Position + Vector3.new(0, 3, 8), hrp.Position)
-                            end
+                            hrp.CFrame = CFrame.new(0, 0, 0)
+                        end
+                        
+                        -- Wait a frame for the object to be set, then configure camera
+                        task.wait(0.1)
+                        
+                        if PlayerViewport.Camera then
+                            -- Set camera to look at the character from a good angle
+                            local viewDistance = 5
+                            local viewHeight = 2
+                            PlayerViewport.Camera.CFrame = CFrame.new(
+                                Vector3.new(viewDistance, viewHeight, viewDistance),
+                                Vector3.new(0, 1, 0)
+                            )
                         end
                     end
                 end

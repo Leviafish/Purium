@@ -126,7 +126,7 @@ local function safeGetHumanoid()
 end
 
 local UILoader, WindUI = pcall(function()
-    return loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/main/dist/main.lua"))()
+    return WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 end)
 
 if not UILoader then
@@ -191,9 +191,9 @@ local function RebuildInterface()
     task.wait(0.1)
 
     Window = WindUI:CreateWindow({
-        Title = "Leviathan Hub 0.1",
+        Title = "Leviathan Hub | Insane Elevator | 0.0.1",
         Icon = "solar:compass-big-bold",
-        Author = ".ftgs / ngao-gamer",
+        Author = "UI Libarary | ",
         Folder = "LeviathanHub",
         Theme = S.Theme,
         NewElements = true,

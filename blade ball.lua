@@ -237,6 +237,10 @@ local Window = WindUI:CreateWindow({
         StrokeThickness = 1,
         Enabled = true,
         Color = ColorSequence.new(Color3.fromRGB(20, 20, 20), Color3.fromRGB(240, 240, 240))
+    },
+    Topbar = {
+        Height = 35,
+        ButtonsType = "default"
     }
 })
 
@@ -365,16 +369,38 @@ task.spawn(function()
                         PlayerViewport.Object = charClone
                         hasCloned = true
                         
+                        -- Standardize all parts to SmoothPlastic with zero transparency
+                        for _, part in ipairs(charClone:GetDescendants()) do
+                            if part:IsA("BasePart") then
+                                part.Material = Enum.Material.SmoothPlastic
+                                part.Transparency = 0
+                            end
+                        end
+                        
                         -- Position the character at origin for better viewport display
                         local hrp = charClone:FindFirstChild("HumanoidRootPart")
                         if hrp then
                             hrp.CFrame = CFrame.new(0, 0, 0)
                         end
                         
+                        -- Add PointLight to the character's head for viewport lighting
+                        local head = charClone:FindFirstChild("Head")
+                        if head and not head:FindFirstChild("ViewportLight") then
+                            local light = Instance.new("PointLight")
+                            light.Name = "ViewportLight"
+                            light.Brightness = 2
+                            light.Range = 15
+                            light.Color = Color3.fromRGB(255, 255, 255)
+                            light.Parent = head
+                        end
+                        
                         -- Wait a frame for the object to be set, then configure camera
                         task.wait(0.1)
                         
                         if PlayerViewport.Camera then
+                            -- Set camera type to scriptable for proper control
+                            PlayerViewport.Camera.CameraType = Enum.CameraType.Scriptable
+                            
                             -- Set camera to look at the character from a good angle
                             local viewDistance = 5
                             local viewHeight = 2
@@ -1577,7 +1603,7 @@ task.spawn(function()
                             primaryChannel:SendAsync(S.SpamMsg)
                         end
                     else
-                        local LegacyCommunicationRemote = ReplicatedStorage:FindFirstChild("DefaultChatSystemChatEvents") and ReplicatedStorage.DefaultChatSystemChatEvents:FindFirstChild("SayMessageRequest")
+                        local LegacyCommunicationRemote = ReplicatedStorage:FindFirstChild("DefaultChatSystemChatEvents") and ReplicatedStorage.DefaultChatSystemChatEvents:FindFirstChild("SayMessageRe[...]
                         if LegacyCommunicationRemote then
                             LegacyCommunicationRemote:FireServer(S.SpamMsg, "All")
                         end
@@ -1680,7 +1706,7 @@ EngineTaskRegistry:BindRender("SpatialRasterizationEngine", function()
 
                                 if S.EspHealth then
                                     renderingComponents.HealthBar.From = Vector2.new(translationViewport.X - calculationWidth / 2 - 7, translationViewport.Y + calculationHeight / 2)
-                                    renderingComponents.HealthBar.To = Vector2.new(translationViewport.X - calculationWidth / 2 - 7, translationViewport.Y + calculationHeight / 2 - (calculationHeight * (dynamicHumanoid.Health / dynamicHumanoid.MaxHealth)))
+                                    renderingComponents.HealthBar.To = Vector2.new(translationViewport.X - calculationWidth / 2 - 7, translationViewport.Y + calculationHeight / 2 - (calculationHeight [...]
                                     renderingComponents.HealthBar.Color = Color3.fromRGB(0, 255, 0):Lerp(Color3.fromRGB(255, 0, 0), 1 - (dynamicHumanoid.Health / dynamicHumanoid.MaxHealth))
                                     renderingComponents.HealthBar.Visible = true
                                 else

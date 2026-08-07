@@ -3,7 +3,7 @@
 --  UI: WindUI
 -- ============================================================
 
-local WindUI = loadstring(game:HttpGet("https://github.com/Leviafish/Library-Test/releases/download/wel/main.lua"))()
+local WindUI = loadstring(game:HttpGet("https://github.com/Leviafish/Library-Test/releases/download/lastest/main.lua"))()
 
 local Window = WindUI:CreateWindow({
     Title         = "Build A Plane | KaitoFyp",
@@ -30,6 +30,7 @@ local VirtualUser     = game:GetService("VirtualUser")
 local GuiService      = game:GetService("GuiService")
 local CoreGui         = game:GetService("CoreGui")
 local Lighting        = game:GetService("Lighting")
+local UIS             = game:GetService("UserInputService")
 local LP              = Players.LocalPlayer
 
 -- ── Remotes ──────────────────────────────────────────────────
@@ -120,13 +121,13 @@ local FarmSec = MainTab:Section({ Title = "Cash Farm", Icon = "dollar-sign", Ope
 FarmSec:Slider({
     Title = "Farm Speed",   Desc = "Plane velocity",
     Step = 50, Flag = "FarmSpeed",
-    Value = { Min = 50, Max = 900, Default = 500 },
+    Value = { Min = 50, Max = 1000, Default = 500 },
     Callback = function(v) farmSpeed = v end,
 })
 FarmSec:Slider({
     Title = "Cash Target",  Desc = "Cash per run before return",
     Step = 50, Flag = "CashTarget",
-    Value = { Min = 50, Max = 3000, Default = 500 },
+    Value = { Min = 50, Max = 4000, Default = 500 },
     Callback = function(v) cashTarget = v end,
 })
 FarmSec:Toggle({
@@ -199,7 +200,7 @@ DistSec:Slider({
     Callback = function(v) distSpeed = v end,
 })
 DistSec:Toggle({
-    Title = "Distance Farm", Desc = "Max-speed burst teleports every frame",
+    Title = "Distance Farm", Desc = "Burst teleports +1000 studs every 0.1s",
     Flag = "DistFarm", Value = false,
     Callback = function(enabled)
         _G.BAPActive = enabled
@@ -209,20 +210,24 @@ DistSec:Toggle({
         setFPS(true)
 
         task.spawn(function()
+            -- Mirror original: fire launch, wait 1.1s, then loop bursts
             if LaunchRemote then LaunchRemote:FireServer() end
             task.wait(1)
+            task.wait(0.1)
 
-            -- Teleport seat forward every Heartbeat frame
-            _G.DistLoop = RunService.Heartbeat:Connect(function()
-                if not _G.BAPActive then
-                    _G.DistLoop:Disconnect(); _G.DistLoop = nil
-                    setFPS(false); return
-                end
-                local seat = getSeat(); if not seat then return end
-                seat.CFrame                  = CFrame.new(seat.Position.X + 500, 500, -325)
-                seat.AssemblyLinearVelocity  = Vector3.new(distSpeed, 0, 0)
-                seat.AssemblyAngularVelocity = Vector3.zero
-            end)
+            while _G.BAPActive do
+                pcall(function()
+                    local seat = getSeat()
+                    if not seat then task.wait(1); return end
+
+                    -- Original method: jump +1000 X, slam velocity forward
+                    seat.CFrame                  = CFrame.new(seat.Position.X + 1000, 500, -325)
+                    seat.AssemblyLinearVelocity  = Vector3.new(distSpeed, 0, 0)
+                    seat.AssemblyAngularVelocity = Vector3.zero
+                end)
+                task.wait(0.1)  -- original burst interval
+            end
+            setFPS(false)
         end)
     end,
 })
@@ -243,21 +248,40 @@ FlySec:Slider({
     Callback = function(v) flySpeed = v end,
 })
 FlySec:Toggle({
-    Title = "Enable Manual Fly", Desc = "Fly plane with throttle + camera dir",
+    Title = "Enable Manual Fly", Desc = "WASD = move, Space = up, Ctrl = down",
     Flag = "ManualFly", Value = false,
     Callback = function(enabled)
         if _G.FlyLoop then _G.FlyLoop:Disconnect(); _G.FlyLoop = nil end
         if not enabled then return end
 
+        -- Mirror original: wait one RenderStepped before starting
+        RunService.RenderStepped:Wait()
+
         _G.FlyLoop = RunService.RenderStepped:Connect(function()
             local seat = getSeat()
             if not seat or not seat:IsA("VehicleSeat") then return end
-            local cam      = workspace.CurrentCamera
-            local throttle = seat.ThrottleFloat
-            local steer    = seat.SteerFloat
-            local dir      = (cam.CFrame.LookVector * throttle) + (cam.CFrame.RightVector * steer)
+
+            local cam    = workspace.CurrentCamera
+            local look   = cam.CFrame.LookVector
+            local right  = cam.CFrame.RightVector
+
+            -- Build direction from real key states (ThrottleFloat/SteerFloat
+            -- are unreliable — we read keys directly like the original intended)
+            local dir = Vector3.zero
+            if UIS:IsKeyDown(Enum.KeyCode.W) then dir += Vector3.new(look.X, 0, look.Z) end
+            if UIS:IsKeyDown(Enum.KeyCode.S) then dir -= Vector3.new(look.X, 0, look.Z) end
+            if UIS:IsKeyDown(Enum.KeyCode.A) then dir -= Vector3.new(right.X, 0, right.Z) end
+            if UIS:IsKeyDown(Enum.KeyCode.D) then dir += Vector3.new(right.X, 0, right.Z) end
+            if UIS:IsKeyDown(Enum.KeyCode.Space)       then dir += Vector3.new(0, 1, 0) end
+            if UIS:IsKeyDown(Enum.KeyCode.LeftControl) then dir -= Vector3.new(0, 1, 0) end
+
             if dir.Magnitude > 0.01 then
-                seat.AssemblyLinearVelocity = dir.Unit * flySpeed
+                -- Apply camera-relative velocity — same math as original's LookVector * Throttle + RightVector * Steer
+                seat.AssemblyLinearVelocity  = dir.Unit * flySpeed
+                seat.AssemblyAngularVelocity = Vector3.zero
+            else
+                -- Bleed off velocity smoothly when no input
+                seat.AssemblyLinearVelocity = seat.AssemblyLinearVelocity * 0.85
             end
         end)
     end,

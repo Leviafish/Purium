@@ -3,6 +3,7 @@
 ---------------------------------------------
 print("Loading script maybe take a few seconds to complete")
 game:GetService("StarterGui"):SetCore("SendNotification", { Title = "Purium On Top!", Text = "Loading Script...", Duration = 3 })
+game:GetService("StarterGui"):SetCore("SendNotification", { Title = "IMPORTANT !", Text = "SBSD NOW DEVS ARE REGULARY IN PUBLIC SERVER YOU BETTER NOT ENABLE AUTO FARM IN THE LOBBY BECAUSE IT WILL TELEPORT AND DEVS WILL NOITCE YOU CHEATING ! ( ONLY ENABLE WHEN IN-GAME )", Duration = 3 })
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 local Window = WindUI:CreateWindow({
     Title = "Purium Hub [By @hlck49] | SBSD |", Icon = "door-open", Author = "Version : 0.0.3", Folder = "Purium_SBSD",
